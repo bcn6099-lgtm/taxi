@@ -14,7 +14,7 @@
             --accent-primary: #00d9ff; --accent-secondary: #7b61ff;
             --text-primary: #e8edf4; --text-secondary: #9ba3b4;
             --text-muted: #6b7280; --border: #2a3142;
-            --success: #10b981; --error: #ef4444; --warning: #f59e0b;
+            --success: #10b981; --warning: #f59e0b; --error: #ef4444;
         }
         
         body { font-family: 'Archivo', sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; padding-bottom: 50px; }
@@ -24,15 +24,14 @@
         h1 { font-size: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .tabs-container { margin-bottom: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 0.5rem; display: flex; gap: 0.5rem; }
-        .tab-button { flex: 1; padding: 0.875rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; border-radius: 12px; transition: 0.3s; }
+        .tab-button { flex: 1; padding: 0.875rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; border-radius: 12px; }
         .tab-button.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; }
         
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
 
         .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; transition: 0.3s; }
-        .stat-card:hover { border-color: var(--accent-primary); transform: translateY(-3px); }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
         .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
         .stat-value { font-size: 1.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
         .stat-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px; }
@@ -42,7 +41,7 @@
         
         .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
         table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; background: var(--bg-secondary); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        th { text-align: left; padding: 15px; background: var(--bg-secondary); color: var(--text-muted); font-size: 0.8rem; }
         td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
         .day-col { color: var(--accent-primary); font-weight: 600; }
 
@@ -52,7 +51,7 @@
         .filter-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
         input, select { background: var(--bg-secondary); border: 1px solid var(--border); color: white; padding: 0.6rem; border-radius: 8px; }
 
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
@@ -70,21 +69,19 @@
         <div class="tabs-container">
             <button class="tab-button active" onclick="switchTab('month', event)">Mes Actual</button>
             <button class="tab-button" onclick="switchTab('all', event)">Històric</button>
-            <button class="tab-button" onclick="switchTab('comp', event)">Comparativa</button>
         </div>
 
         <div id="tab-month" class="tab-content active">
-            <div class="stats-grid" id="mStats">
-                </div>
+            <div class="stats-grid" id="mStats"></div>
             
             <div class="section">
-                <h3 style="margin-bottom:1rem">Registrar Nova Jornada</h3>
-                <form onsubmit="addEntry(event)" style="display:flex; gap:1rem; flex-wrap:wrap">
+                <h3>Introduir Jornada</h3>
+                <form onsubmit="addEntry(event)" style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem">
                     <input type="date" id="f_date" required>
                     <input type="number" id="f_ing" placeholder="Ingressos €" step="0.01" required style="flex:1">
                     <input type="number" id="f_serv" placeholder="Serveis" required style="width:100px">
                     <input type="number" id="f_h" placeholder="Hores" step="0.1" style="width:100px">
-                    <button type="submit" class="btn btn-primary">Guardar Dia</button>
+                    <button type="submit" class="btn btn-primary">Afegir</button>
                 </form>
             </div>
 
@@ -103,27 +100,18 @@
                 <div class="filter-bar">
                     <button class="btn" onclick="filterQuick(7)">7 dies</button>
                     <button class="btn" onclick="filterQuick(30)">30 dies</button>
-                    <button class="btn" onclick="filterQuick(90)">90 dies</button>
                     <select id="selYear" onchange="filterComplex()"></select>
                     <select id="selMonth" onchange="filterComplex()"></select>
                     <button class="btn" onclick="resetFilters()">Tots</button>
                 </div>
                 <div class="chart-box"><canvas id="mainChart"></canvas></div>
-            </div>
-            <div class="section">
                 <div class="table-wrapper">
                     <table id="hTable">
-                        <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>Accions</th></tr></thead>
+                        <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Hores</th><th>Accions</th></tr></thead>
                         <tbody></tbody>
                     </table>
                 </div>
                 <div id="pag" class="filter-bar" style="justify-content:center; margin-top:1.5rem"></div>
-            </div>
-        </div>
-
-        <div id="tab-comp" class="tab-content">
-            <div class="section">
-                <div class="chart-box"><canvas id="compChart"></canvas></div>
             </div>
         </div>
     </div>
@@ -134,17 +122,23 @@
         let curPage = 1;
         const perPage = 15;
         const diasArr = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
+        let myChart = null;
 
+        // FUNCIÓN CRÍTICA: Carga inicial
         async function init() {
-            const local = localStorage.getItem('taxiData');
-            if (local) {
-                allData = JSON.parse(local);
-            } else {
-                try {
+            try {
+                const local = localStorage.getItem('taxiData');
+                if (local && local !== "[]") {
+                    allData = JSON.parse(local);
+                } else {
                     const res = await fetch('datos_taxi.json');
-                    if (res.ok) allData = await res.json();
-                } catch(e) { console.warn("No s'ha pogut carregar datos_taxi.json"); }
-            }
+                    if (res.ok) {
+                        allData = await res.json();
+                        localStorage.setItem('taxiData', JSON.stringify(allData));
+                    }
+                }
+            } catch(e) { console.error("Error inicialitzant dades", e); }
+            
             sort();
             fillSelectors();
             updateUI();
@@ -170,36 +164,20 @@
             const projeccio = mitjanaDiaria * 21;
 
             document.getElementById('mStats').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Total Mes</div>
-                    <div class="stat-value">${Math.round(total).toLocaleString()}€</div>
-                    <div class="stat-sub">${hores.toFixed(1)} hores totals</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">Mitjana Hora</div>
-                    <div class="stat-value">${hores ? (total/hores).toFixed(2) : 0}€</div>
-                    <div class="stat-sub">Rendiment real</div>
-                </div>
-                <div class="stat-card" style="border-left: 4px solid var(--accent-secondary)">
-                    <div class="stat-label">Mitjana Diària</div>
-                    <div class="stat-value">${mitjanaDiaria.toFixed(1)}€</div>
-                    <div class="stat-sub">Basat en ${diesTreballats} dies</div>
-                </div>
-                <div class="stat-card" style="border-left: 4px solid var(--success)">
-                    <div class="stat-label">Projecció Mensual</div>
-                    <div class="stat-value" style="color:var(--success)">${Math.round(projeccio).toLocaleString()}€</div>
-                    <div class="stat-sub">Estimació (x21 dies)</div>
-                </div>
+                <div class="stat-card"><div class="stat-label">Total Mes</div><div class="stat-value">${total.toFixed(0)}€</div></div>
+                <div class="stat-card"><div class="stat-label">Mitjana Hora</div><div class="stat-value">${hores ? (total/hores).toFixed(2) : 0}€</div></div>
+                <div class="stat-card"><div class="stat-label">Mitjana Diària</div><div class="stat-value">${mitjanaDiaria.toFixed(1)}€</div></div>
+                <div class="stat-card" style="border-color:var(--success)"><div class="stat-label">Projecció (x21)</div><div class="stat-value" style="color:var(--success)">${projeccio.toFixed(0)}€</div></div>
             `;
 
             document.getElementById('mTable').innerHTML = mData.map(d => `
                 <tr>
                     <td>${d.fecha}</td>
                     <td class="day-col">${diasArr[new Date(d.fecha).getDay()]}</td>
-                    <td style="font-weight:700">${d.ingresos_dia.toFixed(2)}€</td>
+                    <td>${d.ingresos_dia.toFixed(2)}€</td>
                     <td>${d.servicios_dia}</td>
                     <td>${d.horas_trabajadas || 0}h</td>
-                    <td style="color:var(--accent-primary)">${d.horas_trabajadas ? (d.ingresos_dia/d.horas_trabajadas).toFixed(2) : 0}€/h</td>
+                    <td>${d.horas_trabajadas ? (d.ingresos_dia/d.horas_trabajadas).toFixed(2) : 0}€/h</td>
                 </tr>
             `).join('');
         }
@@ -207,13 +185,11 @@
         function renderHistory() {
             const start = (curPage-1)*perPage;
             const paginated = filteredData.slice(start, start+perPage);
-            
             document.querySelector('#hTable tbody').innerHTML = paginated.map(d => `
                 <tr>
                     <td>${d.fecha}</td>
                     <td class="day-col">${diasArr[new Date(d.fecha).getDay()]}</td>
                     <td>${d.ingresos_dia.toFixed(2)}€</td>
-                    <td>${d.servicios_dia}</td>
                     <td>${d.horas_trabajadas || 0}h</td>
                     <td><button class="btn" onclick="del('${d.fecha}')">🗑️</button></td>
                 </tr>
@@ -221,53 +197,61 @@
 
             const totalP = Math.ceil(filteredData.length / perPage) || 1;
             document.getElementById('pag').innerHTML = `
-                <button class="btn" onclick="curPage--;renderHistory()" ${curPage===1?'disabled':''}>Anterior</button>
-                <span style="color:var(--text-muted)">Pàgina ${curPage} de ${totalP}</span>
-                <button class="btn" onclick="curPage++;renderHistory()" ${curPage===totalP?'disabled':''}>Següent</button>
+                <button class="btn" onclick="changePage(-1)" ${curPage===1?'disabled':''}>Ant.</button>
+                <span>${curPage} / ${totalP}</span>
+                <button class="btn" onclick="changePage(1)" ${curPage===totalP?'disabled':''}>Seg.</button>
             `;
-            drawMain();
+            drawChart();
+        }
+
+        function changePage(n) { curPage += n; renderHistory(); }
+
+        function drawChart() {
+            const ctx = document.getElementById('mainChart').getContext('2d');
+            const dataPlot = [...filteredData].reverse().slice(-20);
+            if(myChart) myChart.destroy();
+            myChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: dataPlot.map(d => d.fecha.substring(8,10)),
+                    datasets: [{ label:'Ingressos', data: dataPlot.map(d=>d.ingresos_dia), backgroundColor:'#00d9ff' }]
+                },
+                options: { responsive:true, maintainAspectRatio:false }
+            });
         }
 
         function fillSelectors() {
             const years = [...new Set(allData.map(d => d.fecha.substring(0,4)))].sort().reverse();
-            const ySel = document.getElementById('selYear');
-            ySel.innerHTML = '<option value="">Any</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
-            
-            const months = ["Gener","Febrer","Març","Abril","Maig","Juny","Julio","Agost","Setembre","Octubre","Novembre","Desembre"];
-            document.getElementById('selMonth').innerHTML = '<option value="">Mes</option>' + months.map((m,i) => `<option value="${(i+1).toString().padStart(2,'0')}">${m}</option>`).join('');
+            document.getElementById('selYear').innerHTML = '<option value="">Any</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+            const ms = ["Gen","Feb","Mar","Abr","Mai","Jun","Jul","Ago","Set","Oct","Nov","Des"];
+            document.getElementById('selMonth').innerHTML = '<option value="">Mes</option>' + ms.map((m,i) => `<option value="${(i+1).toString().padStart(2,'0')}">${m}</option>`).join('');
         }
 
         function filterQuick(n) {
-            const limit = new Date();
-            limit.setDate(limit.getDate() - n);
+            const limit = new Date(); limit.setDate(limit.getDate() - n);
             filteredData = allData.filter(d => new Date(d.fecha) >= limit);
-            curPage = 1;
-            renderHistory();
+            curPage = 1; renderHistory();
         }
 
         function filterComplex() {
             const y = document.getElementById('selYear').value;
             const m = document.getElementById('selMonth').value;
-            filteredData = allData.filter(d => {
-                const matchY = y ? d.fecha.startsWith(y) : true;
-                const matchM = m ? d.fecha.substring(5,7) === m : true;
-                return matchY && matchM;
-            });
-            curPage = 1;
-            renderHistory();
+            filteredData = allData.filter(d => (!y || d.fecha.startsWith(y)) && (!m || d.fecha.substring(5,7) === m));
+            curPage = 1; renderHistory();
         }
 
         function resetFilters() { filteredData = [...allData]; curPage = 1; renderHistory(); }
 
-        let chartM = null;
-        function drawMain() {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            const dataPlot = [...filteredData].reverse().slice(-30);
-            if(chartM) chartM.destroy();
-            chartM = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: dataPlot.map(d => d.fecha.substring(8,10)),
-                    datasets: [{ label:'Ingressos', data: dataPlot.map(d=>d.ingresos_dia), backgroundColor:'#00d9ff', borderRadius: 4 }]
-                },
-                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{
+        function addEntry(e) {
+            e.preventDefault();
+            const d = {
+                fecha: document.getElementById('f_date').value,
+                ingresos_dia: parseFloat(document.getElementById('f_ing').value),
+                servicios_dia: parseInt(document.getElementById('f_serv').value),
+                horas_trabajadas: parseFloat(document.getElementById('f_h').value || 0)
+            };
+            allData = allData.filter(x => x.fecha !== d.fecha);
+            allData.push(d);
+            sort();
+            localStorage.setItem('taxiData', JSON.stringify(allData));
+            updateUI();
