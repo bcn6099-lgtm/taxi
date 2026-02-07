@@ -3,255 +3,2153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Facturació Taxi Pro</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <title>Panel de Facturació</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
         
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root {
-            --bg-primary: #0a0e1a; --bg-secondary: #141827; --bg-card: #1a1f33;
-            --accent-primary: #00d9ff; --accent-secondary: #7b61ff;
-            --text-primary: #e8edf4; --text-secondary: #9ba3b4;
-            --text-muted: #6b7280; --border: #2a3142;
-            --success: #10b981; --warning: #f59e0b; --error: #ef4444;
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
         }
         
-        body { font-family: 'Archivo', sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; padding-bottom: 50px; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; position: relative; }
+        :root {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #141827;
+            --bg-card: #1a1f33;
+            --accent-primary: #00d9ff;
+            --accent-secondary: #7b61ff;
+            --accent-tertiary: #ff6b9d;
+            --text-primary: #e8edf4;
+            --text-secondary: #9ba3b4;
+            --text-muted: #6b7280;
+            --border: #2a3142;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --error: #ef4444;
+        }
         
-        header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
-        h1 { font-size: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-        .tabs-container { margin-bottom: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 0.5rem; display: flex; gap: 0.5rem; }
-        .tab-button { flex: 1; padding: 0.875rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; border-radius: 12px; }
-        .tab-button.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; }
+        body {
+            font-family: 'Archivo', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
         
-        .tab-content { display: none; }
-        .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
-
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; }
-        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-        .stat-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px; }
-
-        .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
-        .chart-box { height: 350px; width: 100%; margin: 1rem 0; }
+        .background-gradient {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                radial-gradient(circle at 20% 20%, rgba(0, 217, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(123, 97, 255, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 50% 50%, rgba(255, 107, 157, 0.05) 0%, transparent 60%);
+            pointer-events: none;
+            z-index: 0;
+        }
         
-        .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
-        table { width: 100%; border-collapse: collapse; }
-        th { text-align: left; padding: 15px; background: var(--bg-secondary); color: var(--text-muted); font-size: 0.8rem; }
-        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .day-col { color: var(--accent-primary); font-weight: 600; }
-
-        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: white; cursor: pointer; font-weight: 600; }
-        .btn-primary { background: var(--accent-primary); color: var(--bg-primary); border: none; }
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 1000;
+        }
         
-        .filter-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
-        input, select { background: var(--bg-secondary); border: 1px solid var(--border); color: white; padding: 0.6rem; border-radius: 8px; }
+        .spinner {
+            width: 50px;
+            height: 50px;
+            border: 4px solid var(--border);
+            border-top-color: var(--accent-primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+            position: relative;
+            z-index: 1;
+            display: none;
+        }
+        
+        .container.loaded {
+            display: block;
+        }
+        
+        header {
+            margin-bottom: 2rem;
+            animation: slideDown 0.6s ease-out;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
 
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .header-left {
+            flex: 1;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 0.75rem;
+            align-items: center;
+        }
+
+        .json-btn {
+            padding: 0.75rem 1.25rem;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-primary);
+            font-family: 'Archivo', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .json-btn:hover {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-color: transparent;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+        }
+
+        .json-btn svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        #importFileInput {
+            display: none;
+        }
+        
+        h1 {
+            font-size: 3rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            margin-bottom: 0.5rem;
+            letter-spacing: -0.02em;
+            cursor: pointer;
+            display: inline-block;
+            transition: transform 0.3s ease;
+        }
+
+        h1:hover {
+            transform: scale(1.02);
+        }
+        
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 400;
+        }
+
+        /* TABS STYLES */
+        .tabs-container {
+            margin-bottom: 2rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 0.5rem;
+            display: flex;
+            gap: 0.5rem;
+            animation: fadeInUp 0.6s ease-out;
+            flex-wrap: wrap;
+        }
+
+        .tab-button {
+            flex: 1;
+            min-width: 150px;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-family: 'Archivo', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .tab-button:hover {
+            color: var(--text-primary);
+            background: rgba(0, 217, 255, 0.05);
+        }
+
+        .tab-button.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            color: white;
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+        }
+
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .dashboard {
+            display: grid;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            animation: fadeInUp 0.6s ease-out backwards;
+        }
+        
+        .stat-card:nth-child(1) { animation-delay: 0.1s; }
+        .stat-card:nth-child(2) { animation-delay: 0.2s; }
+        .stat-card:nth-child(3) { animation-delay: 0.3s; }
+        .stat-card:nth-child(4) { animation-delay: 0.4s; }
+        .stat-card:nth-child(5) { animation-delay: 0.5s; }
+        
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-primary);
+        }
+
+        .stat-card.clickable {
+            cursor: pointer;
+        }
+
+        .stat-card.clickable:active {
+            transform: translateY(-2px);
+        }
+        
+        .stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+        
+        .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-change {
+            font-size: 0.875rem;
+            display: flex;
+            align-items: center;
+            gap: 0.25rem;
+        }
+        
+        .stat-change.positive {
+            color: var(--success);
+        }
+        
+        .stat-change.negative {
+            color: var(--error);
+        }
+        
+        .chart-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            animation: fadeInUp 0.6s ease-out 0.3s backwards;
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        
+        .chart-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+        
+        .controls {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        select, input[type="date"], input[type="number"], input[type="text"] {
+            padding: 0.75rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Archivo', sans-serif;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        select:hover, input:hover {
+            border-color: var(--accent-primary);
+        }
+        
+        select:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 3px rgba(0, 217, 255, 0.1);
+        }
+        
+        button {
+            padding: 0.75rem 1.5rem;
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border: none;
+            border-radius: 10px;
+            color: white;
+            font-family: 'Archivo', sans-serif;
+            font-weight: 600;
+            font-size: 0.95rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 217, 255, 0.3);
+        }
+        
+        button:active {
+            transform: translateY(0);
+        }
+        
+        button.secondary {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        button.secondary:hover {
+            background: var(--bg-card);
+            border-color: var(--accent-primary);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.95rem;
+        }
+        
+        thead {
+            background: var(--bg-secondary);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+        
+        th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            letter-spacing: 0.05em;
+            border-bottom: 2px solid var(--border);
+        }
+        
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        tr:hover {
+            background: rgba(0, 217, 255, 0.05);
+        }
+        
+        .action-btn {
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+        }
+        
+        .action-btn:hover {
+            background: var(--error);
+            border-color: var(--error);
+            color: white;
+        }
+        
+        .pagination {
+            display: flex;
+            gap: 0.5rem;
+            justify-content: center;
+            margin-top: 2rem;
+            flex-wrap: wrap;
+        }
+        
+        .page-btn {
+            min-width: 40px;
+            padding: 0.5rem 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+        }
+        
+        .page-btn.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-color: transparent;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+        
+        label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            margin-bottom: 1rem;
+            animation: fadeIn 0.3s ease-out;
+            border-left: 4px solid;
+        }
+        
+        .alert-success {
+            background: rgba(16, 185, 129, 0.1);
+            border-color: var(--success);
+            color: var(--success);
+        }
+        
+        .alert-error {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: var(--error);
+            color: var(--error);
+        }
+        
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .highlight {
+            color: var(--accent-primary);
+            font-weight: 600;
+        }
+
+        .month-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .month-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .month-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+            border-color: var(--accent-primary);
+        }
+
+        .month-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 1rem;
+        }
+
+        .month-stats {
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+
+        .month-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .month-stat-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+        }
+
+        .month-stat-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        canvas {
+            max-height: 400px;
+        }
+
+        .comparison-selector {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .comparison-option {
+            padding: 0.75rem 1.25rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            color: var(--text-primary);
+            font-family: 'Archivo', sans-serif;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .comparison-option:hover {
+            border-color: var(--accent-primary);
+            background: rgba(0, 217, 255, 0.05);
+        }
+
+        .comparison-option.active {
+            background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+            border-color: transparent;
+            color: white;
+        }
+
+        .custom-dates {
+            display: none;
+            gap: 1rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .custom-dates.active {
+            display: flex;
+        }
+
+        .chart-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 1000;
+            padding: 2rem;
+            overflow-y: auto;
+        }
+
+        .chart-modal.active {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease-out;
+        }
+
+        .chart-modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 2rem;
+            max-width: 1200px;
+            width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .chart-modal-close {
+            position: absolute;
+            top: 1rem;
+            right: 1rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            font-size: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        .chart-modal-close:hover {
+            background: var(--error);
+            border-color: var(--error);
+            transform: rotate(90deg);
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .header-right {
+                width: 100%;
+                justify-content: flex-start;
+            }
+
+            .json-btn {
+                flex: 1;
+                justify-content: center;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .chart-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+            
+            .controls {
+                width: 100%;
+            }
+            
+            select, input {
+                width: 100%;
+            }
+        }
     </style>
 </head>
 <body>
-
-    <div class="container">
+    <div class="background-gradient"></div>
+    
+    <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <p>Carregant dades...</p>
+    </div>
+    
+    <div class="container" id="mainContainer">
         <header>
-            <h1>🚖 Taxi Stats Pro</h1>
-            <div style="display:flex; gap:0.5rem">
-                <button class="btn" onclick="exportData()">Desar JSON</button>
-                <input type="file" id="fileIn" style="display:none" onchange="importData(event)">
-                <button class="btn" onclick="document.getElementById('fileIn').click()">Importar</button>
+            <div class="header-left">
+                <h1 onclick="switchTab('dashboard')">Facturació Taxi</h1>
+                <p class="subtitle">Panel de control i anàlisi</p>
+            </div>
+            <div class="header-right">
+                <button class="json-btn" onclick="exportJSON()" title="Exportar dades">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                    </svg>
+                    Exportar JSON
+                </button>
+                <button class="json-btn" onclick="document.getElementById('importFileInput').click()" title="Importar dades">
+                    <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L9 8m4-4v12"/>
+                    </svg>
+                    Importar JSON
+                </button>
+                <input type="file" id="importFileInput" accept=".json" onchange="importJSON(event)" />
             </div>
         </header>
 
         <div class="tabs-container">
-            <button class="tab-button active" onclick="switchTab('month', event)">Mes Actual</button>
-            <button class="tab-button" onclick="switchTab('all', event)">Històric</button>
+            <button class="tab-button active" onclick="switchTab('dashboard')">Dashboard</button>
+            <button class="tab-button" onclick="switchTab('monthly')">Per Mesos</button>
+            <button class="tab-button" onclick="switchTab('all')">Tots els Dies</button>
+            <button class="tab-button" onclick="switchTab('comparison')">Comparativa</button>
+            <button class="tab-button" onclick="switchTab('add')">Afegir Dia</button>
         </div>
 
-        <div id="tab-month" class="tab-content active">
-            <div class="stats-grid" id="mStats"></div>
-            
-            <div class="section">
-                <h3>Introduir Jornada</h3>
-                <form onsubmit="addEntry(event)" style="display:flex; gap:1rem; flex-wrap:wrap; margin-top:1rem">
-                    <input type="date" id="f_date" required>
-                    <input type="number" id="f_ing" placeholder="Ingressos €" step="0.01" required style="flex:1">
-                    <input type="number" id="f_serv" placeholder="Serveis" required style="width:100px">
-                    <input type="number" id="f_h" placeholder="Hores" step="0.1" style="width:100px">
-                    <button type="submit" class="btn btn-primary">Afegir</button>
+        <!-- DASHBOARD TAB -->
+        <div id="dashboardTab" class="tab-content active">
+            <div class="dashboard">
+                <div class="stats-grid" id="currentMonthStats"></div>
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Evolució Mensual</h2>
+                        <div class="controls">
+                            <select id="monthsFilter" onchange="updateAllViews()">
+                                <option value="3">Últims 3 mesos</option>
+                                <option value="6">Últims 6 mesos</option>
+                                <option value="9">Últims 9 mesos</option>
+                                <option value="12" selected>Últims 12 mesos</option>
+                                <option value="18">Últims 18 mesos</option>
+                                <option value="24">Últims 24 mesos</option>
+                                <option value="36">Últims 36 mesos</option>
+                                <option value="48">Últims 48 mesos</option>
+                                <option value="72">Últims 72 mesos</option>
+                            </select>
+                        </div>
+                    </div>
+                    <canvas id="monthlyChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMPARISON TAB -->
+        <div id="comparisonTab" class="tab-content">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Evolució Mensual Comparativa</h2>
+                </div>
+                
+                <div class="comparison-selector">
+                    <button class="comparison-option active" onclick="selectComparisonPeriod('1m')">Últim mes</button>
+                    <button class="comparison-option" onclick="selectComparisonPeriod('3m')">Últims 3 mesos</button>
+                    <button class="comparison-option" onclick="selectComparisonPeriod('6m')">Últims 6 mesos</button>
+                    <button class="comparison-option" onclick="selectComparisonPeriod('12m')">Últims 12 mesos</button>
+                    <button class="comparison-option" onclick="selectComparisonPeriod('custom')">Personalitzat</button>
+                </div>
+
+                <div class="custom-dates" id="customDatesContainer">
+                    <div class="form-group">
+                        <label>Número de mesos</label>
+                        <input type="number" id="customMonths" min="1" max="60" value="6" />
+                    </div>
+                    <button onclick="compareCustomPeriods()">Aplicar</button>
+                </div>
+
+                <div id="comparisonResults">
+                    <div class="chart-container" style="margin-top: 2rem;">
+                        <h3 class="chart-title" style="font-size: 1.2rem; margin-bottom: 1rem;">Ingressos Totals per Mes</h3>
+                        <canvas id="comparisonChartIngresos"></canvas>
+                    </div>
+
+                    <div class="chart-container" style="margin-top: 2rem;">
+                        <h3 class="chart-title" style="font-size: 1.2rem; margin-bottom: 1rem;">Mitjana per Servei</h3>
+                        <canvas id="comparisonChartServicio"></canvas>
+                    </div>
+
+                    <div class="chart-container" style="margin-top: 2rem;">
+                        <h3 class="chart-title" style="font-size: 1.2rem; margin-bottom: 1rem;">Mitjana per Hora</h3>
+                        <canvas id="comparisonChartHora"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- MONTHLY TAB -->
+        <div id="monthlyTab" class="tab-content">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Resum per Mesos</h2>
+                    <div class="controls">
+                        <select id="yearFilterMonthly" onchange="updateMonthlyView()">
+                            <option value="all">Tots els anys</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="month-grid" id="monthlyGrid"></div>
+            </div>
+
+            <div class="chart-container" style="margin-top: 2rem;">
+                <h3 class="chart-title" style="margin-bottom: 1.5rem;">Afegir/Editar Dia</h3>
+                <form id="addDayFormMonth" onsubmit="addNewDay(event, 'month')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="fechaMonth">Data</label>
+                            <input type="date" id="fechaMonth" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ingresosMonth">Ingressos (€)</label>
+                            <input type="number" id="ingresosMonth" step="0.05" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="serviciosMonth">Serveis</label>
+                            <input type="number" id="serviciosMonth" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="horasMonth">Hores (opcional)</label>
+                            <input type="number" id="horasMonth" step="0.1">
+                        </div>
+                    </div>
+                    <button type="submit">Guardar Dia</button>
                 </form>
-            </div>
-
-            <div class="section">
-                <div class="table-wrapper">
-                    <table>
-                        <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>€/Hora</th></tr></thead>
-                        <tbody id="mTable"></tbody>
-                    </table>
-                </div>
+                <div id="alertContainerMonth"></div>
             </div>
         </div>
 
-        <div id="tab-all" class="tab-content">
-            <div class="section">
-                <div class="filter-bar">
-                    <button class="btn" onclick="filterQuick(7)">7 dies</button>
-                    <button class="btn" onclick="filterQuick(30)">30 dies</button>
-                    <select id="selYear" onchange="filterComplex()"></select>
-                    <select id="selMonth" onchange="filterComplex()"></select>
-                    <button class="btn" onclick="resetFilters()">Tots</button>
+        <!-- ALL DATA TAB -->
+        <div id="allTab" class="tab-content">
+            <div class="chart-container">
+                <div class="chart-header">
+                    <h2 class="chart-title">Tots els Dies</h2>
+                    <div class="controls">
+                        <select id="viewMode" onchange="updateAllDataView()">
+                            <option value="days">Per dies</option>
+                            <option value="last30">Últims 30 dies</option>
+                            <option value="last60">Últims 60 dies</option>
+                            <option value="last90">Últims 90 dies</option>
+                            <option value="last120">Últims 120 dies</option>
+                        </select>
+                        <button onclick="exportToCSV()" class="secondary">Exportar CSV</button>
+                    </div>
                 </div>
-                <div class="chart-box"><canvas id="mainChart"></canvas></div>
-                <div class="table-wrapper">
-                    <table id="hTable">
-                        <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Hores</th><th>Accions</th></tr></thead>
-                        <tbody></tbody>
-                    </table>
+
+                <div id="allDataChart" class="chart-container" style="margin-bottom: 2rem;">
+                    <canvas id="allDaysChart"></canvas>
                 </div>
-                <div id="pag" class="filter-bar" style="justify-content:center; margin-top:1.5rem"></div>
+
+                <div id="dataTableContainer"></div>
+                <div class="pagination" id="pagination"></div>
+            </div>
+        </div>
+
+        <!-- ADD DAY TAB -->
+        <div id="addTab" class="tab-content">
+            <div class="chart-container">
+                <h2 class="chart-title" style="margin-bottom: 1.5rem;">Afegir Nou Dia</h2>
+                <form id="addDayForm" onsubmit="addNewDay(event, 'add')">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="fecha">Data</label>
+                            <input type="date" id="fecha" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="ingresos">Ingressos (€)</label>
+                            <input type="number" id="ingresos" step="0.05" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="servicios">Serveis</label>
+                            <input type="number" id="servicios" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="horas">Hores (opcional)</label>
+                            <input type="number" id="horas" step="0.1">
+                        </div>
+                    </div>
+                    <button type="submit">Afegir Dia</button>
+                </form>
+                <div id="alertContainer"></div>
             </div>
         </div>
     </div>
 
+    <!-- Chart Modal for detailed views -->
+    <div id="chartModal" class="chart-modal">
+        <div class="chart-modal-content">
+            <button class="chart-modal-close" onclick="closeChartModal()">×</button>
+            <h2 class="chart-title" id="modalChartTitle" style="margin-bottom: 1.5rem;"></h2>
+            <canvas id="modalChart"></canvas>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        let datosIniciales = [];
         let allData = [];
         let filteredData = [];
-        let curPage = 1;
-        const perPage = 15;
-        const diasArr = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
-        let myChart = null;
+        let currentPage = 1;
+        const itemsPerPage = 20;
+        let currentViewMode = 'days';
+        let currentYear = 'all';
+        let currentComparisonPeriod = '1m';
 
-        // FUNCIÓN CRÍTICA: Carga inicial
-        async function init() {
+        const diasSemana = {
+            'Monday': 'Dilluns',
+            'Tuesday': 'Dimarts',
+            'Wednesday': 'Dimecres',
+            'Thursday': 'Dijous',
+            'Friday': 'Divendres',
+            'Saturday': 'Dissabte',
+            'Sunday': 'Diumenge'
+        };
+
+        const mesesNombres = {
+            '01': 'Gener', '02': 'Febrer', '03': 'Març', '04': 'Abril',
+            '05': 'Maig', '06': 'Juny', '07': 'Juliol', '08': 'Agost',
+            '09': 'Setembre', '10': 'Octubre', '11': 'Novembre', '12': 'Desembre'
+        };
+
+        function roundTo5Cents(num) {
+            return Math.round(num * 20) / 20;
+        }
+
+        function getStoredData() {
             try {
-                const local = localStorage.getItem('taxiData');
-                if (local && local !== "[]") {
-                    allData = JSON.parse(local);
-                } else {
-                    const res = await fetch('datos_taxi.json');
-                    if (res.ok) {
-                        allData = await res.json();
-                        localStorage.setItem('taxiData', JSON.stringify(allData));
-                    }
+                const stored = localStorage.getItem('taxiData');
+                return stored ? JSON.parse(stored) : [];
+            } catch (error) {
+                console.error('Error reading from localStorage:', error);
+                return [];
+            }
+        }
+
+        function saveToStorage(data) {
+            try {
+                localStorage.setItem('taxiData', JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error('Error saving to localStorage:', error);
+                return false;
+            }
+        }
+
+        function loadData() {
+            const storedData = getStoredData();
+            allData = [...datosIniciales, ...storedData];
+            
+            // Normalizar mes_anio en todos los registros
+            allData = allData.map(row => {
+                if (!row.mes_anio || row.mes_anio === 'undefined' || row.mes_anio.length < 7) {
+                    row.mes_anio = row.fecha.substring(0, 7);
                 }
-            } catch(e) { console.error("Error inicialitzant dades", e); }
+                return row;
+            });
             
-            sort();
-            fillSelectors();
-            updateUI();
-        }
-
-        function sort() { allData.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)); }
-
-        function updateUI() {
-            renderMonthTab();
+            allData.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
             filteredData = [...allData];
-            renderHistory();
         }
 
-        function renderMonthTab() {
-            const now = new Date();
-            const curM = now.toISOString().substring(0,7);
-            const mData = allData.filter(d => d.fecha.startsWith(curM));
+        function populateYearFilters() {
+            const years = [...new Set(allData.map(d => d.fecha.substring(0, 4)))].sort().reverse();
             
-            const total = mData.reduce((a,b) => a + b.ingresos_dia, 0);
-            const hores = mData.reduce((a,b) => a + (b.horas_trabajadas || 0), 0);
-            const diesTreballats = mData.length || 1;
-            const mitjanaDiaria = total / diesTreballats;
-            const projeccio = mitjanaDiaria * 21;
-
-            document.getElementById('mStats').innerHTML = `
-                <div class="stat-card"><div class="stat-label">Total Mes</div><div class="stat-value">${total.toFixed(0)}€</div></div>
-                <div class="stat-card"><div class="stat-label">Mitjana Hora</div><div class="stat-value">${hores ? (total/hores).toFixed(2) : 0}€</div></div>
-                <div class="stat-card"><div class="stat-label">Mitjana Diària</div><div class="stat-value">${mitjanaDiaria.toFixed(1)}€</div></div>
-                <div class="stat-card" style="border-color:var(--success)"><div class="stat-label">Projecció (x21)</div><div class="stat-value" style="color:var(--success)">${projeccio.toFixed(0)}€</div></div>
-            `;
-
-            document.getElementById('mTable').innerHTML = mData.map(d => `
-                <tr>
-                    <td>${d.fecha}</td>
-                    <td class="day-col">${diasArr[new Date(d.fecha).getDay()]}</td>
-                    <td>${d.ingresos_dia.toFixed(2)}€</td>
-                    <td>${d.servicios_dia}</td>
-                    <td>${d.horas_trabajadas || 0}h</td>
-                    <td>${d.horas_trabajadas ? (d.ingresos_dia/d.horas_trabajadas).toFixed(2) : 0}€/h</td>
-                </tr>
-            `).join('');
-        }
-
-        function renderHistory() {
-            const start = (curPage-1)*perPage;
-            const paginated = filteredData.slice(start, start+perPage);
-            document.querySelector('#hTable tbody').innerHTML = paginated.map(d => `
-                <tr>
-                    <td>${d.fecha}</td>
-                    <td class="day-col">${diasArr[new Date(d.fecha).getDay()]}</td>
-                    <td>${d.ingresos_dia.toFixed(2)}€</td>
-                    <td>${d.horas_trabajadas || 0}h</td>
-                    <td><button class="btn" onclick="del('${d.fecha}')">🗑️</button></td>
-                </tr>
-            `).join('');
-
-            const totalP = Math.ceil(filteredData.length / perPage) || 1;
-            document.getElementById('pag').innerHTML = `
-                <button class="btn" onclick="changePage(-1)" ${curPage===1?'disabled':''}>Ant.</button>
-                <span>${curPage} / ${totalP}</span>
-                <button class="btn" onclick="changePage(1)" ${curPage===totalP?'disabled':''}>Seg.</button>
-            `;
-            drawChart();
-        }
-
-        function changePage(n) { curPage += n; renderHistory(); }
-
-        function drawChart() {
-            const ctx = document.getElementById('mainChart').getContext('2d');
-            const dataPlot = [...filteredData].reverse().slice(-20);
-            if(myChart) myChart.destroy();
-            myChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: dataPlot.map(d => d.fecha.substring(8,10)),
-                    datasets: [{ label:'Ingressos', data: dataPlot.map(d=>d.ingresos_dia), backgroundColor:'#00d9ff' }]
-                },
-                options: { responsive:true, maintainAspectRatio:false }
+            const yearFilterMonthly = document.getElementById('yearFilterMonthly');
+            
+            yearFilterMonthly.innerHTML = '<option value="all">Tots els anys</option>';
+            
+            years.forEach(year => {
+                yearFilterMonthly.innerHTML += `<option value="${year}">${year}</option>`;
             });
         }
 
-        function fillSelectors() {
-            const years = [...new Set(allData.map(d => d.fecha.substring(0,4)))].sort().reverse();
-            document.getElementById('selYear').innerHTML = '<option value="">Any</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
-            const ms = ["Gen","Feb","Mar","Abr","Mai","Jun","Jul","Ago","Set","Oct","Nov","Des"];
-            document.getElementById('selMonth').innerHTML = '<option value="">Mes</option>' + ms.map((m,i) => `<option value="${(i+1).toString().padStart(2,'0')}">${m}</option>`).join('');
+        function updateCurrentMonthStats() {
+            const container = document.getElementById('currentMonthStats');
+            const today = new Date();
+            const currentMonth = today.toISOString().substring(0, 7);
+            
+            const monthData = allData.filter(d => d.mes_anio === currentMonth);
+            
+            if (monthData.length === 0) {
+                container.innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-label">Mes Actual</div>
+                        <div class="stat-value">${mesesNombres[currentMonth.substring(5)]}</div>
+                        <p style="color: var(--text-secondary); margin-top: 0.5rem;">No hi ha dades per aquest mes</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const totalIngresos = monthData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
+            const totalServicios = monthData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
+            const diasTrabajados = monthData.length;
+            const mediaPorDia = diasTrabajados > 0 ? totalIngresos / diasTrabajados : 0;
+            
+            const totalHoras = monthData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
+            const mediaPorHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
+
+            // Cálculo de Previsió (media diaria × 21)
+            const previsio = mediaPorDia * 21;
+
+            const prevMonth = new Date(today.getFullYear(), today.getMonth() - 1, 1).toISOString().substring(0, 7);
+            const prevMonthData = allData.filter(d => d.mes_anio === prevMonth);
+            const prevTotalIngresos = prevMonthData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
+            const change = prevTotalIngresos > 0 ? ((totalIngresos - prevTotalIngresos) / prevTotalIngresos * 100) : 0;
+
+            container.innerHTML = `
+                <div class="stat-card">
+                    <div class="stat-label">Ingressos del Mes</div>
+                    <div class="stat-value">${Math.round(totalIngresos)}€</div>
+                    <div class="stat-change ${change >= 0 ? 'positive' : 'negative'}">
+                        ${change >= 0 ? '↑' : '↓'} ${Math.abs(change).toFixed(1)}% vs mes anterior
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Serveis del Mes</div>
+                    <div class="stat-value">${totalServicios}</div>
+                    <div class="stat-change" style="color: var(--text-secondary);">
+                        ${diasTrabajados} dies treballats
+                    </div>
+                </div>
+                <div class="stat-card clickable" onclick="showDailyAverageChart()">
+                    <div class="stat-label">Mitjana per Dia</div>
+                    <div class="stat-value">${roundTo5Cents(mediaPorDia).toFixed(2)}€</div>
+                    <div class="stat-change" style="color: var(--text-secondary);">
+                        Clic per veure gràfic
+                    </div>
+                </div>
+                <div class="stat-card clickable" onclick="showHourlyAverageChart()">
+                    <div class="stat-label">Mitjana per Hora</div>
+                    <div class="stat-value">${totalHoras > 0 ? roundTo5Cents(mediaPorHora).toFixed(2) : '--'}€</div>
+                    <div class="stat-change" style="color: var(--text-secondary);">
+                        ${totalHoras > 0 ? 'Clic per veure gràfic' : 'Sense dades d\'hores'}
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Previsió del Mes</div>
+                    <div class="stat-value">${Math.round(previsio)}€</div>
+                    <div class="stat-change" style="color: var(--text-secondary);">
+                        Basada en ${roundTo5Cents(mediaPorDia).toFixed(2)}€/dia × 21 dies
+                    </div>
+                </div>
+            `;
         }
 
-        function filterQuick(n) {
-            const limit = new Date(); limit.setDate(limit.getDate() - n);
-            filteredData = allData.filter(d => new Date(d.fecha) >= limit);
-            curPage = 1; renderHistory();
+        let monthlyChart = null;
+        
+        function updateMonthlyChart() {
+            const ctx = document.getElementById('monthlyChart').getContext('2d');
+            const monthsToShow = parseInt(document.getElementById('monthsFilter').value);
+            
+            const monthlyTotals = {};
+            allData.forEach(row => {
+                // Asegurar que mes_anio existe y está correctamente formateado
+                const mesAnio = row.mes_anio || row.fecha.substring(0, 7);
+                
+                if (!mesAnio || mesAnio === 'undefined' || mesAnio.length < 7) {
+                    return; // Saltar registros con datos inválidos
+                }
+                
+                if (!monthlyTotals[mesAnio]) {
+                    monthlyTotals[mesAnio] = {
+                        ingresos: 0,
+                        servicios: 0,
+                        dias: 0
+                    };
+                }
+                monthlyTotals[mesAnio].ingresos += row.ingresos_dia || 0;
+                monthlyTotals[mesAnio].servicios += row.servicios_dia || 0;
+                monthlyTotals[mesAnio].dias += 1;
+            });
+
+            // Ordenar meses y tomar solo los últimos N meses
+            const sortedMonths = Object.keys(monthlyTotals).sort().slice(-monthsToShow);
+            
+            const labels = sortedMonths.map(m => {
+                const [year, month] = m.split('-');
+                return `${mesesNombres[month] || month} ${year}`;
+            });
+            const ingresos = sortedMonths.map(m => roundTo5Cents(monthlyTotals[m].ingresos));
+
+            if (monthlyChart) {
+                monthlyChart.destroy();
+            }
+
+            monthlyChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingressos (€)',
+                        data: ingresos,
+                        backgroundColor: 'rgba(0, 217, 255, 0.6)',
+                        borderColor: 'rgba(0, 217, 255, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 51, 0.95)',
+                            titleColor: '#e8edf4',
+                            bodyColor: '#9ba3b4',
+                            borderColor: '#2a3142',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    const monthKey = sortedMonths[context.dataIndex];
+                                    const data = monthlyTotals[monthKey];
+                                    return [
+                                        `Ingressos: ${Math.round(data.ingresos)}€`,
+                                        `Serveis: ${data.servicios}`,
+                                        `Dies: ${data.dias}`,
+                                        `Mitjana/dia: ${roundTo5Cents(data.ingresos / data.dias).toFixed(2)}€`
+                                    ];
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(42, 49, 66, 0.5)'
+                            },
+                            ticks: {
+                                color: '#9ba3b4',
+                                callback: function(value) {
+                                    return Math.round(value) + '€';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#9ba3b4'
+                            }
+                        }
+                    }
+                }
+            });
         }
 
-        function filterComplex() {
-            const y = document.getElementById('selYear').value;
-            const m = document.getElementById('selMonth').value;
-            filteredData = allData.filter(d => (!y || d.fecha.startsWith(y)) && (!m || d.fecha.substring(5,7) === m));
-            curPage = 1; renderHistory();
+        function updateMonthlyView() {
+            const year = document.getElementById('yearFilterMonthly').value;
+            const data = year === 'all' ? allData : allData.filter(d => d.fecha.startsWith(year));
+            
+            const monthlyTotals = {};
+            data.forEach(row => {
+                // Asegurar que mes_anio existe y está correctamente formateado
+                const mesAnio = row.mes_anio || row.fecha.substring(0, 7);
+                
+                if (!mesAnio || mesAnio === 'undefined' || mesAnio.length < 7) {
+                    return; // Saltar registros con datos inválidos
+                }
+                
+                if (!monthlyTotals[mesAnio]) {
+                    monthlyTotals[mesAnio] = {
+                        ingresos: 0,
+                        servicios: 0,
+                        dias: 0,
+                        horas: 0
+                    };
+                }
+                monthlyTotals[mesAnio].ingresos += row.ingresos_dia || 0;
+                monthlyTotals[mesAnio].servicios += row.servicios_dia || 0;
+                monthlyTotals[mesAnio].dias += 1;
+                monthlyTotals[mesAnio].horas += row.horas_trabajadas || 0;
+            });
+
+            const grid = document.getElementById('monthlyGrid');
+            const sortedMonths = Object.keys(monthlyTotals).sort().reverse();
+            
+            grid.innerHTML = sortedMonths.map(month => {
+                const data = monthlyTotals[month];
+                const [year, monthNum] = month.split('-');
+                
+                // Validar que el mes es válido
+                if (!year || !monthNum || !mesesNombres[monthNum]) {
+                    return '';
+                }
+                
+                const mediaDia = data.dias > 0 ? roundTo5Cents(data.ingresos / data.dias) : 0;
+                const mediaHora = data.horas > 0 ? roundTo5Cents(data.ingresos / data.horas) : 0;
+                
+                return `
+                    <div class="month-card" onclick="showMonthDetails('${month}')">
+                        <div class="month-name">${mesesNombres[monthNum]} ${year}</div>
+                        <div class="month-stats">
+                            <div class="month-stat-row">
+                                <span class="month-stat-label">Ingressos:</span>
+                                <span class="month-stat-value">${Math.round(data.ingresos)}€</span>
+                            </div>
+                            <div class="month-stat-row">
+                                <span class="month-stat-label">Serveis:</span>
+                                <span class="month-stat-value">${data.servicios}</span>
+                            </div>
+                            <div class="month-stat-row">
+                                <span class="month-stat-label">Dies:</span>
+                                <span class="month-stat-value">${data.dias}</span>
+                            </div>
+                            <div class="month-stat-row">
+                                <span class="month-stat-label">Mitjana/dia:</span>
+                                <span class="month-stat-value">${mediaDia.toFixed(2)}€</span>
+                            </div>
+                            ${data.horas > 0 ? `
+                            <div class="month-stat-row">
+                                <span class="month-stat-label">Mitjana/hora:</span>
+                                <span class="month-stat-value">${mediaHora.toFixed(2)}€</span>
+                            </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                `;
+            }).join('');
         }
 
-        function resetFilters() { filteredData = [...allData]; curPage = 1; renderHistory(); }
+        function showMonthDetails(month) {
+            // Filtrar datos del mes seleccionado
+            const monthData = allData.filter(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                return mesAnio === month;
+            });
 
-        function addEntry(e) {
-            e.preventDefault();
-            const d = {
-                fecha: document.getElementById('f_date').value,
-                ingresos_dia: parseFloat(document.getElementById('f_ing').value),
-                servicios_dia: parseInt(document.getElementById('f_serv').value),
-                horas_trabajadas: parseFloat(document.getElementById('f_h').value || 0)
+            if (monthData.length === 0) {
+                alert('No hi ha dades per aquest mes');
+                return;
+            }
+
+            // Ordenar por fecha descendente (más reciente primero)
+            monthData.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            const [year, monthNum] = month.split('-');
+            const monthName = `${mesesNombres[monthNum]} ${year}`;
+
+            // Crear contenido del modal
+            const modalContent = `
+                <h2 class="chart-title" style="margin-bottom: 1.5rem;">Detall de ${monthName}</h2>
+                <div style="overflow-x: auto;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Data</th>
+                                <th>Dia</th>
+                                <th>Ingressos</th>
+                                <th>Serveis</th>
+                                <th>€/Servei</th>
+                                <th>Hores</th>
+                                <th>€/Hora</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${monthData.map(row => {
+                                const fecha = new Date(row.fecha + 'T12:00:00');
+                                const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || row.dia_semana || '';
+                                const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
+                                const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
+                                
+                                return `
+                                    <tr>
+                                        <td><strong>${formatDate(row.fecha)}</strong></td>
+                                        <td>${diaSemana}</td>
+                                        <td>${Math.round(row.ingresos_dia || 0)}€</td>
+                                        <td>${row.servicios_dia || 0}</td>
+                                        <td>${mediaPrecio.toFixed(2)}€</td>
+                                        <td>${row.horas_trabajadas || '--'}</td>
+                                        <td>${row.horas_trabajadas ? mediaHora.toFixed(2) + '€' : '--'}</td>
+                                    </tr>
+                                `;
+                            }).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+
+            // Mostrar en el modal
+            document.getElementById('chartModal').classList.add('active');
+            document.querySelector('.chart-modal-content').innerHTML = `
+                <button class="chart-modal-close" onclick="closeChartModal()">×</button>
+                ${modalContent}
+            `;
+        }
+
+        let comparisonChartIngresos = null;
+        let comparisonChartServicio = null;
+        let comparisonChartHora = null;
+
+        function selectComparisonPeriod(period) {
+            currentComparisonPeriod = period;
+            
+            document.querySelectorAll('.comparison-option').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            const customContainer = document.getElementById('customDatesContainer');
+            if (period === 'custom') {
+                customContainer.classList.add('active');
+            } else {
+                customContainer.classList.remove('active');
+                let months = 1;
+                switch(period) {
+                    case '1m': months = 1; break;
+                    case '3m': months = 3; break;
+                    case '6m': months = 6; break;
+                    case '12m': months = 12; break;
+                }
+                generateComparisonCharts(months);
+            }
+        }
+
+        function compareCustomPeriods() {
+            const months = parseInt(document.getElementById('customMonths').value);
+            if (!months || months < 1) {
+                alert('Si us plau, introdueix un número de mesos vàlid');
+                return;
+            }
+            generateComparisonCharts(months);
+        }
+
+        function generateComparisonCharts(monthsToShow) {
+            // Calcular datos mensuales
+            const monthlyTotals = {};
+            allData.forEach(row => {
+                const mesAnio = row.mes_anio || row.fecha.substring(0, 7);
+                
+                if (!mesAnio || mesAnio === 'undefined' || mesAnio.length < 7) {
+                    return;
+                }
+                
+                if (!monthlyTotals[mesAnio]) {
+                    monthlyTotals[mesAnio] = {
+                        ingresos: 0,
+                        servicios: 0,
+                        dias: 0,
+                        horas: 0
+                    };
+                }
+                monthlyTotals[mesAnio].ingresos += row.ingresos_dia || 0;
+                monthlyTotals[mesAnio].servicios += row.servicios_dia || 0;
+                monthlyTotals[mesAnio].dias += 1;
+                monthlyTotals[mesAnio].horas += row.horas_trabajadas || 0;
+            });
+
+            // Ordenar y tomar los últimos N meses
+            const sortedMonths = Object.keys(monthlyTotals).sort().slice(-monthsToShow);
+            
+            const labels = sortedMonths.map(m => {
+                const [year, month] = m.split('-');
+                return `${mesesNombres[month] || month} ${year}`;
+            });
+
+            // Datos para cada gráfico
+            const ingresosData = sortedMonths.map(m => Math.round(monthlyTotals[m].ingresos));
+            const servicioData = sortedMonths.map(m => {
+                const total = monthlyTotals[m];
+                return total.servicios > 0 ? roundTo5Cents(total.ingresos / total.servicios) : 0;
+            });
+            const horaData = sortedMonths.map(m => {
+                const total = monthlyTotals[m];
+                return total.horas > 0 ? roundTo5Cents(total.ingresos / total.horas) : 0;
+            });
+
+            // Gráfico 1: Ingresos Totales
+            createComparisonChart(
+                'comparisonChartIngresos',
+                labels,
+                ingresosData,
+                'Ingressos (€)',
+                'rgba(0, 217, 255, 0.8)',
+                'rgba(0, 217, 255, 0.2)',
+                comparisonChartIngresos,
+                (value) => Math.round(value) + '€'
+            );
+
+            // Gráfico 2: Media por Servicio
+            createComparisonChart(
+                'comparisonChartServicio',
+                labels,
+                servicioData,
+                'Mitjana €/Servei',
+                'rgba(123, 97, 255, 0.8)',
+                'rgba(123, 97, 255, 0.2)',
+                comparisonChartServicio,
+                (value) => value.toFixed(2) + '€'
+            );
+
+            // Gráfico 3: Media por Hora
+            createComparisonChart(
+                'comparisonChartHora',
+                labels,
+                horaData,
+                'Mitjana €/Hora',
+                'rgba(255, 107, 157, 0.8)',
+                'rgba(255, 107, 157, 0.2)',
+                comparisonChartHora,
+                (value) => value.toFixed(2) + '€'
+            );
+        }
+
+        function createComparisonChart(canvasId, labels, data, label, borderColor, backgroundColor, existingChart, formatCallback) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            if (existingChart) {
+                existingChart.destroy();
+            }
+
+            const newChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: label,
+                        data: data,
+                        borderColor: borderColor,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4,
+                        pointRadius: 5,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: borderColor,
+                        pointBorderColor: '#fff',
+                        pointBorderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 51, 0.95)',
+                            titleColor: '#e8edf4',
+                            bodyColor: '#9ba3b4',
+                            borderColor: '#2a3142',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return formatCallback(context.parsed.y);
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(42, 49, 66, 0.5)'
+                            },
+                            ticks: {
+                                color: '#9ba3b4',
+                                callback: formatCallback
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#9ba3b4',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Actualizar la referencia del gráfico
+            if (canvasId === 'comparisonChartIngresos') {
+                comparisonChartIngresos = newChart;
+            } else if (canvasId === 'comparisonChartServicio') {
+                comparisonChartServicio = newChart;
+            } else if (canvasId === 'comparisonChartHora') {
+                comparisonChartHora = newChart;
+            }
+        }
+
+        let allDaysChart = null;
+
+        function updateAllDataView() {
+            const viewMode = document.getElementById('viewMode').value;
+            currentViewMode = viewMode;
+
+            let dataToDisplay = [...allData];
+            const today = new Date();
+
+            switch(viewMode) {
+                case 'last30':
+                    const date30 = new Date(today);
+                    date30.setDate(date30.getDate() - 30);
+                    dataToDisplay = allData.filter(d => new Date(d.fecha) >= date30);
+                    break;
+                case 'last60':
+                    const date60 = new Date(today);
+                    date60.setDate(date60.getDate() - 60);
+                    dataToDisplay = allData.filter(d => new Date(d.fecha) >= date60);
+                    break;
+                case 'last90':
+                    const date90 = new Date(today);
+                    date90.setDate(date90.getDate() - 90);
+                    dataToDisplay = allData.filter(d => new Date(d.fecha) >= date90);
+                    break;
+                case 'last120':
+                    const date120 = new Date(today);
+                    date120.setDate(date120.getDate() - 120);
+                    dataToDisplay = allData.filter(d => new Date(d.fecha) >= date120);
+                    break;
+            }
+
+            // Ordenar cronológicamente inverso (más reciente primero)
+            dataToDisplay.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+            filteredData = dataToDisplay;
+            currentPage = 1;
+
+            updateAllDaysChart(dataToDisplay, viewMode);
+            renderTable();
+            renderPagination();
+        }
+
+        function updateAllDaysChart(data, viewMode) {
+            const ctx = document.getElementById('allDaysChart').getContext('2d');
+
+            // Para el gráfico, ordenar cronológicamente ascendente (de antiguo a reciente)
+            const chartData = [...data].sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+
+            const labels = chartData.map(d => formatDate(d.fecha));
+            const ingresosData = chartData.map(d => roundTo5Cents(d.ingresos_dia || 0));
+
+            if (allDaysChart) {
+                allDaysChart.destroy();
+            }
+
+            allDaysChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingressos (€)',
+                        data: ingresosData,
+                        backgroundColor: 'rgba(123, 97, 255, 0.6)',
+                        borderColor: 'rgba(123, 97, 255, 1)',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 51, 0.95)',
+                            titleColor: '#e8edf4',
+                            bodyColor: '#9ba3b4',
+                            borderColor: '#2a3142',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${Math.round(context.parsed.y)}€`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(42, 49, 66, 0.5)'
+                            },
+                            ticks: {
+                                color: '#9ba3b4',
+                                callback: function(value) {
+                                    return Math.round(value) + '€';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#9ba3b4',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function showDailyAverageChart() {
+            const today = new Date();
+            const currentMonth = today.toISOString().substring(0, 7);
+            const monthData = allData.filter(d => d.mes_anio === currentMonth);
+
+            if (monthData.length === 0) {
+                alert('No hi ha dades per aquest mes');
+                return;
+            }
+
+            const labels = monthData.map(d => formatDate(d.fecha));
+            const data = monthData.map(d => roundTo5Cents(d.ingresos_dia || 0));
+
+            showChartModal('Ingressos per Dia - Mes Actual', labels, data, 'Ingressos (€)');
+        }
+
+        function showHourlyAverageChart() {
+            const today = new Date();
+            const currentMonth = today.toISOString().substring(0, 7);
+            const monthData = allData.filter(d => d.mes_anio === currentMonth && d.horas_trabajadas);
+
+            if (monthData.length === 0) {
+                alert('No hi ha dades d\'hores per aquest mes');
+                return;
+            }
+
+            const labels = monthData.map(d => formatDate(d.fecha));
+            const data = monthData.map(d => {
+                const mediaHora = d.horas_trabajadas > 0 ? d.ingresos_dia / d.horas_trabajadas : 0;
+                return roundTo5Cents(mediaHora);
+            });
+
+            showChartModal('Mitjana per Hora - Mes Actual', labels, data, 'Mitjana €/Hora');
+        }
+
+        let modalChart = null;
+
+        function showChartModal(title, labels, data, datasetLabel) {
+            document.getElementById('modalChartTitle').textContent = title;
+            const modal = document.getElementById('chartModal');
+            modal.classList.add('active');
+
+            const ctx = document.getElementById('modalChart').getContext('2d');
+
+            if (modalChart) {
+                modalChart.destroy();
+            }
+
+            modalChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: datasetLabel,
+                        data: data,
+                        backgroundColor: 'rgba(255, 107, 157, 0.6)',
+                        borderColor: 'rgba(255, 107, 157, 1)',
+                        borderWidth: 2,
+                        borderRadius: 8
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            backgroundColor: 'rgba(26, 31, 51, 0.95)',
+                            titleColor: '#e8edf4',
+                            bodyColor: '#9ba3b4',
+                            borderColor: '#2a3142',
+                            borderWidth: 1,
+                            padding: 12,
+                            displayColors: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.parsed.y.toFixed(2)}€`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: {
+                                color: 'rgba(42, 49, 66, 0.5)'
+                            },
+                            ticks: {
+                                color: '#9ba3b4',
+                                callback: function(value) {
+                                    return value.toFixed(2) + '€';
+                                }
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: '#9ba3b4',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function closeChartModal() {
+            const modal = document.getElementById('chartModal');
+            modal.classList.remove('active');
+            if (modalChart) {
+                modalChart.destroy();
+                modalChart = null;
+            }
+        }
+
+        function switchTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+
+            const tabs = {
+                'dashboard': 'dashboardTab',
+                'comparison': 'comparisonTab',
+                'monthly': 'monthlyTab',
+                'all': 'allTab',
+                'add': 'addTab'
             };
-            allData = allData.filter(x => x.fecha !== d.fecha);
-            allData.push(d);
-            sort();
-            localStorage.setItem('taxiData', JSON.stringify(allData));
-            updateUI();
+
+            document.getElementById(tabs[tabName]).classList.add('active');
+            event.target.classList.add('active');
+
+            if (tabName === 'comparison') {
+                // Generar gráficos por defecto (último mes)
+                setTimeout(() => {
+                    if (currentComparisonPeriod === 'custom') {
+                        // No hacer nada hasta que el usuario configure
+                    } else {
+                        let months = 1;
+                        switch(currentComparisonPeriod) {
+                            case '1m': months = 1; break;
+                            case '3m': months = 3; break;
+                            case '6m': months = 6; break;
+                            case '12m': months = 12; break;
+                        }
+                        generateComparisonCharts(months);
+                    }
+                }, 100);
+            }
+        }
+
+        function updateAllViews() {
+            updateCurrentMonthStats();
+            updateMonthlyChart();
+        }
+
+        function renderTable() {
+            const container = document.getElementById('dataTableContainer');
+            const start = (currentPage - 1) * itemsPerPage;
+            const end = start + itemsPerPage;
+            const pageData = filteredData.slice(start, end);
+
+            const storedData = getStoredData();
+            
+            container.innerHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Dia</th>
+                            <th>Ingressos</th>
+                            <th>Serveis</th>
+                            <th>€/Servei</th>
+                            <th>Hores</th>
+                            <th>€/Hora</th>
+                            <th>Accions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pageData.map(row => {
+                            const fecha = new Date(row.fecha + 'T12:00:00');
+                            const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || row.dia_semana || '';
+                            const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
+                            const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
+                            const canDelete = storedData.some(d => d.fecha === row.fecha);
+                            
+                            return `
+                                <tr>
+                                    <td><strong>${formatDate(row.fecha)}</strong></td>
+                                    <td>${diaSemana}</td>
+                                    <td>${Math.round(row.ingresos_dia || 0)}€</td>
+                                    <td>${row.servicios_dia || 0}</td>
+                                    <td>${mediaPrecio.toFixed(2)}€</td>
+                                    <td>${row.horas_trabajadas || '--'}</td>
+                                    <td>${row.horas_trabajadas ? mediaHora.toFixed(2) + '€' : '--'}</td>
+                                    <td>
+                                        ${canDelete ? `<button class="action-btn" onclick="deleteDay('${row.fecha}')">Eliminar</button>` : '--'}
+                                    </td>
+                                </tr>
+                            `;
+                        }).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        function renderPagination() {
+            const pagination = document.getElementById('pagination');
+            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+            
+            if (totalPages <= 1) {
+                pagination.innerHTML = '';
+                return;
+            }
+
+            pagination.innerHTML = '';
+            
+            if (currentPage > 1) {
+                const prev = document.createElement('button');
+                prev.className = 'page-btn';
+                prev.textContent = '← Anterior';
+                prev.onclick = () => {
+                    currentPage--;
+                    renderTable();
+                    renderPagination();
+                };
+                pagination.appendChild(prev);
+            }
+            
+            const maxButtons = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
+            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
+            
+            if (endPage - startPage < maxButtons - 1) {
+                startPage = Math.max(1, endPage - maxButtons + 1);
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'page-btn' + (i === currentPage ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => {
+                    currentPage = i;
+                    renderTable();
+                    renderPagination();
+                };
+                pagination.appendChild(btn);
+            }
+            
+            if (currentPage < totalPages) {
+                const next = document.createElement('button');
+                next.className = 'page-btn';
+                next.textContent = 'Següent →';
+                next.onclick = () => {
+                    currentPage++;
+                    renderTable();
+                    renderPagination();
+                };
+                pagination.appendChild(next);
+            }
+        }
+
+        function addNewDay(event, source) {
+            event.preventDefault();
+            
+            const fechaId = source === 'month' ? 'fechaMonth' : 'fecha';
+            const ingresosId = source === 'month' ? 'ingresosMonth' : 'ingresos';
+            const serviciosId = source === 'month' ? 'serviciosMonth' : 'servicios';
+            const horasId = source === 'month' ? 'horasMonth' : 'horas';
+            
+            const fecha = document.getElementById(fechaId).value;
+            const ingresos = parseFloat(document.getElementById(ingresosId).value);
+            const servicios = parseInt(document.getElementById(serviciosId).value);
+            const horas = parseFloat(document.getElementById(horasId).value) || null;
+            
+            const newEntry = {
+                mes_anio: fecha.substring(0, 7),
+                fecha: fecha,
+                dia_semana: null,
+                semana_num: null,
+                ingresos_dia: ingresos,
+                servicios_dia: servicios,
+                media_precio_servicio: servicios > 0 ? ingresos / servicios : null,
+                horas_trabajadas: horas,
+                media_ingresos_hora: horas ? ingresos / horas : null
+            };
+            
+            try {
+                const storedData = getStoredData();
+                const storedIndex = storedData.findIndex(d => d.fecha === fecha);
+                
+                if (storedIndex >= 0) {
+                    storedData[storedIndex] = newEntry;
+                    showAlert('Dia actualitzat correctament', 'success', source);
+                } else {
+                    storedData.push(newEntry);
+                    showAlert('Dia afegit correctament', 'success', source);
+                }
+                
+                if (saveToStorage(storedData)) {
+                    loadData();
+                    populateYearFilters();
+                    updateAllViews();
+                    resetForm(source);
+                } else {
+                    showAlert('Error en desar. El teu navegador pot no suportar localStorage.', 'error', source);
+                }
+                
+            } catch (error) {
+                console.error('Error saving:', error);
+                showAlert('Error en desar el dia. Torna-ho a intentar.', 'error', source);
+            }
+        }
+
+        function resetForm(source) {
+            if (source === 'month') {
+                document.getElementById('addDayFormMonth').reset();
+                document.getElementById('fechaMonth').valueAsDate = new Date();
+            } else {
+                document.getElementById('addDayForm').reset();
+                document.getElementById('fecha').valueAsDate = new Date();
+            }
+        }
+
+        function showAlert(message, type, source) {
+            const containerId = source === 'month' ? 'alertContainerMonth' : 
+                               source === 'comparison' ? 'comparisonResults' : 'alertContainer';
+            const container = document.getElementById(containerId);
+            
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            
+            if (source === 'comparison') {
+                container.insertBefore(alert, container.firstChild);
+            } else {
+                container.innerHTML = '';
+                container.appendChild(alert);
+            }
+            
+            setTimeout(() => {
+                alert.style.animation = 'fadeIn 0.3s ease-out reverse';
+                setTimeout(() => alert.remove(), 300);
+            }, 3000);
+        }
+
+        function formatDate(dateStr) {
+            const date = new Date(dateStr + 'T12:00:00');
+            return date.toLocaleDateString('ca-ES', { day: '2-digit', month: '2-digit', year: 'numeric' });
+        }
+
+        function exportToCSV() {
+            const headers = ['Data', 'Dia', 'Ingressos', 'Serveis', '€/Servei', 'Hores', '€/Hora'];
+            const rows = filteredData.map(row => {
+                const fecha = new Date(row.fecha + 'T12:00:00');
+                const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || row.dia_semana || '';
+                const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
+                const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
+                
+                return [
+                    row.fecha,
+                    diaSemana,
+                    roundTo5Cents(row.ingresos_dia || 0),
+                    row.servicios_dia || 0,
+                    mediaPrecio.toFixed(2),
+                    row.horas_trabajadas || '',
+                    row.horas_trabajadas ? mediaHora.toFixed(2) : ''
+                ];
+            });
+            
+            let csv = headers.join(',') + '\n';
+            rows.forEach(row => {
+                csv += row.join(',') + '\n';
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `facturacio_${new Date().toISOString().split('T')[0]}.csv`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        function exportJSON() {
+            const storedData = getStoredData();
+            const dataStr = JSON.stringify(storedData, null, 2);
+            const blob = new Blob([dataStr], { type: 'application/json' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `facturacio_${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            window.URL.revokeObjectURL(url);
+            showAlert('Dades exportades correctament', 'success', 'add');
+        }
+
+        function importJSON(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    if (!Array.isArray(importedData)) {
+                        throw new Error('L\'arxiu no conté un array de dades vàlid');
+                    }
+                    
+                    if (saveToStorage(importedData)) {
+                        loadData();
+                        populateYearFilters();
+                        updateAllViews();
+                        showAlert(`Dades importades correctament: ${importedData.length} registres`, 'success', 'add');
+                    } else {
+                        showAlert('Error en desar les dades importades', 'error', 'add');
+                    }
+                    
+                } catch (error) {
+                    console.error('Error en importar:', error);
+                    showAlert('Error en importar les dades. Verifica que l\'arxiu sigui vàlid.', 'error', 'add');
+                }
+            };
+            reader.readAsText(file);
+            
+            event.target.value = '';
+        }
+
+        function deleteDay(fecha) {
+            if (!confirm(`Estàs segur que vols eliminar el dia ${formatDate(fecha)}?`)) {
+                return;
+            }
+            
+            try {
+                const storedData = getStoredData();
+                const filteredStorage = storedData.filter(d => d.fecha !== fecha);
+                
+                if (saveToStorage(filteredStorage)) {
+                    loadData();
+                    populateYearFilters();
+                    updateAllViews();
+                    showAlert('Dia eliminat correctament', 'success', 'all');
+                } else {
+                    showAlert('Error en eliminar el dia', 'error', 'all');
+                }
+            } catch (error) {
+                console.error('Error deleting:', error);
+                showAlert('Error en eliminar el dia. Torna-ho a intentar.', 'error', 'all');
+            }
+        }
+
+        async function initApp() {
+            try {
+                const response = await fetch('https://raw.githubusercontent.com/rogerboullosa/facturacion/refs/heads/main/taxi_data_updated.json');
+                datosIniciales = await response.json();
+            } catch (error) {
+                console.error('Error loading initial data:', error);
+                datosIniciales = [];
+            }
+            
+            loadData();
+            populateYearFilters();
+            updateCurrentMonthStats();
+            updateMonthlyChart();
+            updateMonthlyView();
+            updateAllDataView();
+            
+            document.getElementById('fecha').valueAsDate = new Date();
+            document.getElementById('fechaMonth').valueAsDate = new Date();
+            
+            setTimeout(() => {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('mainContainer').classList.add('loaded');
+            }, 800);
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('chartModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeChartModal();
+            }
+        });
+
+        initApp();
+    </script>
+</body>
+</html>
