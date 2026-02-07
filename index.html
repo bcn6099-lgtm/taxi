@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Panel de Facturació Taxi (GitHub)</title>
+    <title>Panel de Facturació Taxi Pro</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
@@ -18,311 +18,226 @@
         }
         
         body { font-family: 'Archivo', sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; padding-bottom: 50px; }
-        .background-gradient { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: radial-gradient(circle at 20% 20%, rgba(0, 217, 255, 0.08) 0%, transparent 40%), radial-gradient(circle at 80% 80%, rgba(123, 97, 255, 0.08) 0%, transparent 40%); pointer-events: none; z-index: 0; }
         .container { max-width: 1400px; margin: 0 auto; padding: 2rem; position: relative; z-index: 1; }
         
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
         h1 { font-size: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-        .tabs-container { margin-bottom: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .tab-button { flex: 1; padding: 0.875rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; border-radius: 12px; transition: all 0.3s ease; }
+        .tabs-container { margin-bottom: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 0.5rem; display: flex; gap: 0.5rem; }
+        .tab-button { flex: 1; padding: 0.875rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; border-radius: 12px; }
         .tab-button.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; }
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; transition: transform 0.3s ease; }
-        .stat-card.clickable { cursor: pointer; border-color: var(--accent-primary); }
-        .stat-card:hover { transform: translateY(-4px); }
-        
-        .stat-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; }
-        .stat-value { font-size: 1.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
-        
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .stat-card:hover { border-color: var(--accent-primary); transform: translateY(-3px); }
+        .stat-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
+        .stat-value { font-size: 2rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+
         .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
-        .btn { padding: 0.6rem 1.2rem; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 0.9rem; }
-        .btn-primary { background: var(--accent-primary); color: var(--bg-primary); }
-        .btn-secondary { background: var(--bg-secondary); color: var(--text-primary); border: 1px solid var(--border); }
-        
-        .chart-container-inline { height: 250px; width: 100%; margin-bottom: 2rem; }
+        .chart-box { height: 350px; width: 100%; margin: 1rem 0; }
         
         table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th { text-align: left; padding: 1rem; color: var(--text-muted); border-bottom: 1px solid var(--border); }
-        td { padding: 1rem; border-bottom: 1px solid var(--border); }
+        th { text-align: left; padding: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); font-size: 0.8rem; }
+        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .day-col { color: var(--accent-primary); font-weight: 600; text-transform: capitalize; }
+
+        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: none; justify-content: center; align-items: center; }
+        .modal-body { background: var(--bg-card); width: 90%; max-width: 900px; padding: 2rem; border-radius: 16px; position: relative; }
         
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 2000; display: none; justify-content: center; align-items: center; }
-        .modal-content { background: var(--bg-card); width: 90%; max-width: 900px; padding: 2rem; border-radius: 16px; position: relative; }
+        .pagination { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; align-items: center; }
+        .btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: white; cursor: pointer; }
         
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     </style>
 </head>
 <body>
-    <div class="background-gradient"></div>
-    
-    <div class="modal-overlay" id="chartModal" onclick="if(event.target == this) this.style.display='none'">
-        <div class="modal-content">
-            <h2 id="modalChartTitle">Gràfic</h2>
-            <div style="height: 400px;"><canvas id="modalCanvas"></canvas></div>
-            <button class="btn btn-secondary" style="margin-top:1rem" onclick="document.getElementById('chartModal').style.display='none'">Tancar</button>
+
+    <div class="modal" id="modal">
+        <div class="modal-body">
+            <h2 id="modalTitle">Tendència</h2>
+            <div class="chart-box"><canvas id="modalChart"></canvas></div>
+            <button class="btn" onclick="document.getElementById('modal').style.display='none'">Tancar</button>
         </div>
     </div>
 
     <div class="container">
         <header>
-            <h1>🚖 Taxi Stats</h1>
-            <div style="display:flex; gap:0.5rem">
-                <button class="btn btn-secondary" onclick="exportData()">💾 Desar Backup JSON</button>
-                <input type="file" id="fileImport" style="display:none" onchange="importData(this)">
-                <button class="btn btn-secondary" onclick="document.getElementById('fileImport').click()">📥 Importar</button>
+            <h1>🚖 Taxi Analytics</h1>
+            <div>
+                <button class="btn" onclick="exportData()">Desar JSON</button>
             </div>
         </header>
 
         <div class="tabs-container">
-            <button class="tab-button active" onclick="switchTab('month', event)">Mes Actual</button>
-            <button class="tab-button" onclick="switchTab('all', event)">Tots els Dies</button>
-            <button class="tab-button" onclick="switchTab('comp', event)">Comparativa</button>
+            <button class="tab-button active" onclick="showTab('month', event)">Mes Actual</button>
+            <button class="tab-button" onclick="showTab('all', event)">Històric</button>
+            <button class="tab-button" onclick="showTab('comp', event)">Comparativa</button>
         </div>
 
         <div id="tab-month" class="tab-content active">
+            <div class="stats-grid" id="mStats"></div>
             <div class="section">
-                <h3>Nou Registre</h3>
-                <form onsubmit="addEntry(event)" style="display:flex; gap:0.5rem; margin-top:1rem; flex-wrap:wrap">
-                    <input type="date" id="f_date" required style="padding:0.5rem; border-radius:5px; border:1px solid var(--border); background:var(--bg-secondary); color:white">
-                    <input type="number" id="f_ing" placeholder="Ingressos" step="0.01" required style="padding:0.5rem; border-radius:5px; border:1px solid var(--border); background:var(--bg-secondary); color:white">
-                    <input type="number" id="f_serv" placeholder="Serveis" required style="padding:0.5rem; border-radius:5px; border:1px solid var(--border); background:var(--bg-secondary); color:white">
-                    <input type="number" id="f_h" placeholder="Hores" step="0.1" style="padding:0.5rem; border-radius:5px; border:1px solid var(--border); background:var(--bg-secondary); color:white">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                </form>
-            </div>
-            <div class="stats-grid" id="monthStats"></div>
-            <div class="section" style="overflow-x:auto">
-                <table id="monthTable">
-                    <thead><tr><th>Data</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>€/Hora</th></tr></thead>
-                    <tbody></tbody>
+                <h3>Detall del Mes</h3>
+                <table>
+                    <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>€/Hora</th></tr></thead>
+                    <tbody id="mTable"></tbody>
                 </table>
             </div>
         </div>
 
         <div id="tab-all" class="tab-content">
             <div class="section">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
-                    <h2>Històric</h2>
-                    <div style="display:flex; gap:0.3rem">
-                        <button class="btn btn-secondary" onclick="filterDays(30)">30 dies</button>
-                        <button class="btn btn-secondary" onclick="filterDays(60)">60 dies</button>
-                        <button class="btn btn-secondary" onclick="filterDays(120)">120 dies</button>
-                        <button class="btn btn-secondary" onclick="renderAll()">Tots</button>
-                    </div>
-                </div>
-                <div class="chart-container-inline"><canvas id="mainChart"></canvas></div>
-                <div class="stats-grid" id="allStats"></div>
-                <table id="allTable">
-                    <thead><tr><th>Data</th><th>Ingressos</th><th>Serveis</th><th>€/Hora</th><th>Acció</th></tr></thead>
+                <h3>Evolució Ingressos (Últims 30 registros)</h3>
+                <div class="chart-box"><canvas id="mainChart"></canvas></div>
+            </div>
+            <div class="section">
+                <table id="hTable">
+                    <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>Accions</th></tr></thead>
                     <tbody></tbody>
                 </table>
+                <div class="pagination" id="pag"></div>
             </div>
         </div>
 
         <div id="tab-comp" class="tab-content">
             <div class="section">
-                <h2>Comparar Períodes</h2>
-                <div style="display:flex; gap:1rem; margin-top:1rem; flex-wrap:wrap">
-                    <button class="btn btn-secondary" onclick="comparePresets(1)">1 Mes vs Anterior</button>
-                    <button class="btn btn-secondary" onclick="comparePresets(3)">3 Mesos vs Anterior</button>
-                    <input type="date" id="c_s1"> <input type="date" id="c_e1">
-                    <button class="btn btn-primary" onclick="executeManualComp()">Comparar Personalitzat</button>
-                </div>
-                <div id="compResults" style="margin-top:2rem"></div>
+                <h3>Comparativa Temporal</h3>
+                <div class="chart-box"><canvas id="compChart"></canvas></div>
+                <div id="compText" style="margin-top:20px"></div>
             </div>
         </div>
     </div>
 
     <script>
         let allData = [];
-        let mainChart = null;
-        let modalChart = null;
+        let curPage = 1;
+        const perPage = 15;
+        const dias = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
 
         async function init() {
-            // 1. Intentar cargar de LocalStorage
-            const stored = localStorage.getItem('taxiData');
-            if (stored) {
-                allData = JSON.parse(stored);
+            const local = localStorage.getItem('taxiData');
+            if (local) {
+                allData = JSON.parse(local);
             } else {
-                // 2. Si está vacío, intentar cargar el JSON de GitHub
                 try {
                     const res = await fetch('datos_taxi.json');
                     if (res.ok) allData = await res.json();
-                } catch (e) { console.log("No hi ha JSON extern"); }
+                } catch(e) {}
             }
-            sortData();
-            renderAll();
+            sort();
+            render();
         }
 
-        function sortData() {
-            allData.sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
-        }
+        function sort() { allData.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)); }
 
-        function save() {
-            localStorage.setItem('taxiData', JSON.stringify(allData));
-            renderAll();
-        }
-
-        function switchTab(id, e) {
+        function showTab(id, e) {
             document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
             document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
             document.getElementById('tab-'+id).classList.add('active');
             e.target.classList.add('active');
-            if(id === 'all') renderMainChart(allData);
+            if(id === 'all') drawMain();
+            if(id === 'comp') drawComp();
         }
 
-        function addEntry(e) {
-            e.preventDefault();
-            const entry = {
-                fecha: document.getElementById('f_date').value,
-                ingresos_dia: parseFloat(document.getElementById('f_ing').value),
-                servicios_dia: parseInt(document.getElementById('f_serv').value),
-                horas_trabajadas: parseFloat(document.getElementById('f_h').value || 0)
-            };
-            allData = allData.filter(d => d.fecha !== entry.fecha);
-            allData.push(entry);
-            sortData();
-            save();
-            e.target.reset();
-        }
-
-        function renderAll() {
-            // Stats Mes Actual
+        function render() {
             const now = new Date();
             const curMonth = now.toISOString().substring(0,7);
             const mData = allData.filter(d => d.fecha.startsWith(curMonth));
-            const mTotal = mData.reduce((acc, d) => acc + d.ingresos_dia, 0);
-            
-            document.getElementById('monthStats').innerHTML = `
-                <div class="stat-card">
-                    <div class="stat-label">Ingressos ${now.toLocaleString('ca', {month:'long'})}</div>
-                    <div class="stat-value">${Math.round(mTotal).toLocaleString()}€</div>
-                </div>
-                <div class="stat-card clickable" onclick="openModal('dia', '${curMonth}')">
-                    <div class="stat-label">Mitjana Diària 📊</div>
-                    <div class="stat-value">${mData.length ? (mTotal/mData.length).toFixed(2) : 0}€</div>
-                </div>
+            const total = mData.reduce((a,b) => a+b.ingresos_dia, 0);
+
+            // Stats
+            document.getElementById('mStats').innerHTML = `
+                <div class="stat-card" onclick="openMod('ing')"><div class="stat-label">Total Mes</div><div class="stat-value">${Math.round(total)}€</div></div>
+                <div class="stat-card" onclick="openMod('hor')"><div class="stat-label">€ / Hora</div><div class="stat-value">${(total/(mData.reduce((a,b)=>a+(b.horas_trabajadas||0),0)||1)).toFixed(2)}€</div></div>
             `;
 
-            // Tabla Mes
-            const mBody = document.querySelector('#monthTable tbody');
-            mBody.innerHTML = mData.map(d => `<tr><td>${d.fecha}</td><td>${d.ingresos_dia}€</td><td>${d.servicios_dia}</td><td>${d.horas_trabajadas}</td><td>${d.horas_trabajadas ? (d.ingresos_dia/d.horas_trabajadas).toFixed(2) : 0}€</td></tr>`).join('');
-
-            // Tabla Histórico
-            renderHistTable(allData);
-        }
-
-        function renderHistTable(data) {
-            const body = document.querySelector('#allTable tbody');
-            body.innerHTML = data.slice(0, 30).map(d => `
+            // Table
+            document.getElementById('mTable').innerHTML = mData.map(d => `
                 <tr>
                     <td>${d.fecha}</td>
-                    <td>${d.ingresos_dia}€</td>
+                    <td class="day-col">${dias[new Date(d.fecha).getDay()]}</td>
+                    <td>${d.ingresos_dia.toFixed(2)}€</td>
                     <td>${d.servicios_dia}</td>
+                    <td>${d.horas_trabajadas || 0}h</td>
                     <td>${d.horas_trabajadas ? (d.ingresos_dia/d.horas_trabajadas).toFixed(2) : 0}€</td>
-                    <td><button onclick="deleteDay('${d.fecha}')" style="background:none; border:none; color:var(--error); cursor:pointer">🗑️</button></td>
                 </tr>
             `).join('');
-            
-            const totalIng = data.reduce((acc, d) => acc + d.ingresos_dia, 0);
-            document.getElementById('allStats').innerHTML = `
-                <div class="stat-card"><div class="stat-label">Total Seleccionat</div><div class="stat-value">${Math.round(totalIng).toLocaleString()}€</div></div>
-                <div class="stat-card clickable" onclick="openModal('hora', 'all')"><div class="stat-label">Mitjana Hora 📊</div><div class="stat-value">${data.length ? (totalIng / data.reduce((a,b)=>a+(b.horas_trabajadas||0),0)).toFixed(2) : 0}€</div></div>
+
+            renderHistory();
+        }
+
+        function renderHistory() {
+            const start = (curPage-1)*perPage;
+            const data = allData.slice(start, start+perPage);
+            document.querySelector('#hTable tbody').innerHTML = data.map(d => `
+                <tr>
+                    <td>${d.fecha}</td>
+                    <td class="day-col">${dias[new Date(d.fecha).getDay()]}</td>
+                    <td>${d.ingresos_dia}€</td>
+                    <td>${d.servicios_dia}</td>
+                    <td>${d.horas_trabajadas}h</td>
+                    <td><button class="btn" onclick="del('${d.fecha}')">🗑️</button></td>
+                </tr>
+            `).join('');
+
+            const totalP = Math.ceil(allData.length/perPage);
+            document.getElementById('pag').innerHTML = `
+                <button class="btn" onclick="curPage--;renderHistory()" ${curPage==1?'disabled':''}>Prev</button>
+                <span>${curPage} / ${totalP}</span>
+                <button class="btn" onclick="curPage++;renderHistory()" ${curPage==totalP?'disabled':''}>Seg</button>
             `;
-            renderMainChart(data);
         }
 
-        function filterDays(n) {
-            const limit = new Date();
-            limit.setDate(limit.getDate() - n);
-            const filtered = allData.filter(d => new Date(d.fecha) >= limit);
-            renderHistTable(filtered);
-        }
-
-        function deleteDay(f) {
-            if(confirm('Borrar '+f+'?')) {
-                allData = allData.filter(d => d.fecha !== f);
-                save();
-            }
-        }
-
-        function renderMainChart(data) {
+        function drawMain() {
             const ctx = document.getElementById('mainChart').getContext('2d');
-            const sorted = [...data].sort((a,b) => new Date(a.fecha) - new Date(b.fecha)).slice(-30);
-            if(mainChart) mainChart.destroy();
-            mainChart = new Chart(ctx, {
+            const d = [...allData].reverse().slice(-30);
+            new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: sorted.map(d => d.fecha.substring(8)),
-                    datasets: [{ label: 'Ingressos', data: sorted.map(d => d.ingresos_dia), backgroundColor: '#00d9ff' }]
+                    labels: d.map(x => x.fecha.split('-')[2]),
+                    datasets: [{ label:'Ingressos', data: d.map(x=>x.ingresos_dia), backgroundColor:'#00d9ff' }]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } } }
+                options: { responsive:true, maintainAspectRatio:false }
             });
         }
 
-        function openModal(type, filter) {
-            document.getElementById('chartModal').style.display = 'flex';
-            const ctx = document.getElementById('modalCanvas').getContext('2d');
-            let data = (filter === 'all') ? allData : allData.filter(d => d.fecha.startsWith(filter));
-            data = [...data].sort((a,b) => new Date(a.fecha) - new Date(b.fecha));
-            
-            const label = type === 'dia' ? 'Ingressos Diaris' : '€ / Hora';
-            const values = type === 'dia' ? data.map(d => d.ingresos_dia) : data.map(d => d.horas_trabajadas ? d.ingresos_dia/d.horas_trabajadas : 0);
-
-            if(modalChart) modalChart.destroy();
-            modalChart = new Chart(ctx, {
+        function drawComp() {
+            const ctx = document.getElementById('compChart').getContext('2d');
+            // Agrupar por meses para el gráfico
+            const months = {};
+            allData.forEach(d => {
+                const m = d.fecha.substring(0,7);
+                months[m] = (months[m] || 0) + d.ingresos_dia;
+            });
+            const labels = Object.keys(months).sort().slice(-6);
+            new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: data.map(d => d.fecha),
-                    datasets: [{ label: label, data: values, borderColor: '#7b61ff', tension: 0.3, fill: true, backgroundColor: 'rgba(123, 97, 255, 0.2)' }]
+                    labels: labels,
+                    datasets: [{ label:'Evolució Mensual', data: labels.map(l=>months[l]), borderColor:'#7b61ff', tension:0.4 }]
                 },
-                options: { responsive: true, maintainAspectRatio: false }
+                options: { responsive:true, maintainAspectRatio:false }
             });
         }
 
-        function comparePresets(m) {
-            const e1 = new Date();
-            const s1 = new Date(); s1.setMonth(s1.getMonth() - m);
-            const e2 = new Date(s1); e2.setDate(e2.getDate() - 1);
-            const s2 = new Date(e2); s2.setMonth(s2.getMonth() - m);
-            
-            displayComp(s1.toISOString().split('T')[0], e1.toISOString().split('T')[0], s2.toISOString().split('T')[0], e2.toISOString().split('T')[0]);
+        function openMod(type) {
+            document.getElementById('modal').style.display = 'flex';
+            const ctx = document.getElementById('modalChart').getContext('2d');
+            const d = [...allData].reverse().slice(-15);
+            const val = type === 'ing' ? d.map(x=>x.ingresos_dia) : d.map(x=>x.ingresos_dia/(x.horas_trabajadas||1));
+            new Chart(ctx, {
+                type: 'line',
+                data: { labels: d.map(x=>x.fecha), datasets: [{ label: type, data: val, borderColor:'#00d9ff' }] },
+                options: { responsive:true, maintainAspectRatio:false }
+            });
         }
 
-        function displayComp(s1, e1, s2, e2) {
-            const p1 = allData.filter(d => d.fecha >= s1 && d.fecha <= e1);
-            const p2 = allData.filter(d => d.fecha >= s2 && d.fecha <= e2);
-            const t1 = p1.reduce((acc, d) => acc + d.ingresos_dia, 0);
-            const t2 = p2.reduce((acc, d) => acc + d.ingresos_dia, 0);
-            const diff = t1 - t2;
-            const perc = t2 ? (diff/t2*100).toFixed(1) : 0;
-
-            document.getElementById('compResults').innerHTML = `
-                <div class="stats-grid">
-                    <div class="stat-card"><div class="stat-label">Actual</div><div class="stat-value">${Math.round(t1)}€</div></div>
-                    <div class="stat-card"><div class="stat-label">Anterior</div><div class="stat-value" style="opacity:0.6">${Math.round(t2)}€</div></div>
-                    <div class="stat-card"><div class="stat-label">Diferència</div><div class="stat-value" style="color:${diff>=0?'var(--success)':'var(--error)'}">${diff>=0?'+':''}${Math.round(diff)}€ (${perc}%)</div></div>
-                </div>
-            `;
-        }
-
+        function del(f) { if(confirm('Borrar?')) { allData = allData.filter(x=>x.fecha!==f); localStorage.setItem('taxiData', JSON.stringify(allData)); render(); } }
         function exportData() {
-            const blob = new Blob([JSON.stringify(allData, null, 2)], {type: 'application/json'});
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a'); a.href = url; a.download = 'datos_taxi.json'; a.click();
-        }
-
-        function importData(input) {
-            const reader = new FileReader();
-            reader.onload = e => { 
-                allData = JSON.parse(e.target.result); 
-                save(); 
-                location.reload(); 
-            };
-            reader.readAsText(input.files[0]);
+            const b = new Blob([JSON.stringify(allData, null, 2)], {type:'application/json'});
+            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'datos_taxi.json'; a.click();
         }
 
         init();
