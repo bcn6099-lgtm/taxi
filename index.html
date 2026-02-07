@@ -14,107 +14,126 @@
             --accent-primary: #00d9ff; --accent-secondary: #7b61ff;
             --text-primary: #e8edf4; --text-secondary: #9ba3b4;
             --text-muted: #6b7280; --border: #2a3142;
-            --success: #10b981; --error: #ef4444;
+            --success: #10b981; --error: #ef4444; --warning: #f59e0b;
         }
         
         body { font-family: 'Archivo', sans-serif; background: var(--bg-primary); color: var(--text-primary); line-height: 1.6; padding-bottom: 50px; }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; position: relative; z-index: 1; }
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; position: relative; }
         
         header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; flex-wrap: wrap; gap: 1rem; }
         h1 { font-size: 2rem; background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
         .tabs-container { margin-bottom: 2rem; background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 0.5rem; display: flex; gap: 0.5rem; }
-        .tab-button { flex: 1; padding: 0.875rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; border-radius: 12px; }
+        .tab-button { flex: 1; padding: 0.875rem; border: none; background: transparent; color: var(--text-secondary); font-weight: 600; cursor: pointer; border-radius: 12px; transition: 0.3s; }
         .tab-button.active { background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary)); color: white; }
+        
         .tab-content { display: none; }
         .tab-content.active { display: block; animation: fadeIn 0.4s ease-out; }
 
-        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; cursor: pointer; transition: 0.3s; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
+        .stat-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 1.5rem; transition: 0.3s; }
         .stat-card:hover { border-color: var(--accent-primary); transform: translateY(-3px); }
-        .stat-label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 10px; }
-        .stat-value { font-size: 2rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; margin-bottom: 8px; font-weight: 700; }
+        .stat-value { font-size: 1.8rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .stat-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 5px; }
 
         .section { background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
         .chart-box { height: 350px; width: 100%; margin: 1rem 0; }
         
-        table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-        th { text-align: left; padding: 12px; color: var(--text-muted); border-bottom: 1px solid var(--border); font-size: 0.8rem; }
-        td { padding: 12px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
-        .day-col { color: var(--accent-primary); font-weight: 600; text-transform: capitalize; }
+        .table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 15px; background: var(--bg-secondary); color: var(--text-muted); font-size: 0.8rem; text-transform: uppercase; }
+        td { padding: 15px; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+        .day-col { color: var(--accent-primary); font-weight: 600; }
 
-        .modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 100; display: none; justify-content: center; align-items: center; }
-        .modal-body { background: var(--bg-card); width: 90%; max-width: 900px; padding: 2rem; border-radius: 16px; position: relative; }
+        .btn { padding: 0.6rem 1.2rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: white; cursor: pointer; font-weight: 600; }
+        .btn-primary { background: var(--accent-primary); color: var(--bg-primary); border: none; }
         
-        .pagination { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; align-items: center; }
-        .btn { padding: 0.5rem 1rem; border-radius: 8px; border: 1px solid var(--border); background: var(--bg-secondary); color: white; cursor: pointer; }
-        
-        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+        .filter-bar { display: flex; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; align-items: center; }
+        input, select { background: var(--bg-secondary); border: 1px solid var(--border); color: white; padding: 0.6rem; border-radius: 8px; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
     </style>
 </head>
 <body>
 
-    <div class="modal" id="modal">
-        <div class="modal-body">
-            <h2 id="modalTitle">Tendència</h2>
-            <div class="chart-box"><canvas id="modalChart"></canvas></div>
-            <button class="btn" onclick="document.getElementById('modal').style.display='none'">Tancar</button>
-        </div>
-    </div>
-
     <div class="container">
         <header>
-            <h1>🚖 Taxi Analytics</h1>
-            <div>
+            <h1>🚖 Taxi Stats Pro</h1>
+            <div style="display:flex; gap:0.5rem">
                 <button class="btn" onclick="exportData()">Desar JSON</button>
+                <input type="file" id="fileIn" style="display:none" onchange="importData(event)">
+                <button class="btn" onclick="document.getElementById('fileIn').click()">Importar</button>
             </div>
         </header>
 
         <div class="tabs-container">
-            <button class="tab-button active" onclick="showTab('month', event)">Mes Actual</button>
-            <button class="tab-button" onclick="showTab('all', event)">Històric</button>
-            <button class="tab-button" onclick="showTab('comp', event)">Comparativa</button>
+            <button class="tab-button active" onclick="switchTab('month', event)">Mes Actual</button>
+            <button class="tab-button" onclick="switchTab('all', event)">Històric</button>
+            <button class="tab-button" onclick="switchTab('comp', event)">Comparativa</button>
         </div>
 
         <div id="tab-month" class="tab-content active">
-            <div class="stats-grid" id="mStats"></div>
+            <div class="stats-grid" id="mStats">
+                </div>
+            
             <div class="section">
-                <h3>Detall del Mes</h3>
-                <table>
-                    <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>€/Hora</th></tr></thead>
-                    <tbody id="mTable"></tbody>
-                </table>
+                <h3 style="margin-bottom:1rem">Registrar Nova Jornada</h3>
+                <form onsubmit="addEntry(event)" style="display:flex; gap:1rem; flex-wrap:wrap">
+                    <input type="date" id="f_date" required>
+                    <input type="number" id="f_ing" placeholder="Ingressos €" step="0.01" required style="flex:1">
+                    <input type="number" id="f_serv" placeholder="Serveis" required style="width:100px">
+                    <input type="number" id="f_h" placeholder="Hores" step="0.1" style="width:100px">
+                    <button type="submit" class="btn btn-primary">Guardar Dia</button>
+                </form>
+            </div>
+
+            <div class="section">
+                <div class="table-wrapper">
+                    <table>
+                        <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>€/Hora</th></tr></thead>
+                        <tbody id="mTable"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
         <div id="tab-all" class="tab-content">
             <div class="section">
-                <h3>Evolució Ingressos (Últims 30 registros)</h3>
+                <div class="filter-bar">
+                    <button class="btn" onclick="filterQuick(7)">7 dies</button>
+                    <button class="btn" onclick="filterQuick(30)">30 dies</button>
+                    <button class="btn" onclick="filterQuick(90)">90 dies</button>
+                    <select id="selYear" onchange="filterComplex()"></select>
+                    <select id="selMonth" onchange="filterComplex()"></select>
+                    <button class="btn" onclick="resetFilters()">Tots</button>
+                </div>
                 <div class="chart-box"><canvas id="mainChart"></canvas></div>
             </div>
             <div class="section">
-                <table id="hTable">
-                    <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>Accions</th></tr></thead>
-                    <tbody></tbody>
-                </table>
-                <div class="pagination" id="pag"></div>
+                <div class="table-wrapper">
+                    <table id="hTable">
+                        <thead><tr><th>Data</th><th>Dia</th><th>Ingressos</th><th>Serveis</th><th>Hores</th><th>Accions</th></tr></thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <div id="pag" class="filter-bar" style="justify-content:center; margin-top:1.5rem"></div>
             </div>
         </div>
 
         <div id="tab-comp" class="tab-content">
             <div class="section">
-                <h3>Comparativa Temporal</h3>
                 <div class="chart-box"><canvas id="compChart"></canvas></div>
-                <div id="compText" style="margin-top:20px"></div>
             </div>
         </div>
     </div>
 
     <script>
         let allData = [];
+        let filteredData = [];
         let curPage = 1;
         const perPage = 15;
-        const dias = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
+        const diasArr = ['Diumenge', 'Dilluns', 'Dimarts', 'Dimecres', 'Dijous', 'Divendres', 'Dissabte'];
 
         async function init() {
             const local = localStorage.getItem('taxiData');
@@ -124,123 +143,131 @@
                 try {
                     const res = await fetch('datos_taxi.json');
                     if (res.ok) allData = await res.json();
-                } catch(e) {}
+                } catch(e) { console.warn("No s'ha pogut carregar datos_taxi.json"); }
             }
             sort();
-            render();
+            fillSelectors();
+            updateUI();
         }
 
         function sort() { allData.sort((a,b) => new Date(b.fecha) - new Date(a.fecha)); }
 
-        function showTab(id, e) {
-            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-button').forEach(b => b.classList.remove('active'));
-            document.getElementById('tab-'+id).classList.add('active');
-            e.target.classList.add('active');
-            if(id === 'all') drawMain();
-            if(id === 'comp') drawComp();
+        function updateUI() {
+            renderMonthTab();
+            filteredData = [...allData];
+            renderHistory();
         }
 
-        function render() {
+        function renderMonthTab() {
             const now = new Date();
-            const curMonth = now.toISOString().substring(0,7);
-            const mData = allData.filter(d => d.fecha.startsWith(curMonth));
-            const total = mData.reduce((a,b) => a+b.ingresos_dia, 0);
+            const curM = now.toISOString().substring(0,7);
+            const mData = allData.filter(d => d.fecha.startsWith(curM));
+            
+            const total = mData.reduce((a,b) => a + b.ingresos_dia, 0);
+            const hores = mData.reduce((a,b) => a + (b.horas_trabajadas || 0), 0);
+            const diesTreballats = mData.length || 1;
+            const mitjanaDiaria = total / diesTreballats;
+            const projeccio = mitjanaDiaria * 21;
 
-            // Stats
             document.getElementById('mStats').innerHTML = `
-                <div class="stat-card" onclick="openMod('ing')"><div class="stat-label">Total Mes</div><div class="stat-value">${Math.round(total)}€</div></div>
-                <div class="stat-card" onclick="openMod('hor')"><div class="stat-label">€ / Hora</div><div class="stat-value">${(total/(mData.reduce((a,b)=>a+(b.horas_trabajadas||0),0)||1)).toFixed(2)}€</div></div>
+                <div class="stat-card">
+                    <div class="stat-label">Total Mes</div>
+                    <div class="stat-value">${Math.round(total).toLocaleString()}€</div>
+                    <div class="stat-sub">${hores.toFixed(1)} hores totals</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Mitjana Hora</div>
+                    <div class="stat-value">${hores ? (total/hores).toFixed(2) : 0}€</div>
+                    <div class="stat-sub">Rendiment real</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--accent-secondary)">
+                    <div class="stat-label">Mitjana Diària</div>
+                    <div class="stat-value">${mitjanaDiaria.toFixed(1)}€</div>
+                    <div class="stat-sub">Basat en ${diesTreballats} dies</div>
+                </div>
+                <div class="stat-card" style="border-left: 4px solid var(--success)">
+                    <div class="stat-label">Projecció Mensual</div>
+                    <div class="stat-value" style="color:var(--success)">${Math.round(projeccio).toLocaleString()}€</div>
+                    <div class="stat-sub">Estimació (x21 dies)</div>
+                </div>
             `;
 
-            // Table
             document.getElementById('mTable').innerHTML = mData.map(d => `
                 <tr>
                     <td>${d.fecha}</td>
-                    <td class="day-col">${dias[new Date(d.fecha).getDay()]}</td>
-                    <td>${d.ingresos_dia.toFixed(2)}€</td>
+                    <td class="day-col">${diasArr[new Date(d.fecha).getDay()]}</td>
+                    <td style="font-weight:700">${d.ingresos_dia.toFixed(2)}€</td>
                     <td>${d.servicios_dia}</td>
                     <td>${d.horas_trabajadas || 0}h</td>
-                    <td>${d.horas_trabajadas ? (d.ingresos_dia/d.horas_trabajadas).toFixed(2) : 0}€</td>
+                    <td style="color:var(--accent-primary)">${d.horas_trabajadas ? (d.ingresos_dia/d.horas_trabajadas).toFixed(2) : 0}€/h</td>
                 </tr>
             `).join('');
-
-            renderHistory();
         }
 
         function renderHistory() {
             const start = (curPage-1)*perPage;
-            const data = allData.slice(start, start+perPage);
-            document.querySelector('#hTable tbody').innerHTML = data.map(d => `
+            const paginated = filteredData.slice(start, start+perPage);
+            
+            document.querySelector('#hTable tbody').innerHTML = paginated.map(d => `
                 <tr>
                     <td>${d.fecha}</td>
-                    <td class="day-col">${dias[new Date(d.fecha).getDay()]}</td>
-                    <td>${d.ingresos_dia}€</td>
+                    <td class="day-col">${diasArr[new Date(d.fecha).getDay()]}</td>
+                    <td>${d.ingresos_dia.toFixed(2)}€</td>
                     <td>${d.servicios_dia}</td>
-                    <td>${d.horas_trabajadas}h</td>
+                    <td>${d.horas_trabajadas || 0}h</td>
                     <td><button class="btn" onclick="del('${d.fecha}')">🗑️</button></td>
                 </tr>
             `).join('');
 
-            const totalP = Math.ceil(allData.length/perPage);
+            const totalP = Math.ceil(filteredData.length / perPage) || 1;
             document.getElementById('pag').innerHTML = `
-                <button class="btn" onclick="curPage--;renderHistory()" ${curPage==1?'disabled':''}>Prev</button>
-                <span>${curPage} / ${totalP}</span>
-                <button class="btn" onclick="curPage++;renderHistory()" ${curPage==totalP?'disabled':''}>Seg</button>
+                <button class="btn" onclick="curPage--;renderHistory()" ${curPage===1?'disabled':''}>Anterior</button>
+                <span style="color:var(--text-muted)">Pàgina ${curPage} de ${totalP}</span>
+                <button class="btn" onclick="curPage++;renderHistory()" ${curPage===totalP?'disabled':''}>Següent</button>
             `;
+            drawMain();
         }
 
+        function fillSelectors() {
+            const years = [...new Set(allData.map(d => d.fecha.substring(0,4)))].sort().reverse();
+            const ySel = document.getElementById('selYear');
+            ySel.innerHTML = '<option value="">Any</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
+            
+            const months = ["Gener","Febrer","Març","Abril","Maig","Juny","Julio","Agost","Setembre","Octubre","Novembre","Desembre"];
+            document.getElementById('selMonth').innerHTML = '<option value="">Mes</option>' + months.map((m,i) => `<option value="${(i+1).toString().padStart(2,'0')}">${m}</option>`).join('');
+        }
+
+        function filterQuick(n) {
+            const limit = new Date();
+            limit.setDate(limit.getDate() - n);
+            filteredData = allData.filter(d => new Date(d.fecha) >= limit);
+            curPage = 1;
+            renderHistory();
+        }
+
+        function filterComplex() {
+            const y = document.getElementById('selYear').value;
+            const m = document.getElementById('selMonth').value;
+            filteredData = allData.filter(d => {
+                const matchY = y ? d.fecha.startsWith(y) : true;
+                const matchM = m ? d.fecha.substring(5,7) === m : true;
+                return matchY && matchM;
+            });
+            curPage = 1;
+            renderHistory();
+        }
+
+        function resetFilters() { filteredData = [...allData]; curPage = 1; renderHistory(); }
+
+        let chartM = null;
         function drawMain() {
             const ctx = document.getElementById('mainChart').getContext('2d');
-            const d = [...allData].reverse().slice(-30);
-            new Chart(ctx, {
+            const dataPlot = [...filteredData].reverse().slice(-30);
+            if(chartM) chartM.destroy();
+            chartM = new Chart(ctx, {
                 type: 'bar',
                 data: {
-                    labels: d.map(x => x.fecha.split('-')[2]),
-                    datasets: [{ label:'Ingressos', data: d.map(x=>x.ingresos_dia), backgroundColor:'#00d9ff' }]
+                    labels: dataPlot.map(d => d.fecha.substring(8,10)),
+                    datasets: [{ label:'Ingressos', data: dataPlot.map(d=>d.ingresos_dia), backgroundColor:'#00d9ff', borderRadius: 4 }]
                 },
-                options: { responsive:true, maintainAspectRatio:false }
-            });
-        }
-
-        function drawComp() {
-            const ctx = document.getElementById('compChart').getContext('2d');
-            // Agrupar por meses para el gráfico
-            const months = {};
-            allData.forEach(d => {
-                const m = d.fecha.substring(0,7);
-                months[m] = (months[m] || 0) + d.ingresos_dia;
-            });
-            const labels = Object.keys(months).sort().slice(-6);
-            new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: labels,
-                    datasets: [{ label:'Evolució Mensual', data: labels.map(l=>months[l]), borderColor:'#7b61ff', tension:0.4 }]
-                },
-                options: { responsive:true, maintainAspectRatio:false }
-            });
-        }
-
-        function openMod(type) {
-            document.getElementById('modal').style.display = 'flex';
-            const ctx = document.getElementById('modalChart').getContext('2d');
-            const d = [...allData].reverse().slice(-15);
-            const val = type === 'ing' ? d.map(x=>x.ingresos_dia) : d.map(x=>x.ingresos_dia/(x.horas_trabajadas||1));
-            new Chart(ctx, {
-                type: 'line',
-                data: { labels: d.map(x=>x.fecha), datasets: [{ label: type, data: val, borderColor:'#00d9ff' }] },
-                options: { responsive:true, maintainAspectRatio:false }
-            });
-        }
-
-        function del(f) { if(confirm('Borrar?')) { allData = allData.filter(x=>x.fecha!==f); localStorage.setItem('taxiData', JSON.stringify(allData)); render(); } }
-        function exportData() {
-            const b = new Blob([JSON.stringify(allData, null, 2)], {type:'application/json'});
-            const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'datos_taxi.json'; a.click();
-        }
-
-        init();
-    </script>
-</body>
-</html>
+                options: { responsive:true, maintainAspectRatio:false, plugins:{legend:{
