@@ -5,24 +5,31 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facturació Taxi</title>
     <style>
+        /* IMPORTACIÓN DE FUENTE GOOGLE FONTS - Inter */
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
         
+        /* RESET GLOBAL - Elimina márgenes, padding y establece box-sizing */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
         
+        /* VARIABLES CSS - Colores del tema oscuro */
         :root {
-            --bg-primary: #000000;
-            --bg-secondary: #1a1a1a;
-            --bg-card: #2a2a2a;
-            --accent: #ffc107;
-            --text-primary: #ffffff;
-            --text-secondary: #b0b0b0;
-            --border: #404040;
+            --bg-primary: #000000;        /* Fondo principal negro */
+            --bg-secondary: #1a1a1a;      /* Fondo secundario gris oscuro */
+            --bg-card: #2a2a2a;           /* Fondo de tarjetas gris medio */
+            --accent: #ffc107;            /* Color de acento amarillo */
+            --text-primary: #ffffff;      /* Texto principal blanco */
+            --text-secondary: #b0b0b0;    /* Texto secundario gris claro */
+            --border: #404040;            /* Color de bordes gris */
+            --color-green: #4caf50;       /* Color verde para positivos */
+            --color-red: #ff4444;         /* Color rojo para negativos */
+            --color-yellow: #ffc107;      /* Color amarillo para valores medios */
         }
         
+        /* ESTILOS DEL BODY - Fuente, fondo y color de texto principal */
         body {
             font-family: 'Inter', sans-serif;
             background: var(--bg-primary);
@@ -31,7 +38,7 @@
             overflow-x: hidden;
         }
         
-        /* SIDEBAR MENU */
+        /* SIDEBAR MENU - Menú lateral fijo */
         .sidebar {
             position: fixed;
             left: 0;
@@ -40,31 +47,36 @@
             height: 100vh;
             background: var(--bg-secondary);
             border-right: 1px solid var(--border);
-            transform: translateX(-100%);
+            transform: translateX(-100%);        /* Oculto por defecto */
             transition: transform 0.3s ease;
             z-index: 1000;
             overflow-y: auto;
         }
         
+        /* SIDEBAR ACTIVO - Menú visible */
         .sidebar.active {
             transform: translateX(0);
         }
         
+        /* CABECERA DEL SIDEBAR */
         .sidebar-header {
             padding: 1.5rem 1rem;
             border-bottom: 1px solid var(--border);
         }
         
+        /* TÍTULO DEL SIDEBAR */
         .sidebar-title {
             font-size: 1.25rem;
             font-weight: 700;
             color: var(--accent);
         }
         
+        /* CONTENEDOR DEL MENÚ */
         .sidebar-menu {
             padding: 1rem 0;
         }
         
+        /* ITEMS DEL MENÚ */
         .menu-item {
             padding: 0.875rem 1.5rem;
             color: var(--text-secondary);
@@ -74,24 +86,27 @@
             font-weight: 500;
         }
         
+        /* ITEM DEL MENÚ AL PASAR EL RATÓN */
         .menu-item:hover {
             background: var(--bg-card);
             color: var(--text-primary);
         }
         
+        /* ITEM DEL MENÚ ACTIVO */
         .menu-item.active {
             background: var(--bg-card);
             color: var(--accent);
             border-left-color: var(--accent);
         }
         
+        /* DIVISOR ENTRE ITEMS DEL MENÚ */
         .menu-divider {
             height: 1px;
             background: var(--border);
             margin: 0.5rem 0;
         }
         
-        /* MOBILE MENU TOGGLE */
+        /* BOTÓN TOGGLE DEL MENÚ MÓVIL - Hamburguesa */
         .menu-toggle {
             position: fixed;
             top: 1rem;
@@ -110,6 +125,7 @@
             gap: 4px;
         }
         
+        /* LÍNEAS DEL ICONO HAMBURGUESA */
         .menu-toggle span {
             width: 20px;
             height: 2px;
@@ -117,6 +133,7 @@
             transition: all 0.3s;
         }
         
+        /* ANIMACIÓN DEL ICONO CUANDO EL MENÚ ESTÁ ACTIVO */
         .menu-toggle.active span:nth-child(1) {
             transform: rotate(45deg) translate(5px, 5px);
         }
@@ -129,7 +146,7 @@
             transform: rotate(-45deg) translate(5px, -5px);
         }
         
-        /* MAIN CONTENT */
+        /* CONTENIDO PRINCIPAL - Área de contenido a la derecha del menú */
         .main-content {
             margin-left: 0;
             padding: 1rem;
@@ -137,6 +154,7 @@
             min-height: 100vh;
         }
         
+        /* CONTENIDO PRINCIPAL EN TABLETS Y ESCRITORIO */
         @media (min-width: 768px) {
             .main-content {
                 padding: 2rem;
@@ -144,14 +162,16 @@
             }
         }
         
+        /* TÍTULO DE LA PÁGINA - Centrado */
         .page-title {
             font-size: 1.75rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
             color: var(--accent);
+            text-align: center;           /* Alineación centrada del título */
         }
         
-        /* STATS GRID */
+        /* GRID DE ESTADÍSTICAS - Cuadrícula responsive para tarjetas */
         .stats-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -159,6 +179,7 @@
             margin-bottom: 1.5rem;
         }
         
+        /* TARJETA DE ESTADÍSTICA */
         .stat-card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -167,15 +188,18 @@
             transition: all 0.2s;
         }
         
+        /* TARJETA DE ESTADÍSTICA AL PASAR EL RATÓN */
         .stat-card:hover {
             border-color: var(--accent);
             transform: translateY(-2px);
         }
         
+        /* TARJETA CLICKEABLE */
         .stat-card.clickable {
             cursor: pointer;
         }
         
+        /* ETIQUETA DE LA ESTADÍSTICA */
         .stat-label {
             font-size: 0.75rem;
             color: var(--text-secondary);
@@ -184,6 +208,7 @@
             margin-bottom: 0.5rem;
         }
         
+        /* VALOR DE LA ESTADÍSTICA */
         .stat-value {
             font-size: 1.5rem;
             font-weight: 700;
@@ -191,20 +216,23 @@
             margin-bottom: 0.25rem;
         }
         
+        /* CAMBIO/PORCENTAJE DE LA ESTADÍSTICA */
         .stat-change {
             font-size: 0.75rem;
             color: var(--text-secondary);
         }
         
+        /* CAMBIO POSITIVO - Verde */
         .stat-change.positive {
-            color: var(--accent);
+            color: var(--color-green);
         }
         
+        /* CAMBIO NEGATIVO - Rojo */
         .stat-change.negative {
-            color: #ff4444;
+            color: var(--color-red);
         }
         
-        /* CHART CONTAINER */
+        /* CONTENEDOR DE GRÁFICOS */
         .chart-container {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -213,6 +241,7 @@
             margin-bottom: 1.5rem;
         }
         
+        /* CABECERA DEL GRÁFICO */
         .chart-header {
             display: flex;
             justify-content: space-between;
@@ -222,186 +251,186 @@
             gap: 0.5rem;
         }
         
+        /* TÍTULO DEL GRÁFICO */
         .chart-title {
             font-size: 1rem;
             font-weight: 600;
             color: var(--text-primary);
         }
         
+        /* CANVAS DE LOS GRÁFICOS - Altura máxima en móvil */
         canvas {
             max-height: 300px !important;
             width: 100% !important;
         }
         
+        /* CANVAS EN TABLETS Y ESCRITORIO */
         @media (min-width: 768px) {
             canvas {
                 max-height: 400px !important;
             }
         }
         
-        /* TABS */
-        .tabs {
+        /* FILTROS Y SELECTORES */
+        .filters {
             display: flex;
             gap: 0.5rem;
+            flex-wrap: wrap;
             margin-bottom: 1rem;
-            overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
         }
         
-        .tab {
-            padding: 0.625rem 1.25rem;
-            background: var(--bg-secondary);
+        /* SELECT Y BOTONES DE FILTRO */
+        select, .filter-btn {
+            background: var(--bg-card);
+            color: var(--text-primary);
             border: 1px solid var(--border);
             border-radius: 8px;
-            color: var(--text-secondary);
+            padding: 0.5rem 1rem;
             cursor: pointer;
+            font-family: inherit;
             transition: all 0.2s;
-            white-space: nowrap;
-            font-weight: 500;
-            font-size: 0.875rem;
         }
         
-        .tab:hover {
+        /* SELECT Y BOTONES AL PASAR EL RATÓN */
+        select:hover, .filter-btn:hover {
             border-color: var(--accent);
-            color: var(--text-primary);
         }
         
-        .tab.active {
+        /* BOTÓN DE FILTRO ACTIVO */
+        .filter-btn.active {
             background: var(--accent);
+            color: var(--bg-primary);
             border-color: var(--accent);
+        }
+        
+        /* GRUPO DE BOTONES */
+        .button-group {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        /* BOTONES */
+        .btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        /* BOTÓN PRIMARIO - Amarillo */
+        .btn-primary {
+            background: var(--accent);
             color: var(--bg-primary);
         }
         
-        /* CONTROLS */
-        select {
-            padding: 0.625rem 1rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.875rem;
-            cursor: pointer;
+        .btn-primary:hover {
+            background: #ffca28;
         }
         
-        /* TABLE */
+        /* BOTÓN SECUNDARIO - Gris */
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+        
+        .btn-secondary:hover {
+            border-color: var(--accent);
+        }
+        
+        /* BOTÓN DE PELIGRO - Rojo */
+        .btn-danger {
+            background: var(--color-red);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #ff6666;
+        }
+        
+        /* TABLA RESPONSIVE */
         .table-container {
             overflow-x: auto;
-            -webkit-overflow-scrolling: touch;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1.5rem;
         }
         
+        /* TABLA */
         table {
             width: 100%;
             border-collapse: collapse;
         }
         
+        /* CABECERA DE LA TABLA */
         thead {
             background: var(--bg-secondary);
-            position: sticky;
-            top: 0;
         }
         
+        /* CELDAS DE LA CABECERA */
         th {
-            padding: 0.75rem 0.5rem;
+            padding: 0.875rem;
             text-align: left;
             font-weight: 600;
             color: var(--text-secondary);
+            border-bottom: 1px solid var(--border);
             font-size: 0.75rem;
             text-transform: uppercase;
             letter-spacing: 0.05em;
-            border-bottom: 1px solid var(--border);
         }
         
+        /* CELDAS DEL CUERPO */
         td {
-            padding: 0.75rem 0.5rem;
+            padding: 0.875rem;
             border-bottom: 1px solid var(--border);
-            color: var(--text-primary);
-            font-size: 0.875rem;
         }
         
-        tr {
-            cursor: pointer;
-            transition: background 0.2s;
+        /* FILA AL PASAR EL RATÓN */
+        tbody tr:hover {
+            background: rgba(255, 193, 7, 0.05);
         }
         
-        tr:hover {
-            background: var(--bg-secondary);
-        }
-        
-        /* FORM */
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 1rem;
+        /* FORMULARIOS */
+        .form-group {
             margin-bottom: 1rem;
         }
         
-        @media (min-width: 768px) {
-            .form-grid {
-                grid-template-columns: repeat(2, 1fr);
-            }
-        }
-        
-        .form-group {
-            display: flex;
-            flex-direction: column;
-            gap: 0.5rem;
-        }
-        
+        /* ETIQUETA DEL FORMULARIO */
         label {
-            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 0.5rem;
             color: var(--text-secondary);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 600;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
         
+        /* INPUTS Y TEXTAREAS */
         input, textarea {
-            padding: 0.625rem 1rem;
-            background: var(--bg-secondary);
+            width: 100%;
+            background: var(--bg-card);
+            color: var(--text-primary);
             border: 1px solid var(--border);
             border-radius: 8px;
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            font-size: 0.875rem;
+            padding: 0.75rem;
+            font-family: inherit;
+            transition: all 0.2s;
         }
         
+        /* INPUTS AL ENFOCARSE */
         input:focus, textarea:focus {
             outline: none;
             border-color: var(--accent);
         }
         
+        /* TEXTAREA */
         textarea {
             resize: vertical;
             min-height: 80px;
-        }
-        
-        button {
-            padding: 0.75rem 1.5rem;
-            background: var(--accent);
-            border: none;
-            border-radius: 8px;
-            color: var(--bg-primary);
-            font-family: 'Inter', sans-serif;
-            font-weight: 600;
-            font-size: 0.875rem;
-            cursor: pointer;
-            transition: all 0.2s;
-        }
-        
-        button:hover {
-            opacity: 0.9;
-            transform: translateY(-1px);
-        }
-        
-        button:active {
-            transform: translateY(0);
-        }
-        
-        button.secondary {
-            background: var(--bg-secondary);
-            color: var(--text-primary);
-            border: 1px solid var(--border);
         }
         
         /* MODAL */
@@ -412,384 +441,579 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.9);
+            background: rgba(0, 0, 0, 0.8);
             z-index: 2000;
-            padding: 1rem;
-            overflow-y: auto;
-        }
-        
-        .modal.active {
-            display: flex;
             align-items: center;
             justify-content: center;
+            padding: 1rem;
         }
         
+        /* MODAL ACTIVO */
+        .modal.active {
+            display: flex;
+        }
+        
+        /* CONTENIDO DEL MODAL */
         .modal-content {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
+            background: var(--bg-secondary);
             border-radius: 12px;
             padding: 1.5rem;
-            max-width: 600px;
+            max-width: 500px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
-            position: relative;
         }
         
-        .modal-close {
-            position: absolute;
-            top: 1rem;
-            right: 1rem;
-            width: 32px;
-            height: 32px;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
-            border-radius: 50%;
-            color: var(--text-primary);
-            font-size: 1.25rem;
-            cursor: pointer;
+        /* CABECERA DEL MODAL */
+        .modal-header {
             display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
+            margin-bottom: 1rem;
         }
         
-        .modal-close:hover {
-            background: var(--accent);
-            color: var(--bg-primary);
-        }
-        
+        /* TÍTULO DEL MODAL */
         .modal-title {
             font-size: 1.25rem;
             font-weight: 700;
-            margin-bottom: 1rem;
             color: var(--accent);
-            padding-right: 2rem;
         }
         
-        .detail-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 0.75rem 0;
-            border-bottom: 1px solid var(--border);
-        }
-        
-        .detail-label {
+        /* BOTÓN DE CERRAR MODAL */
+        .close-btn {
+            background: none;
+            border: none;
             color: var(--text-secondary);
-            font-size: 0.875rem;
+            font-size: 1.5rem;
+            cursor: pointer;
+            padding: 0;
+            width: 30px;
+            height: 30px;
         }
         
-        .detail-value {
+        .close-btn:hover {
             color: var(--text-primary);
-            font-weight: 600;
-            font-size: 0.875rem;
         }
         
-        /* ALERT */
+        /* ALERTAS */
         .alert {
-            padding: 1rem;
+            padding: 0.875rem;
             border-radius: 8px;
             margin-bottom: 1rem;
-            border-left: 4px solid;
         }
         
+        /* ALERTA DE ÉXITO */
         .alert-success {
-            background: rgba(255, 193, 7, 0.1);
-            border-color: var(--accent);
-            color: var(--accent);
+            background: rgba(76, 175, 80, 0.1);
+            color: var(--color-green);
+            border: 1px solid var(--color-green);
         }
         
+        /* ALERTA DE ERROR */
         .alert-error {
             background: rgba(255, 68, 68, 0.1);
-            border-color: #ff4444;
-            color: #ff4444;
+            color: var(--color-red);
+            border: 1px solid var(--color-red);
         }
         
-        /* LOADING */
-        .loading {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            text-align: center;
-            z-index: 3000;
-        }
-        
-        .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid var(--border);
-            border-top-color: var(--accent);
-            border-radius: 50%;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 1rem;
-        }
-        
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        /* OVERLAY */
-        .overlay {
+        /* PÁGINAS - Ocultas por defecto */
+        .page {
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.5);
-            z-index: 999;
         }
         
-        .overlay.active {
+        /* PÁGINA ACTIVA */
+        .page.active {
             display: block;
         }
         
-        /* PAGINATION */
-        .pagination {
+        /* PANTALLA DE CARGA */
+        #loading {
             display: flex;
-            gap: 0.5rem;
             justify-content: center;
-            margin-top: 1rem;
-            flex-wrap: wrap;
+            align-items: center;
+            height: 100vh;
+            font-size: 1.5rem;
+            color: var(--accent);
         }
         
-        .page-btn {
-            min-width: 40px;
-            padding: 0.5rem 0.75rem;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border);
+        /* SPINNER DE CARGA */
+        .spinner {
+            border: 3px solid var(--border);
+            border-top: 3px solid var(--accent);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin-right: 1rem;
+        }
+        
+        /* ANIMACIÓN DEL SPINNER */
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* PESTAÑAS */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--border);
+            overflow-x: auto;
+        }
+        
+        /* BOTÓN DE PESTAÑA */
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        
+        /* PESTAÑA AL PASAR EL RATÓN */
+        .tab-btn:hover {
             color: var(--text-primary);
         }
         
-        .page-btn.active {
-            background: var(--accent);
-            border-color: var(--accent);
-            color: var(--bg-primary);
+        /* PESTAÑA ACTIVA */
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
         }
         
-        /* HIDE ELEMENTS */
+        /* CONTENIDO DE PESTAÑA - Oculto por defecto */
         .tab-content {
             display: none;
         }
         
+        /* CONTENIDO DE PESTAÑA ACTIVA */
         .tab-content.active {
             display: block;
         }
         
-        #importFileInput {
-            display: none;
+        /* LISTA DE MESES - Vista de líneas en lugar de cuadrícula */
+        .month-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
         }
+        
+        /* ITEM DE MES - Línea individual por mes */
+        .month-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .month-item:hover {
+            border-color: var(--accent);
+            transform: translateX(5px);
+        }
+        
+        /* NOMBRE DEL MES */
+        .month-name {
+            font-weight: 600;
+            color: var(--text-primary);
+            font-size: 1rem;
+        }
+        
+        /* INGRESOS DEL MES */
+        .month-revenue {
+            font-weight: 700;
+            color: var(--accent);
+            font-size: 1.25rem;
+        }
+        
+        /* PORCENTAJES COMPARATIVOS - Debajo de ingresos totales */
+        .comparison-percentages {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+        
+        .comparison-percentages span {
+            display: inline-block;
+            margin-right: 0.5rem;
+        }
+        
+        /* ASTERISCO DE ALERTA PARA OBSERVACIONES */
+        .observation-alert {
+            color: var(--accent);
+            font-weight: 700;
+            margin-left: 0.25rem;
+        }
+        
+        /* CIFRA DE INGRESOS CON TAMAÑO MAYOR */
+        .revenue-amount {
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+        
+        /* SELECTOR HORIZONTAL TIPO BARRA - Para Historic y Comparativa */
+        .range-slider-container {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .range-slider-label {
+            font-size: 0.875rem;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: block;
+        }
+        
+        .range-slider {
+            width: 100%;
+            height: 8px;
+            background: var(--border);
+            border-radius: 4px;
+            position: relative;
+            margin-bottom: 1rem;
+        }
+        
+        .range-slider-track {
+            height: 100%;
+            background: var(--accent);
+            border-radius: 4px;
+            position: absolute;
+        }
+        
+        .range-slider-inputs {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+        
+        .range-input {
+            flex: 1;
+        }
+        
+        .range-input label {
+            font-size: 0.75rem;
+            margin-bottom: 0.25rem;
+        }
+        
+        .range-input select {
+            width: 100%;
+        }
+        
+        /* SELECTOR DE VISTA DÍAS/MESES EN HISTORIC */
+        .view-selector {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1rem;
+            margin-bottom: 1.5rem;
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .view-btn {
+            flex: 1;
+            padding: 0.75rem;
+            background: transparent;
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            cursor: pointer;
+            font-family: inherit;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        
+        .view-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+        
+        .view-btn.active {
+            background: var(--accent);
+            color: var(--bg-primary);
+            border-color: var(--accent);
+        }
+        
+        /* UTILIDADES */
+        .text-center {
+            text-align: center;
+        }
+        
+        .mt-1 { margin-top: 0.5rem; }
+        .mt-2 { margin-top: 1rem; }
+        .mb-1 { margin-bottom: 0.5rem; }
+        .mb-2 { margin-bottom: 1rem; }
     </style>
 </head>
 <body>
-    <div class="loading" id="loading">
+    <!-- LOADING SCREEN -->
+    <div id="loading">
         <div class="spinner"></div>
-        <p>Carregant dades...</p>
+        <span>Carregant dades...</span>
     </div>
-    
-    <div class="overlay" id="overlay"></div>
-    
-    <button class="menu-toggle" id="menuToggle">
+
+    <!-- MENU TOGGLE BUTTON -->
+    <button class="menu-toggle" onclick="toggleMenu()">
         <span></span>
         <span></span>
         <span></span>
     </button>
-    
-    <nav class="sidebar" id="sidebar">
+
+    <!-- SIDEBAR -->
+    <div class="sidebar" id="sidebar">
         <div class="sidebar-header">
-            <div class="sidebar-title">Facturació Taxi</div>
+            <div class="sidebar-title">📊 Taxi Control</div>
         </div>
         <div class="sidebar-menu">
-            <div class="menu-item active" data-tab="dashboard">Dashboard</div>
-            <div class="menu-item" data-tab="monthly">Per Mesos</div>
-            <div class="menu-item" data-tab="historic">Històric</div>
-            <div class="menu-item" data-tab="comparison">Comparativa</div>
-            <div class="menu-item" data-tab="add">Afegir Dia</div>
+            <div class="menu-item active" onclick="navigateTo('dashboard')">📈 Resum</div>
+            <div class="menu-item" onclick="navigateTo('monthly')">📅 Per mesos</div>
+            <div class="menu-item" onclick="navigateTo('historic')">📋 Històric</div>
+            <div class="menu-item" onclick="navigateTo('comparison')">🔄 Comparativa</div>
             <div class="menu-divider"></div>
-            <div class="menu-item" onclick="exportJSON()">📥 Exportar JSON</div>
-            <div class="menu-item" onclick="document.getElementById('importFileInput').click()">📤 Importar JSON</div>
+            <div class="menu-item" onclick="navigateTo('add')">➕ Afegir dia</div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" onclick="exportJSON()">💾 Exportar JSON</div>
+            <div class="menu-item" onclick="document.getElementById('importFile').click()">📂 Importar JSON</div>
+            <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
         </div>
-    </nav>
-    
-    <input type="file" id="importFileInput" accept=".json" onchange="importJSON(event)" />
-    
-    <main class="main-content" id="mainContent">
-        <!-- DASHBOARD TAB -->
-        <div id="dashboardTab" class="tab-content active">
-            <h1 class="page-title">Dashboard</h1>
-            <div class="stats-grid" id="dashboardStats"></div>
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Evolució Mensual</h2>
-                    <select id="monthsFilter" onchange="updateDashboard()">
-                        <option value="3">Últims 3 mesos</option>
-                        <option value="6">Últims 6 mesos</option>
-                        <option value="9">Últims 9 mesos</option>
-                        <option value="12" selected>Últims 12 mesos</option>
-                        <option value="18">Últims 18 mesos</option>
-                        <option value="24">Últims 24 mesos</option>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="mainContent" style="display:none">
+        <div class="main-content">
+            
+            <!-- DASHBOARD PAGE -->
+            <div id="dashboard" class="page active">
+                <h1 class="page-title">📈 Resum General</h1>
+                
+                <div class="filters">
+                    <select id="yearFilter" onchange="updateDashboard()">
+                        <option value="all">Tots els anys</option>
+                    </select>
+                    <select id="monthFilter" onchange="updateDashboard()">
+                        <option value="all">Tots els mesos</option>
                     </select>
                 </div>
-                <canvas id="dashboardChart"></canvas>
+
+                <div class="stats-grid" id="statsGrid"></div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Evolució d'ingressos</h3>
+                    </div>
+                    <canvas id="revenueChart"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Comparació per dia de la setmana</h3>
+                    </div>
+                    <canvas id="weekdayChart"></canvas>
+                </div>
             </div>
-        </div>
-        
-        <!-- MONTHLY TAB -->
-        <div id="monthlyTab" class="tab-content">
-            <h1 class="page-title">Per Mesos</h1>
-            <div class="chart-header">
-                <select id="yearFilterMonthly" onchange="updateMonthlyView()">
-                    <option value="all">Tots els anys</option>
-                </select>
-            </div>
-            <div class="stats-grid" id="monthlyGrid"></div>
-            
-            <div class="chart-container" style="margin-top: 2rem;">
-                <h3 class="chart-title" style="margin-bottom: 1rem;">Afegir/Editar Dia</h3>
-                <form id="addDayFormMonth" onsubmit="addNewDay(event, 'month')">
-                    <div class="form-grid">
-                        <div class="form-group">
-                            <label for="fechaMonth">Data</label>
-                            <input type="date" id="fechaMonth" required>
+
+            <!-- MONTHLY PAGE -->
+            <div id="monthly" class="page">
+                <h1 class="page-title">📅 Vista per Mesos</h1>
+                
+                <div class="filters">
+                    <select id="yearFilterMonthly" onchange="updateMonthlyView()">
+                        <option value="all">Tots els anys</option>
+                    </select>
+                </div>
+
+                <div class="month-list" id="monthList"></div>
+
+                <!-- MODAL FOR MONTH DETAILS -->
+                <div id="monthModal" class="modal">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h3 class="modal-title" id="monthModalTitle">Detalls del mes</h3>
+                            <button class="close-btn" onclick="closeMonthModal()">&times;</button>
                         </div>
-                        <div class="form-group">
-                            <label for="ingresosMonth">Ingressos (€)</label>
-                            <input type="number" id="ingresosMonth" step="0.05" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="serviciosMonth">Serveis</label>
-                            <input type="number" id="serviciosMonth" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="horasMonth">Hores (opcional)</label>
-                            <input type="number" id="horasMonth" step="0.1">
-                        </div>
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="observacionsMonth">Observacions (opcional)</label>
-                            <textarea id="observacionsMonth"></textarea>
+                        <div id="monthModalContent"></div>
+                        <div style="margin-top: 1rem;">
+                            <button class="btn btn-primary" onclick="navigateTo('add'); closeMonthModal();">Afegir dia a aquest mes</button>
                         </div>
                     </div>
-                    <button type="submit">Guardar Dia</button>
-                </form>
-                <div id="alertContainerMonth"></div>
-            </div>
-        </div>
-        
-        <!-- HISTORIC TAB -->
-        <div id="historicTab" class="tab-content">
-            <h1 class="page-title">Històric</h1>
-            
-            <div class="tabs" id="historicTabs">
-                <div class="tab active" data-period="today">Avui</div>
-                <div class="tab" data-period="week">Setmana</div>
-                <div class="tab" data-period="month">Mes</div>
-                <div class="tab" data-period="year">Any</div>
-            </div>
-            
-            <div class="chart-container">
-                <canvas id="historicChart"></canvas>
-            </div>
-            
-            <div class="chart-container">
-                <div class="chart-header">
-                    <h2 class="chart-title">Tots els Dies</h2>
-                    <button onclick="exportToCSV()" class="secondary">Exportar CSV</button>
                 </div>
-                <div class="table-container">
-                    <table id="historicTable">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Dia</th>
-                                <th>Ingressos</th>
-                            </tr>
-                        </thead>
-                        <tbody></tbody>
-                    </table>
+            </div>
+
+            <!-- HISTORIC PAGE -->
+            <div id="historic" class="page">
+                <h1 class="page-title">📋 Històric</h1>
+                
+                <!-- SELECTOR DE VISTA: DÍAS O MESES -->
+                <div class="view-selector">
+                    <button class="view-btn active" onclick="setHistoricView('days')">Per dies</button>
+                    <button class="view-btn" onclick="setHistoricView('months')">Per mesos</button>
                 </div>
-                <div class="pagination" id="pagination"></div>
+                
+                <!-- SELECTOR HORIZONTAL DE RANGO DE FECHAS -->
+                <div class="range-slider-container">
+                    <label class="range-slider-label">Selecciona el període temporal:</label>
+                    <div class="range-slider-inputs">
+                        <div class="range-input">
+                            <label>Des de:</label>
+                            <select id="historicStartMonth" onchange="updateHistoricView()"></select>
+                        </div>
+                        <div class="range-input">
+                            <label>Fins a:</label>
+                            <select id="historicEndMonth" onchange="updateHistoricView()"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="button-group mb-2">
+                    <button class="btn btn-primary" onclick="exportToCSV()">Exportar CSV</button>
+                </div>
+
+                <div class="table-container" id="historicTableContainer"></div>
             </div>
-        </div>
-        
-        <!-- COMPARISON TAB -->
-        <div id="comparisonTab" class="tab-content">
-            <h1 class="page-title">Comparativa</h1>
-            
-            <div class="tabs">
-                <div class="tab active" onclick="selectComparisonPeriod(1)">Últim mes</div>
-                <div class="tab" onclick="selectComparisonPeriod(3)">Últims 3</div>
-                <div class="tab" onclick="selectComparisonPeriod(6)">Últims 6</div>
-                <div class="tab" onclick="selectComparisonPeriod(12)">Últims 12</div>
+
+            <!-- COMPARISON PAGE -->
+            <div id="comparison" class="page">
+                <h1 class="page-title">🔄 Comparativa</h1>
+                
+                <!-- SELECTOR HORIZONTAL DE RANGO DE FECHAS -->
+                <div class="range-slider-container">
+                    <label class="range-slider-label">Selecciona el període temporal:</label>
+                    <div class="range-slider-inputs">
+                        <div class="range-input">
+                            <label>Des de:</label>
+                            <select id="comparisonStartMonth" onchange="updateComparisonView()"></select>
+                        </div>
+                        <div class="range-input">
+                            <label>Fins a:</label>
+                            <select id="comparisonEndMonth" onchange="updateComparisonView()"></select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Comparativa d'ingressos per any</h3>
+                    </div>
+                    <canvas id="comparisonChartIngresos"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Comparativa de serveis per any</h3>
+                    </div>
+                    <canvas id="comparisonChartServicio"></canvas>
+                </div>
+
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Comparativa d'€/hora per any</h3>
+                    </div>
+                    <canvas id="comparisonChartHora"></canvas>
+                </div>
             </div>
-            
-            <div class="chart-container">
-                <h2 class="chart-title">Ingressos Totals</h2>
-                <canvas id="comparisonChartIngresos"></canvas>
-            </div>
-            
-            <div class="chart-container">
-                <h2 class="chart-title">Mitjana per Servei</h2>
-                <canvas id="comparisonChartServicio"></canvas>
-            </div>
-            
-            <div class="chart-container">
-                <h2 class="chart-title">Mitjana per Hora</h2>
-                <canvas id="comparisonChartHora"></canvas>
-            </div>
-        </div>
-        
-        <!-- ADD DAY TAB -->
-        <div id="addTab" class="tab-content">
-            <h1 class="page-title">Afegir Nou Dia</h1>
-            <div class="chart-container">
-                <form id="addDayForm" onsubmit="addNewDay(event, 'add')">
-                    <div class="form-grid">
+
+            <!-- ADD DAY PAGE -->
+            <div id="add" class="page">
+                <h1 class="page-title">➕ Afegir / Editar Dia</h1>
+                
+                <div class="chart-container">
+                    <div id="alertContainer"></div>
+                    <form id="addDayForm" onsubmit="addNewDay(event, 'add')">
                         <div class="form-group">
-                            <label for="fecha">Data</label>
+                            <label for="fecha">Data:</label>
                             <input type="date" id="fecha" required>
                         </div>
                         <div class="form-group">
-                            <label for="ingresos">Ingressos (€)</label>
-                            <input type="number" id="ingresos" step="0.05" required>
+                            <label for="ingresos">Ingressos (€):</label>
+                            <input type="number" id="ingresos" step="0.01" required>
                         </div>
                         <div class="form-group">
-                            <label for="servicios">Serveis</label>
+                            <label for="servicios">Nombre de serveis:</label>
                             <input type="number" id="servicios" required>
                         </div>
                         <div class="form-group">
-                            <label for="horas">Hores (opcional)</label>
+                            <label for="horas">Hores treballades (opcional):</label>
                             <input type="number" id="horas" step="0.1">
                         </div>
-                        <div class="form-group" style="grid-column: 1 / -1;">
-                            <label for="observacions">Observacions (opcional)</label>
+                        <div class="form-group">
+                            <label for="observacions">Observacions (opcional):</label>
                             <textarea id="observacions"></textarea>
                         </div>
-                    </div>
-                    <button type="submit">Afegir Dia</button>
-                </form>
-                <div id="alertContainer"></div>
+                        <button type="submit" class="btn btn-primary">Desar</button>
+                    </form>
+                </div>
+
+                <h2 class="page-title" style="margin-top: 2rem;">Tots els dies</h2>
+                <div class="table-container" id="allDaysTable"></div>
             </div>
+
         </div>
-    </main>
-    
-    <!-- DETAIL MODAL -->
-    <div class="modal" id="detailModal">
+    </div>
+
+    <!-- EDIT MODAL -->
+    <div id="editModal" class="modal">
         <div class="modal-content">
-            <button class="modal-close" onclick="closeModal()">×</button>
-            <h2 class="modal-title" id="modalTitle">Detall del Dia</h2>
-            <div id="modalDetails"></div>
+            <div class="modal-header">
+                <h3 class="modal-title">Editar dia</h3>
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+            </div>
+            <div id="alertContainerMonth"></div>
+            <form id="addDayFormMonth" onsubmit="addNewDay(event, 'month')">
+                <div class="form-group">
+                    <label for="fechaMonth">Data:</label>
+                    <input type="date" id="fechaMonth" required>
+                </div>
+                <div class="form-group">
+                    <label for="ingresosMonth">Ingressos (€):</label>
+                    <input type="number" id="ingresosMonth" step="0.01" required>
+                </div>
+                <div class="form-group">
+                    <label for="serviciosMonth">Nombre de serveis:</label>
+                    <input type="number" id="serviciosMonth" required>
+                </div>
+                <div class="form-group">
+                    <label for="horasMonth">Hores treballades (opcional):</label>
+                    <input type="number" id="horasMonth" step="0.1">
+                </div>
+                <div class="form-group">
+                    <label for="observacionsMonth">Observacions (opcional):</label>
+                    <textarea id="observacionsMonth"></textarea>
+                </div>
+                <div class="button-group">
+                    <button type="submit" class="btn btn-primary">Desar canvis</button>
+                    <button type="button" class="btn btn-danger" onclick="deleteDay(currentEditDate)">Eliminar</button>
+                </div>
+            </form>
         </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
+        // GLOBAL VARIABLES
         let datosIniciales = [];
         let allData = [];
         let filteredData = [];
-        let currentPage = 1;
-        const itemsPerPage = 20;
-        let currentHistoricPeriod = 'today';
-        let currentComparisonMonths = 1;
+        let currentEditDate = null;
+        let revenueChart = null;
+        let weekdayChart = null;
+        let comparisonChartIngresos = null;
+        let comparisonChartServicio = null;
+        let comparisonChartHora = null;
+        let historicViewMode = 'days'; // 'days' o 'months'
 
         const diasSemana = {
             'Monday': 'Dilluns',
@@ -801,93 +1025,19 @@
             'Sunday': 'Diumenge'
         };
 
-        const mesesNombres = {
+        const monthNames = {
             '01': 'Gener', '02': 'Febrer', '03': 'Març', '04': 'Abril',
             '05': 'Maig', '06': 'Juny', '07': 'Juliol', '08': 'Agost',
             '09': 'Setembre', '10': 'Octubre', '11': 'Novembre', '12': 'Desembre'
         };
 
-        let dashboardChart = null;
-        let historicChart = null;
-        let comparisonChartIngresos = null;
-        let comparisonChartServicio = null;
-        let comparisonChartHora = null;
-
-        // MENU TOGGLE
-        document.getElementById('menuToggle').addEventListener('click', function() {
-            const sidebar = document.getElementById('sidebar');
-            const overlay = document.getElementById('overlay');
-            const toggle = this;
-            
-            sidebar.classList.toggle('active');
-            overlay.classList.toggle('active');
-            toggle.classList.toggle('active');
-        });
-
-        document.getElementById('overlay').addEventListener('click', function() {
-            document.getElementById('sidebar').classList.remove('active');
-            document.getElementById('overlay').classList.remove('active');
-            document.getElementById('menuToggle').classList.remove('active');
-        });
-
-        // MENU NAVIGATION
-        document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
-            item.addEventListener('click', function() {
-                const tab = this.dataset.tab;
-                switchTab(tab);
-                document.getElementById('sidebar').classList.remove('active');
-                document.getElementById('overlay').classList.remove('active');
-                document.getElementById('menuToggle').classList.remove('active');
-            });
-        });
-
-        function switchTab(tabName) {
-            document.querySelectorAll('.tab-content').forEach(tab => {
-                tab.classList.remove('active');
-            });
-            document.querySelectorAll('.menu-item[data-tab]').forEach(item => {
-                item.classList.remove('active');
-            });
-
-            const tabs = {
-                'dashboard': 'dashboardTab',
-                'monthly': 'monthlyTab',
-                'historic': 'historicTab',
-                'comparison': 'comparisonTab',
-                'add': 'addTab'
-            };
-
-            document.getElementById(tabs[tabName]).classList.add('active');
-            document.querySelector(`[data-tab="${tabName}"]`).classList.add('active');
-
-            if (tabName === 'comparison') {
-                setTimeout(() => generateComparisonCharts(currentComparisonMonths), 100);
-            } else if (tabName === 'historic') {
-                updateHistoricView();
-            }
-        }
-
-        // HISTORIC TABS
-        document.querySelectorAll('#historicTabs .tab').forEach(tab => {
-            tab.addEventListener('click', function() {
-                document.querySelectorAll('#historicTabs .tab').forEach(t => t.classList.remove('active'));
-                this.classList.add('active');
-                currentHistoricPeriod = this.dataset.period;
-                updateHistoricView();
-            });
-        });
-
-        // UTILITY FUNCTIONS
-        function roundTo5Cents(num) {
-            return Math.round(num * 20) / 20;
-        }
-
+        // STORAGE FUNCTIONS
         function getStoredData() {
             try {
                 const stored = localStorage.getItem('taxiData');
                 return stored ? JSON.parse(stored) : [];
             } catch (error) {
-                console.error('Error reading localStorage:', error);
+                console.error('Error reading storage:', error);
                 return [];
             }
         }
@@ -897,33 +1047,90 @@
                 localStorage.setItem('taxiData', JSON.stringify(data));
                 return true;
             } catch (error) {
-                console.error('Error saving localStorage:', error);
+                console.error('Error saving to storage:', error);
                 return false;
             }
         }
 
         function loadData() {
             const storedData = getStoredData();
-            allData = [...datosIniciales, ...storedData];
-            
-            allData = allData.map(row => {
-                if (!row.mes_anio || row.mes_anio === 'undefined' || row.mes_anio.length < 7) {
-                    row.mes_anio = row.fecha.substring(0, 7);
-                }
-                return row;
-            });
-            
-            allData.sort((a, b) => new Date(a.fecha) - new Date(b.fecha));
+            allData = storedData.length > 0 ? storedData : datosIniciales;
             filteredData = [...allData];
         }
 
+        // NAVIGATION
+        function toggleMenu() {
+            const sidebar = document.getElementById('sidebar');
+            const toggle = document.querySelector('.menu-toggle');
+            sidebar.classList.toggle('active');
+            toggle.classList.toggle('active');
+        }
+
+        function navigateTo(page) {
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+            
+            document.getElementById(page).classList.add('active');
+            event.target.classList.add('active');
+            
+            toggleMenu();
+
+            if (page === 'monthly') updateMonthlyView();
+            if (page === 'historic') updateHistoricView();
+            if (page === 'comparison') updateComparisonView();
+            if (page === 'add') updateAllDaysTable();
+        }
+
+        // FILTERS
         function populateYearFilters() {
             const years = [...new Set(allData.map(d => d.fecha.substring(0, 4)))].sort().reverse();
+            
+            const yearFilter = document.getElementById('yearFilter');
             const yearFilterMonthly = document.getElementById('yearFilterMonthly');
+            
+            yearFilter.innerHTML = '<option value="all">Tots els anys</option>';
             yearFilterMonthly.innerHTML = '<option value="all">Tots els anys</option>';
+            
             years.forEach(year => {
+                yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
                 yearFilterMonthly.innerHTML += `<option value="${year}">${year}</option>`;
             });
+
+            const monthFilter = document.getElementById('monthFilter');
+            monthFilter.innerHTML = '<option value="all">Tots els mesos</option>';
+            Object.entries(monthNames).forEach(([num, name]) => {
+                monthFilter.innerHTML += `<option value="${num}">${name}</option>`;
+            });
+
+            // Populate month range selectors for Historic
+            populateMonthRangeSelectors('historic');
+            
+            // Populate month range selectors for Comparison
+            populateMonthRangeSelectors('comparison');
+        }
+
+        function populateMonthRangeSelectors(view) {
+            const months = [...new Set(allData.map(d => d.mes_anio || d.fecha.substring(0, 7)))].sort();
+            
+            const startSelect = document.getElementById(view === 'historic' ? 'historicStartMonth' : 'comparisonStartMonth');
+            const endSelect = document.getElementById(view === 'historic' ? 'historicEndMonth' : 'comparisonEndMonth');
+            
+            startSelect.innerHTML = '';
+            endSelect.innerHTML = '';
+            
+            months.forEach((month, index) => {
+                const [year, monthNum] = month.split('-');
+                const monthName = monthNames[monthNum];
+                const label = `${monthName} ${year}`;
+                
+                startSelect.innerHTML += `<option value="${month}" ${index === 0 ? 'selected' : ''}>${label}</option>`;
+                endSelect.innerHTML += `<option value="${month}" ${index === months.length - 1 ? 'selected' : ''}>${label}</option>`;
+            });
+        }
+
+        // UTILITY FUNCTIONS
+        function roundTo5Cents(value) {
+            return Math.round(value * 20) / 20;
         }
 
         function formatDate(dateStr) {
@@ -932,164 +1139,135 @@
         }
 
         function formatCurrency(value) {
-            return Math.round(value) + '€';
+            return value.toFixed(2) + '€';
+        }
+
+        function calculateChange(current, previous) {
+            if (!previous || previous === 0) return 0;
+            return ((current - previous) / previous * 100);
+        }
+
+        // FUNCIÓN PARA OBTENER COLOR CONDICIONAL BASADO EN VALOR
+        function getConditionalColor(value, min, max) {
+            if (value <= min) return 'var(--color-red)';
+            if (value >= max) return 'var(--color-green)';
+            
+            // Interpolación entre rojo y verde pasando por amarillo
+            const ratio = (value - min) / (max - min);
+            if (ratio < 0.5) {
+                // De rojo a amarillo
+                return `rgb(255, ${Math.round(193 * ratio * 2)}, 68)`;
+            } else {
+                // De amarillo a verde
+                return `rgb(${Math.round(255 - 179 * (ratio - 0.5) * 2)}, ${Math.round(193 + 82 * (ratio - 0.5) * 2)}, ${Math.round(7 + 73 * (ratio - 0.5) * 2)})`;
+            }
         }
 
         // DASHBOARD
         function updateDashboard() {
-            updateDashboardStats();
-            updateDashboardChart();
-        }
+            const yearFilter = document.getElementById('yearFilter').value;
+            const monthFilter = document.getElementById('monthFilter').value;
 
-        function updateDashboardStats() {
-            const today = new Date();
-            const currentMonth = today.toISOString().substring(0, 7);
-            const currentYear = today.getFullYear();
-            const lastYear = currentYear - 1;
-            const lastYearMonth = `${lastYear}-${currentMonth.substring(5)}`;
+            filteredData = allData.filter(d => {
+                const matchYear = yearFilter === 'all' || d.fecha.startsWith(yearFilter);
+                const matchMonth = monthFilter === 'all' || d.fecha.substring(5, 7) === monthFilter;
+                return matchYear && matchMonth;
+            });
+
+            const totalIngresos = filteredData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
+            const totalServicios = filteredData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
+            const totalHoras = filteredData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
             
-            const monthData = allData.filter(d => d.mes_anio === currentMonth);
-            const lastYearMonthData = allData.filter(d => d.mes_anio === lastYearMonth);
+            const mediaDia = filteredData.length > 0 ? totalIngresos / filteredData.length : 0;
+            const mediaServicio = totalServicios > 0 ? totalIngresos / totalServicios : 0;
+            const mediaHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
+
+            // Cálculo de cambios comparativos
+            const currentYear = yearFilter !== 'all' ? parseInt(yearFilter) : new Date().getFullYear();
+            const previousYearData = allData.filter(d => {
+                const year = parseInt(d.fecha.substring(0, 4));
+                const month = d.fecha.substring(5, 7);
+                const matchPrevYear = year === currentYear - 1;
+                const matchMonth = monthFilter === 'all' || month === monthFilter;
+                return matchPrevYear && matchMonth;
+            });
+
+            const prevTotalIngresos = previousYearData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
+            const changeIngresos = calculateChange(totalIngresos, prevTotalIngresos);
             
-            const totalIngresos = monthData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
-            const lastYearIngresos = lastYearMonthData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
-            
-            const totalServicios = monthData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
-            const diasTrabajados = monthData.length;
-            const mediaPorDia = diasTrabajados > 0 ? totalIngresos / diasTrabajados : 0;
-            
-            const lastYearDias = lastYearMonthData.length;
-            const lastYearMediaDia = lastYearDias > 0 ? lastYearIngresos / lastYearDias : 0;
-            
-            const totalHoras = monthData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
-            const mediaPorHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
-            
-            const lastYearHoras = lastYearMonthData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
-            const lastYearMediaHora = lastYearHoras > 0 ? lastYearIngresos / lastYearHoras : 0;
-            
-            const previsio = mediaPorDia * 21;
-            
-            const changeIngresos = lastYearIngresos > 0 ? ((totalIngresos - lastYearIngresos) / lastYearIngresos * 100) : 0;
-            const changeMediaDia = lastYearMediaDia > 0 ? ((mediaPorDia - lastYearMediaDia) / lastYearMediaDia * 100) : 0;
-            const changeMediaHora = lastYearMediaHora > 0 ? ((mediaPorHora - lastYearMediaHora) / lastYearMediaHora * 100) : 0;
-            
-            // Totales históricos
-            const totalHistorico = allData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
-            const serviciosHistorico = allData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
-            
-            const container = document.getElementById('dashboardStats');
-            container.innerHTML = `
+            const prevMediaDia = previousYearData.length > 0 ? prevTotalIngresos / previousYearData.length : 0;
+            const changeMediaDia = calculateChange(mediaDia, prevMediaDia);
+
+            // Get conditional colors for media dia and media hora
+            const mediaDiaColor = getConditionalColor(mediaDia, 150, 300);
+            const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
+
+            const statsHtml = `
                 <div class="stat-card">
-                    <div class="stat-label">Ingressos del Mes</div>
-                    <div class="stat-value">${formatCurrency(totalIngresos)}</div>
+                    <div class="stat-label">Ingressos totals</div>
+                    <div class="stat-value">${formatCurrency(roundTo5Cents(totalIngresos))}</div>
                     <div class="stat-change ${changeIngresos >= 0 ? 'positive' : 'negative'}">
-                        ${changeIngresos >= 0 ? '↑' : '↓'} ${Math.abs(changeIngresos).toFixed(1)}% vs any passat
+                        ${changeIngresos >= 0 ? '▲' : '▼'} ${Math.abs(changeIngresos).toFixed(1)}% vs any anterior
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Serveis del Mes</div>
-                    <div class="stat-value">${totalServicios}</div>
-                    <div class="stat-change">
-                        ${diasTrabajados} dies treballats
-                    </div>
-                </div>
-                <div class="stat-card clickable" onclick="showDailyAverageChart()">
-                    <div class="stat-label">Mitjana per Dia</div>
-                    <div class="stat-value">${roundTo5Cents(mediaPorDia).toFixed(2)}€</div>
+                    <div class="stat-label">Mitjana per dia</div>
+                    <div class="stat-value" style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</div>
                     <div class="stat-change ${changeMediaDia >= 0 ? 'positive' : 'negative'}">
-                        ${changeMediaDia >= 0 ? '↑' : '↓'} ${Math.abs(changeMediaDia).toFixed(1)}% vs any passat
-                    </div>
-                </div>
-                <div class="stat-card clickable" onclick="showHourlyAverageChart()">
-                    <div class="stat-label">Mitjana per Hora</div>
-                    <div class="stat-value">${totalHoras > 0 ? roundTo5Cents(mediaPorHora).toFixed(2) : '--'}€</div>
-                    <div class="stat-change ${changeMediaHora >= 0 ? 'positive' : 'negative'}">
-                        ${totalHoras > 0 ? `${changeMediaHora >= 0 ? '↑' : '↓'} ${Math.abs(changeMediaHora).toFixed(1)}% vs any passat` : 'Sense dades'}
+                        ${changeMediaDia >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaDia).toFixed(1)}% vs any anterior
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Previsió del Mes</div>
-                    <div class="stat-value">${formatCurrency(previsio)}</div>
-                    <div class="stat-change">
-                        ${roundTo5Cents(mediaPorDia).toFixed(2)}€/dia × 21
-                    </div>
+                    <div class="stat-label">Serveis totals</div>
+                    <div class="stat-value">${totalServicios}</div>
+                    <div class="stat-change">${filteredData.length} dies</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Ingressos Bruts Totals</div>
-                    <div class="stat-value">${formatCurrency(totalHistorico)}</div>
-                    <div class="stat-change">
-                        Tots els anys
-                    </div>
+                    <div class="stat-label">€ per servei</div>
+                    <div class="stat-value">${formatCurrency(roundTo5Cents(mediaServicio))}</div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Serveis Totals</div>
-                    <div class="stat-value">${serviciosHistorico}</div>
-                    <div class="stat-change">
-                        Tots els anys
-                    </div>
+                    <div class="stat-label">€ per hora</div>
+                    <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(mediaHora))}</div>
                 </div>
             `;
+
+            document.getElementById('statsGrid').innerHTML = statsHtml;
+
+            updateRevenueChart();
+            updateWeekdayChart();
         }
 
-        function updateDashboardChart() {
-            const monthsToShow = parseInt(document.getElementById('monthsFilter').value);
-            const ctx = document.getElementById('dashboardChart').getContext('2d');
+        function updateRevenueChart() {
+            const ctx = document.getElementById('revenueChart');
             
-            const monthlyTotals = {};
-            allData.forEach(row => {
-                const mesAnio = row.mes_anio || row.fecha.substring(0, 7);
-                if (!mesAnio || mesAnio === 'undefined' || mesAnio.length < 7) return;
-                
-                if (!monthlyTotals[mesAnio]) {
-                    monthlyTotals[mesAnio] = { ingresos: 0, dias: 0 };
-                }
-                monthlyTotals[mesAnio].ingresos += row.ingresos_dia || 0;
-                monthlyTotals[mesAnio].dias += 1;
-            });
+            const sortedData = [...filteredData].sort((a, b) => a.fecha.localeCompare(b.fecha));
+            const labels = sortedData.map(d => formatDate(d.fecha));
+            const data = sortedData.map(d => roundTo5Cents(d.ingresos_dia || 0));
 
-            const sortedMonths = Object.keys(monthlyTotals).sort().slice(-monthsToShow);
-            const labels = sortedMonths.map(m => {
-                const [year, month] = m.split('-');
-                return `${mesesNombres[month]} ${year.substring(2)}`;
-            });
-            const data = sortedMonths.map(m => Math.round(monthlyTotals[m].ingresos));
+            if (revenueChart) revenueChart.destroy();
 
-            if (dashboardChart) dashboardChart.destroy();
-
-            dashboardChart = new Chart(ctx, {
-                type: 'bar',
+            revenueChart = new Chart(ctx, {
+                type: 'line',
                 data: {
                     labels: labels,
                     datasets: [{
+                        label: 'Ingressos',
                         data: data,
-                        backgroundColor: '#ffc107',
-                        borderRadius: 6,
-                        barThickness: 'flex',
-                        maxBarThickness: 40
+                        borderColor: '#ffc107',
+                        backgroundColor: 'rgba(255, 193, 7, 0.1)',
+                        tension: 0.4,
+                        fill: true
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
                         tooltip: {
-                            backgroundColor: '#2a2a2a',
-                            titleColor: '#ffc107',
-                            bodyColor: '#ffffff',
-                            borderColor: '#404040',
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: false,
                             callbacks: {
-                                label: (context) => {
-                                    const monthKey = sortedMonths[context.dataIndex];
-                                    const monthData = monthlyTotals[monthKey];
-                                    return [
-                                        `Ingressos: ${formatCurrency(monthData.ingresos)}`,
-                                        `Dies: ${monthData.dias}`
-                                    ];
-                                }
+                                label: (context) => formatCurrency(context.parsed.y)
                             }
                         }
                     },
@@ -1104,307 +1282,59 @@
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#b0b0b0' }
+                            ticks: { 
+                                color: '#b0b0b0',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
                         }
                     }
                 }
             });
         }
 
-        function showDailyAverageChart() {
-            const today = new Date();
-            const currentMonth = today.toISOString().substring(0, 7);
-            const monthData = allData.filter(d => d.mes_anio === currentMonth);
-
-            if (monthData.length === 0) {
-                alert('No hi ha dades per aquest mes');
-                return;
-            }
-
-            const labels = monthData.map(d => formatDate(d.fecha));
-            const data = monthData.map(d => roundTo5Cents(d.ingresos_dia || 0));
-
-            showChartModal('Ingressos per Dia - Mes Actual', labels, data);
-        }
-
-        function showHourlyAverageChart() {
-            const today = new Date();
-            const currentMonth = today.toISOString().substring(0, 7);
-            const monthData = allData.filter(d => d.mes_anio === currentMonth && d.horas_trabajadas);
-
-            if (monthData.length === 0) {
-                alert('No hi ha dades d\'hores per aquest mes');
-                return;
-            }
-
-            const labels = monthData.map(d => formatDate(d.fecha));
-            const data = monthData.map(d => {
-                const mediaHora = d.horas_trabajadas > 0 ? d.ingresos_dia / d.horas_trabajadas : 0;
-                return roundTo5Cents(mediaHora);
+        function updateWeekdayChart() {
+            const ctx = document.getElementById('weekdayChart');
+            
+            const weekdayData = {};
+            Object.values(diasSemana).forEach(day => {
+                weekdayData[day] = { total: 0, count: 0 };
             });
 
-            showChartModal('Mitjana per Hora - Mes Actual', labels, data);
-        }
-
-        function showChartModal(title, labels, data) {
-            const modal = document.getElementById('detailModal');
-            document.getElementById('modalTitle').textContent = title;
-            
-            const chartHTML = '<canvas id="modalChart" style="max-height: 300px;"></canvas>';
-            document.getElementById('modalDetails').innerHTML = chartHTML;
-            modal.classList.add('active');
-
-            setTimeout(() => {
-                const ctx = document.getElementById('modalChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: '#ffc107',
-                            borderRadius: 6
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: true,
-                        plugins: {
-                            legend: { display: false },
-                            tooltip: {
-                                backgroundColor: '#2a2a2a',
-                                titleColor: '#ffc107',
-                                bodyColor: '#ffffff',
-                                borderColor: '#404040',
-                                borderWidth: 1,
-                                padding: 12
-                            }
-                        },
-                        scales: {
-                            y: {
-                                beginAtZero: true,
-                                grid: { color: '#404040' },
-                                ticks: {
-                                    color: '#b0b0b0',
-                                    callback: (value) => value.toFixed(2) + '€'
-                                }
-                            },
-                            x: {
-                                grid: { display: false },
-                                ticks: {
-                                    color: '#b0b0b0',
-                                    maxRotation: 45,
-                                    minRotation: 45
-                                }
-                            }
-                        }
-                    }
-                });
-            }, 100);
-        }
-
-        // MONTHLY VIEW
-        function updateMonthlyView() {
-            const year = document.getElementById('yearFilterMonthly').value;
-            const data = year === 'all' ? allData : allData.filter(d => d.fecha.startsWith(year));
-            
-            const monthlyTotals = {};
-            data.forEach(row => {
-                const mesAnio = row.mes_anio || row.fecha.substring(0, 7);
-                if (!mesAnio || mesAnio === 'undefined' || mesAnio.length < 7) return;
-                
-                if (!monthlyTotals[mesAnio]) {
-                    monthlyTotals[mesAnio] = { ingresos: 0, servicios: 0, dias: 0, horas: 0 };
+            filteredData.forEach(d => {
+                const date = new Date(d.fecha + 'T12:00:00');
+                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
+                const diaCatalan = diasSemana[dayName];
+                if (diaCatalan) {
+                    weekdayData[diaCatalan].total += d.ingresos_dia || 0;
+                    weekdayData[diaCatalan].count += 1;
                 }
-                monthlyTotals[mesAnio].ingresos += row.ingresos_dia || 0;
-                monthlyTotals[mesAnio].servicios += row.servicios_dia || 0;
-                monthlyTotals[mesAnio].dias += 1;
-                monthlyTotals[mesAnio].horas += row.horas_trabajadas || 0;
             });
 
-            const grid = document.getElementById('monthlyGrid');
-            const sortedMonths = Object.keys(monthlyTotals).sort().reverse();
-            
-            grid.innerHTML = sortedMonths.map(month => {
-                const data = monthlyTotals[month];
-                const [year, monthNum] = month.split('-');
-                
-                if (!year || !monthNum || !mesesNombres[monthNum]) return '';
-                
-                const mediaDia = data.dias > 0 ? roundTo5Cents(data.ingresos / data.dias) : 0;
-                const mediaHora = data.horas > 0 ? roundTo5Cents(data.ingresos / data.horas) : 0;
-                
-                return `
-                    <div class="stat-card" onclick="showMonthDetails('${month}')">
-                        <div class="stat-label">${mesesNombres[monthNum]} ${year}</div>
-                        <div class="stat-value">${formatCurrency(data.ingresos)}</div>
-                        <div class="stat-change">
-                            ${data.servicios} serveis · ${data.dias} dies<br>
-                            ${mediaDia.toFixed(2)}€/dia${data.horas > 0 ? ` · ${mediaHora.toFixed(2)}€/hora` : ''}
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function showMonthDetails(month) {
-            const monthData = allData.filter(d => {
-                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
-                return mesAnio === month;
+            const labels = Object.keys(weekdayData);
+            const data = labels.map(day => {
+                const avg = weekdayData[day].count > 0 ? weekdayData[day].total / weekdayData[day].count : 0;
+                return roundTo5Cents(avg);
             });
 
-            if (monthData.length === 0) {
-                alert('No hi ha dades per aquest mes');
-                return;
-            }
+            if (weekdayChart) weekdayChart.destroy();
 
-            monthData.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-            const [year, monthNum] = month.split('-');
-            const monthName = `${mesesNombres[monthNum]} ${year}`;
-
-            const modal = document.getElementById('detailModal');
-            document.getElementById('modalTitle').textContent = `Detall de ${monthName}`;
-            
-            const html = `
-                <div class="table-container">
-                    <table style="width: 100%;">
-                        <thead>
-                            <tr>
-                                <th>Data</th>
-                                <th>Dia</th>
-                                <th>Ingressos</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${monthData.map(row => {
-                                const fecha = new Date(row.fecha + 'T12:00:00');
-                                const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
-                                
-                                return `
-                                    <tr onclick="showDayDetail('${row.fecha}')">
-                                        <td><strong>${formatDate(row.fecha)}</strong></td>
-                                        <td>${diaSemana}</td>
-                                        <td>${formatCurrency(row.ingresos_dia || 0)}</td>
-                                    </tr>
-                                `;
-                            }).join('')}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-
-            document.getElementById('modalDetails').innerHTML = html;
-            modal.classList.add('active');
-        }
-
-        // HISTORIC VIEW
-        function updateHistoricView() {
-            updateHistoricChart();
-            updateHistoricTable();
-        }
-
-        function updateHistoricChart() {
-            const today = new Date();
-            let startDate, endDate, groupBy;
-
-            switch(currentHistoricPeriod) {
-                case 'today':
-                    startDate = new Date(today);
-                    startDate.setHours(0, 0, 0, 0);
-                    endDate = new Date(today);
-                    endDate.setHours(23, 59, 59, 999);
-                    groupBy = 'day';
-                    break;
-                case 'week':
-                    startDate = new Date(today);
-                    startDate.setDate(today.getDate() - today.getDay() + 1); // Monday
-                    startDate.setHours(0, 0, 0, 0);
-                    endDate = new Date(today);
-                    endDate.setHours(23, 59, 59, 999);
-                    groupBy = 'day';
-                    break;
-                case 'month':
-                    startDate = new Date(today.getFullYear(), today.getMonth(), 1);
-                    endDate = new Date(today);
-                    endDate.setHours(23, 59, 59, 999);
-                    groupBy = 'day';
-                    break;
-                case 'year':
-                    startDate = new Date(today.getFullYear(), 0, 1);
-                    endDate = new Date(today);
-                    endDate.setHours(23, 59, 59, 999);
-                    groupBy = 'month';
-                    break;
-            }
-
-            const periodData = allData.filter(d => {
-                const date = new Date(d.fecha);
-                return date >= startDate && date <= endDate;
-            });
-
-            let labels, data, title;
-
-            if (groupBy === 'day') {
-                const total = periodData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
-                labels = [currentHistoricPeriod === 'today' ? 'Avui' : 
-                          currentHistoricPeriod === 'week' ? 'Setmana' : 'Mes'];
-                data = [total];
-                title = `Total: ${formatCurrency(total)}`;
-            } else {
-                // Group by month
-                const monthlyTotals = {};
-                periodData.forEach(row => {
-                    const mesAnio = row.mes_anio || row.fecha.substring(0, 7);
-                    if (!monthlyTotals[mesAnio]) {
-                        monthlyTotals[mesAnio] = 0;
-                    }
-                    monthlyTotals[mesAnio] += row.ingresos_dia || 0;
-                });
-
-                const sortedMonths = Object.keys(monthlyTotals).sort();
-                labels = sortedMonths.map(m => {
-                    const [year, month] = m.split('-');
-                    return mesesNombres[month];
-                });
-                data = sortedMonths.map(m => Math.round(monthlyTotals[m]));
-                const total = data.reduce((a, b) => a + b, 0);
-                title = `Total: ${formatCurrency(total)}`;
-            }
-
-            const ctx = document.getElementById('historicChart').getContext('2d');
-
-            if (historicChart) historicChart.destroy();
-
-            historicChart = new Chart(ctx, {
+            weekdayChart = new Chart(ctx, {
                 type: 'bar',
                 data: {
                     labels: labels,
                     datasets: [{
+                        label: 'Mitjana',
                         data: data,
-                        backgroundColor: '#ffc107',
-                        borderRadius: 6
+                        backgroundColor: '#ffc107'
                     }]
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: { display: false },
-                        title: {
-                            display: true,
-                            text: title,
-                            color: '#ffc107',
-                            font: { size: 16, weight: 'bold' }
-                        },
                         tooltip: {
-                            backgroundColor: '#2a2a2a',
-                            titleColor: '#ffc107',
-                            bodyColor: '#ffffff',
-                            borderColor: '#404040',
-                            borderWidth: 1,
-                            padding: 12,
-                            displayColors: false,
                             callbacks: {
                                 label: (context) => formatCurrency(context.parsed.y)
                             }
@@ -1428,331 +1358,402 @@
             });
         }
 
-        function updateHistoricTable() {
-            const dataToShow = [...allData].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-            filteredData = dataToShow;
-            currentPage = 1;
-            renderTable();
-            renderPagination();
-        }
-
-        function renderTable() {
-            const tbody = document.querySelector('#historicTable tbody');
-            const start = (currentPage - 1) * itemsPerPage;
-            const end = start + itemsPerPage;
-            const pageData = filteredData.slice(start, end);
-
-            tbody.innerHTML = pageData.map(row => {
-                const fecha = new Date(row.fecha + 'T12:00:00');
-                const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
-                
-                return `
-                    <tr onclick="showDayDetail('${row.fecha}')">
-                        <td><strong>${formatDate(row.fecha)}</strong></td>
-                        <td>${diaSemana}</td>
-                        <td><strong>${formatCurrency(row.ingresos_dia || 0)}</strong></td>
-                    </tr>
-                `;
-            }).join('');
-        }
-
-        function renderPagination() {
-            const pagination = document.getElementById('pagination');
-            const totalPages = Math.ceil(filteredData.length / itemsPerPage);
+        // MONTHLY VIEW
+        function updateMonthlyView() {
+            const yearFilter = document.getElementById('yearFilterMonthly').value;
             
-            if (totalPages <= 1) {
-                pagination.innerHTML = '';
-                return;
-            }
+            const monthlyData = {};
+            allData.forEach(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                if (yearFilter === 'all' || mesAnio.startsWith(yearFilter)) {
+                    if (!monthlyData[mesAnio]) {
+                        monthlyData[mesAnio] = { ingresos: 0, servicios: 0, horas: 0, dias: 0 };
+                    }
+                    monthlyData[mesAnio].ingresos += d.ingresos_dia || 0;
+                    monthlyData[mesAnio].servicios += d.servicios_dia || 0;
+                    monthlyData[mesAnio].horas += d.horas_trabajadas || 0;
+                    monthlyData[mesAnio].dias += 1;
+                }
+            });
 
+            const sortedMonths = Object.keys(monthlyData).sort().reverse();
+            
             let html = '';
-            
-            if (currentPage > 1) {
-                html += `<button class="page-btn" onclick="changePage(${currentPage - 1})">← Ant.</button>`;
-            }
-            
-            const maxButtons = 5;
-            let startPage = Math.max(1, currentPage - Math.floor(maxButtons / 2));
-            let endPage = Math.min(totalPages, startPage + maxButtons - 1);
-            
-            if (endPage - startPage < maxButtons - 1) {
-                startPage = Math.max(1, endPage - maxButtons + 1);
-            }
-            
-            for (let i = startPage; i <= endPage; i++) {
-                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" onclick="changePage(${i})">${i}</button>`;
-            }
-            
-            if (currentPage < totalPages) {
-                html += `<button class="page-btn" onclick="changePage(${currentPage + 1})">Seg. →</button>`;
-            }
-            
-            pagination.innerHTML = html;
+            sortedMonths.forEach(mesAnio => {
+                const data = monthlyData[mesAnio];
+                const [year, month] = mesAnio.split('-');
+                const monthName = monthNames[month];
+                
+                // Calcular porcentajes comparativos
+                const currentYear = parseInt(year);
+                const currentMonth = month;
+                
+                // Comparar con el mismo mes del año anterior
+                const prevYearMonth = `${currentYear - 1}-${currentMonth}`;
+                const prevYearData = monthlyData[prevYearMonth];
+                const prevYearIngresos = prevYearData ? prevYearData.ingresos : 0;
+                const changePrevYear = calculateChange(data.ingresos, prevYearIngresos);
+                
+                // Comparar con el mismo mes de 2019
+                const year2019Month = `2019-${currentMonth}`;
+                const year2019Data = monthlyData[year2019Month];
+                const year2019Ingresos = year2019Data ? year2019Data.ingresos : 0;
+                const change2019 = calculateChange(data.ingresos, year2019Ingresos);
+                
+                const comparisons = `
+                    <div class="comparison-percentages">
+                        ${prevYearIngresos > 0 ? `<span class="${changePrevYear >= 0 ? 'positive' : 'negative'}">${changePrevYear >= 0 ? '▲' : '▼'}${Math.abs(changePrevYear).toFixed(1)}% <small>(Any anterior)</small></span>` : ''}
+                        ${year2019Ingresos > 0 ? `<span class="${change2019 >= 0 ? 'positive' : 'negative'}">${change2019 >= 0 ? '▲' : '▼'}${Math.abs(change2019).toFixed(1)}% <small>(2019)</small></span>` : ''}
+                    </div>
+                `;
+                
+                html += `
+                    <div class="month-item" onclick="showMonthDetails('${mesAnio}')">
+                        <div>
+                            <div class="month-name">${monthName} ${year}</div>
+                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                ${data.dias} dies · ${data.servicios} serveis
+                            </div>
+                        </div>
+                        <div style="text-align: right;">
+                            <div class="month-revenue">${formatCurrency(roundTo5Cents(data.ingresos))}</div>
+                            ${comparisons}
+                        </div>
+                    </div>
+                `;
+            });
+
+            document.getElementById('monthList').innerHTML = html || '<p style="text-align:center; color: var(--text-secondary);">No hi ha dades disponibles</p>';
         }
 
-        function changePage(page) {
-            currentPage = page;
-            renderTable();
-            renderPagination();
-        }
-
-        function showDayDetail(fecha) {
-            const row = allData.find(d => d.fecha === fecha);
-            if (!row) return;
-
-            const fechaObj = new Date(row.fecha + 'T12:00:00');
-            const diaSemana = diasSemana[fechaObj.toLocaleDateString('en-US', { weekday: 'long' })] || '';
-            const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
-            const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
-
-            const canDelete = getStoredData().some(d => d.fecha === fecha);
-
-            const modal = document.getElementById('detailModal');
-            document.getElementById('modalTitle').textContent = `${formatDate(fecha)} - ${diaSemana}`;
+        function showMonthDetails(mesAnio) {
+            const monthData = allData.filter(d => (d.mes_anio || d.fecha.substring(0, 7)) === mesAnio);
             
-            const html = `
-                <div class="detail-row">
-                    <span class="detail-label">Ingressos</span>
-                    <span class="detail-value">${formatCurrency(row.ingresos_dia || 0)}</span>
+            const [year, month] = mesAnio.split('-');
+            const monthName = monthNames[month];
+            
+            document.getElementById('monthModalTitle').textContent = `${monthName} ${year}`;
+            
+            const totalIngresos = monthData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
+            const totalServicios = monthData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
+            const totalHoras = monthData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
+            
+            const mediaDia = monthData.length > 0 ? totalIngresos / monthData.length : 0;
+            const mediaServicio = totalServicios > 0 ? totalIngresos / totalServicios : 0;
+            const mediaHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
+            
+            // Get conditional colors
+            const mediaDiaColor = getConditionalColor(mediaDia, 150, 300);
+            const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
+            
+            let detailsHtml = `
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total</div>
+                        <div class="stat-value">${formatCurrency(roundTo5Cents(totalIngresos))}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Mitjana/dia</div>
+                        <div class="stat-value" style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Serveis</div>
+                        <div class="stat-value">${totalServicios}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">€/servei</div>
+                        <div class="stat-value">${formatCurrency(roundTo5Cents(mediaServicio))}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">€/hora</div>
+                        <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(mediaHora))}</div>
+                    </div>
                 </div>
-                <div class="detail-row">
-                    <span class="detail-label">Serveis</span>
-                    <span class="detail-value">${row.servicios_dia || 0}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">€ per Servei</span>
-                    <span class="detail-value">${mediaPrecio.toFixed(2)}€</span>
-                </div>
-                ${row.horas_trabajadas ? `
-                <div class="detail-row">
-                    <span class="detail-label">Hores</span>
-                    <span class="detail-value">${row.horas_trabajadas}</span>
-                </div>
-                <div class="detail-row">
-                    <span class="detail-label">€ per Hora</span>
-                    <span class="detail-value">${mediaHora.toFixed(2)}€</span>
-                </div>
-                ` : ''}
-                ${row.observacions ? `
-                <div class="detail-row" style="flex-direction: column; align-items: flex-start;">
-                    <span class="detail-label">Observacions</span>
-                    <span class="detail-value" style="margin-top: 0.5rem; white-space: pre-wrap;">${row.observacions}</span>
-                </div>
-                ` : ''}
-                ${canDelete ? `
-                <div style="margin-top: 1.5rem;">
-                    <button onclick="deleteDay('${fecha}')" style="background: #ff4444; width: 100%;">Eliminar Dia</button>
-                </div>
-                ` : ''}
+                <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Dies:</h4>
+                <div style="max-height: 300px; overflow-y: auto;">
             `;
-
-            document.getElementById('modalDetails').innerHTML = html;
-            modal.classList.add('active');
-        }
-
-        function closeModal() {
-            document.getElementById('detailModal').classList.remove('active');
-        }
-
-        // COMPARISON
-        function selectComparisonPeriod(months) {
-            currentComparisonMonths = months;
             
-            document.querySelectorAll('#comparisonTab .tab').forEach(t => t.classList.remove('active'));
+            monthData.sort((a, b) => b.fecha.localeCompare(a.fecha)).forEach(d => {
+                const date = new Date(d.fecha + 'T12:00:00');
+                const dayName = diasSemana[date.toLocaleDateString('en-US', { weekday: 'long' })];
+                const revenueColor = getConditionalColor(d.ingresos_dia || 0, 150, 300);
+                const hasObservations = d.observacions && d.observacions.trim() !== '';
+                
+                detailsHtml += `
+                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid var(--border); align-items: center;">
+                        <div>
+                            <strong>${formatDate(d.fecha)}</strong> - ${dayName}
+                        </div>
+                        <div style="text-align: right;">
+                            <span class="revenue-amount" style="color: ${revenueColor}">${formatCurrency(roundTo5Cents(d.ingresos_dia || 0))}</span>
+                            ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
+                            <button class="btn btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${d.fecha}'); event.stopPropagation();">✏️</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            detailsHtml += '</div>';
+            
+            document.getElementById('monthModalContent').innerHTML = detailsHtml;
+            document.getElementById('monthModal').classList.add('active');
+        }
+
+        function closeMonthModal() {
+            document.getElementById('monthModal').classList.remove('active');
+        }
+
+        // HISTORIC VIEW
+        function setHistoricView(mode) {
+            historicViewMode = mode;
+            
+            // Update button states
+            document.querySelectorAll('.view-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             
-            generateComparisonCharts(months);
+            updateHistoricView();
         }
 
-        function generateComparisonCharts(monthsToShow) {
-            const today = new Date();
-            const currentYear = today.getFullYear();
+        function updateHistoricView() {
+            const startMonth = document.getElementById('historicStartMonth').value;
+            const endMonth = document.getElementById('historicEndMonth').value;
             
-            // Get last N months including partial current month
-            const endDate = today;
-            const startDate = new Date(today);
-            startDate.setMonth(startDate.getMonth() - monthsToShow + 1);
-            startDate.setDate(1);
-            
-            // Generate month labels
-            const months = [];
-            const current = new Date(startDate);
-            while (current <= endDate) {
-                months.push(current.toISOString().substring(0, 7));
-                current.setMonth(current.getMonth() + 1);
+            const filtered = allData.filter(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                return mesAnio >= startMonth && mesAnio <= endMonth;
+            });
+
+            if (historicViewMode === 'days') {
+                updateHistoricTableDays(filtered);
+            } else {
+                updateHistoricTableMonths(filtered);
             }
-            
-            // Get data for current year, last year, and 2019
-            const currentYearData = {};
-            const lastYearData = {};
-            const year2019Data = {};
-            
-            months.forEach(month => {
-                currentYearData[month] = { ingresos: 0, servicios: 0, horas: 0 };
-                
-                const lastYearMonth = `${currentYear - 1}-${month.substring(5)}`;
-                lastYearData[lastYearMonth] = { ingresos: 0, servicios: 0, horas: 0 };
-                
-                const year2019Month = `2019-${month.substring(5)}`;
-                year2019Data[year2019Month] = { ingresos: 0, servicios: 0, horas: 0 };
-            });
-            
-            allData.forEach(row => {
-                const mesAnio = row.mes_anio || row.fecha.substring(0, 7);
-                
-                if (currentYearData[mesAnio] !== undefined) {
-                    currentYearData[mesAnio].ingresos += row.ingresos_dia || 0;
-                    currentYearData[mesAnio].servicios += row.servicios_dia || 0;
-                    currentYearData[mesAnio].horas += row.horas_trabajadas || 0;
-                }
-                
-                if (lastYearData[mesAnio] !== undefined) {
-                    lastYearData[mesAnio].ingresos += row.ingresos_dia || 0;
-                    lastYearData[mesAnio].servicios += row.servicios_dia || 0;
-                    lastYearData[mesAnio].horas += row.horas_trabajadas || 0;
-                }
-                
-                if (year2019Data[mesAnio] !== undefined) {
-                    year2019Data[mesAnio].ingresos += row.ingresos_dia || 0;
-                    year2019Data[mesAnio].servicios += row.servicios_dia || 0;
-                    year2019Data[mesAnio].horas += row.horas_trabajadas || 0;
-                }
-            });
-            
-            const labels = months.map(m => {
-                const [year, month] = m.split('-');
-                return mesesNombres[month];
-            });
-            
-            // Ingresos
-            const ingresosCurrentYear = months.map(m => Math.round(currentYearData[m].ingresos));
-            const ingresosLastYear = months.map(m => {
-                const lastYearMonth = `${currentYear - 1}-${m.substring(5)}`;
-                return Math.round(lastYearData[lastYearMonth].ingresos);
-            });
-            const ingresos2019 = months.map(m => {
-                const year2019Month = `2019-${m.substring(5)}`;
-                return Math.round(year2019Data[year2019Month].ingresos);
-            });
-            
-            createComparisonChart(
-                'comparisonChartIngresos',
-                labels,
-                [
-                    { label: `${currentYear}`, data: ingresosCurrentYear, color: '#ffc107' },
-                    { label: `${currentYear - 1}`, data: ingresosLastYear, color: '#ff6b9d' },
-                    { label: '2019', data: ingresos2019, color: '#00d9ff' }
-                ],
-                (value) => formatCurrency(value)
-            );
-            
-            // Media por Servicio
-            const servicioCurrentYear = months.map(m => {
-                const d = currentYearData[m];
-                return d.servicios > 0 ? roundTo5Cents(d.ingresos / d.servicios) : 0;
-            });
-            const servicioLastYear = months.map(m => {
-                const lastYearMonth = `${currentYear - 1}-${m.substring(5)}`;
-                const d = lastYearData[lastYearMonth];
-                return d.servicios > 0 ? roundTo5Cents(d.ingresos / d.servicios) : 0;
-            });
-            const servicio2019 = months.map(m => {
-                const year2019Month = `2019-${m.substring(5)}`;
-                const d = year2019Data[year2019Month];
-                return d.servicios > 0 ? roundTo5Cents(d.ingresos / d.servicios) : 0;
-            });
-            
-            createComparisonChart(
-                'comparisonChartServicio',
-                labels,
-                [
-                    { label: `${currentYear}`, data: servicioCurrentYear, color: '#ffc107' },
-                    { label: `${currentYear - 1}`, data: servicioLastYear, color: '#ff6b9d' },
-                    { label: '2019', data: servicio2019, color: '#00d9ff' }
-                ],
-                (value) => value.toFixed(2) + '€'
-            );
-            
-            // Media por Hora
-            const horaCurrentYear = months.map(m => {
-                const d = currentYearData[m];
-                return d.horas > 0 ? roundTo5Cents(d.ingresos / d.horas) : 0;
-            });
-            const horaLastYear = months.map(m => {
-                const lastYearMonth = `${currentYear - 1}-${m.substring(5)}`;
-                const d = lastYearData[lastYearMonth];
-                return d.horas > 0 ? roundTo5Cents(d.ingresos / d.horas) : 0;
-            });
-            const hora2019 = months.map(m => {
-                const year2019Month = `2019-${m.substring(5)}`;
-                const d = year2019Data[year2019Month];
-                return d.horas > 0 ? roundTo5Cents(d.ingresos / d.horas) : 0;
-            });
-            
-            createComparisonChart(
-                'comparisonChartHora',
-                labels,
-                [
-                    { label: `${currentYear}`, data: horaCurrentYear, color: '#ffc107' },
-                    { label: `${currentYear - 1}`, data: horaLastYear, color: '#ff6b9d' },
-                    { label: '2019', data: hora2019, color: '#00d9ff' }
-                ],
-                (value) => value.toFixed(2) + '€'
-            );
         }
 
-        function createComparisonChart(canvasId, labels, datasets, formatCallback) {
-            const ctx = document.getElementById(canvasId).getContext('2d');
+        function updateHistoricTableDays(data) {
+            const sorted = [...data].sort((a, b) => b.fecha.localeCompare(a.fecha));
             
-            const chartDatasets = datasets.map(ds => ({
-                label: ds.label,
-                data: ds.data,
-                borderColor: ds.color,
-                backgroundColor: ds.color + '40',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.4,
-                pointRadius: 4,
-                pointHoverRadius: 6
-            }));
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Dia</th>
+                            <th>Ingressos</th>
+                            <th>Serveis</th>
+                            <th>€/Servei</th>
+                            <th>Hores</th>
+                            <th>€/Hora</th>
+                            <th>Accions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
 
-            if (canvasId === 'comparisonChartIngresos' && comparisonChartIngresos) {
-                comparisonChartIngresos.destroy();
-            } else if (canvasId === 'comparisonChartServicio' && comparisonChartServicio) {
-                comparisonChartServicio.destroy();
-            } else if (canvasId === 'comparisonChartHora' && comparisonChartHora) {
-                comparisonChartHora.destroy();
-            }
+            sorted.forEach(row => {
+                const fecha = new Date(row.fecha + 'T12:00:00');
+                const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
+                const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
+                const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
+                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 300);
+                const hasObservations = row.observacions && row.observacions.trim() !== '';
 
-            const chart = new Chart(ctx, {
+                html += `
+                    <tr>
+                        <td>${formatDate(row.fecha)}</td>
+                        <td>${diaSemana}</td>
+                        <td>
+                            <span class="revenue-amount" style="color: ${revenueColor}">${formatCurrency(roundTo5Cents(row.ingresos_dia || 0))}</span>
+                            ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
+                        </td>
+                        <td>${row.servicios_dia || 0}</td>
+                        <td>${formatCurrency(mediaPrecio)}</td>
+                        <td>${row.horas_trabajadas ? row.horas_trabajadas.toFixed(1) : '-'}</td>
+                        <td>${row.horas_trabajadas ? formatCurrency(mediaHora) : '-'}</td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${row.fecha}')">✏️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('historicTableContainer').innerHTML = html;
+        }
+
+        function updateHistoricTableMonths(data) {
+            const monthlyData = {};
+            
+            data.forEach(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                if (!monthlyData[mesAnio]) {
+                    monthlyData[mesAnio] = { ingresos: 0, servicios: 0, horas: 0, dias: 0 };
+                }
+                monthlyData[mesAnio].ingresos += d.ingresos_dia || 0;
+                monthlyData[mesAnio].servicios += d.servicios_dia || 0;
+                monthlyData[mesAnio].horas += d.horas_trabajadas || 0;
+                monthlyData[mesAnio].dias += 1;
+            });
+
+            const sortedMonths = Object.keys(monthlyData).sort().reverse();
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Mes</th>
+                            <th>Dies</th>
+                            <th>Ingressos</th>
+                            <th>Mitjana/dia</th>
+                            <th>Serveis</th>
+                            <th>€/Servei</th>
+                            <th>Hores</th>
+                            <th>€/Hora</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedMonths.forEach(mesAnio => {
+                const mData = monthlyData[mesAnio];
+                const [year, month] = mesAnio.split('-');
+                const monthName = monthNames[month];
+                
+                const mediaDia = mData.dias > 0 ? mData.ingresos / mData.dias : 0;
+                const mediaServicio = mData.servicios > 0 ? mData.ingresos / mData.servicios : 0;
+                const mediaHora = mData.horas > 0 ? mData.ingresos / mData.horas : 0;
+                
+                const mediaDiaColor = getConditionalColor(mediaDia, 150, 300);
+                const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
+
+                html += `
+                    <tr>
+                        <td><strong>${monthName} ${year}</strong></td>
+                        <td>${mData.dias}</td>
+                        <td><strong>${formatCurrency(roundTo5Cents(mData.ingresos))}</strong></td>
+                        <td style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</td>
+                        <td>${mData.servicios}</td>
+                        <td>${formatCurrency(roundTo5Cents(mediaServicio))}</td>
+                        <td>${mData.horas > 0 ? mData.horas.toFixed(1) : '-'}</td>
+                        <td style="color: ${mediaHoraColor}">${mData.horas > 0 ? formatCurrency(roundTo5Cents(mediaHora)) : '-'}</td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('historicTableContainer').innerHTML = html;
+        }
+
+        // COMPARISON VIEW
+        function updateComparisonView() {
+            const startMonth = document.getElementById('comparisonStartMonth').value;
+            const endMonth = document.getElementById('comparisonEndMonth').value;
+            
+            const filtered = allData.filter(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                return mesAnio >= startMonth && mesAnio <= endMonth;
+            });
+
+            const yearlyData = {};
+            filtered.forEach(d => {
+                const year = d.fecha.substring(0, 4);
+                const month = d.fecha.substring(5, 7);
+                
+                if (!yearlyData[year]) yearlyData[year] = {};
+                if (!yearlyData[year][month]) {
+                    yearlyData[year][month] = { ingresos: 0, servicios: 0, horas: 0 };
+                }
+                
+                yearlyData[year][month].ingresos += d.ingresos_dia || 0;
+                yearlyData[year][month].servicios += d.servicios_dia || 0;
+                yearlyData[year][month].horas += d.horas_trabajadas || 0;
+            });
+
+            const years = Object.keys(yearlyData).sort();
+            const months = [...new Set(filtered.map(d => d.fecha.substring(5, 7)))].sort();
+            
+            const labels = months.map(m => monthNames[m]);
+
+            // Chart Ingresos
+            updateComparisonChart('comparisonChartIngresos', 'Ingressos per mes', labels, years, yearlyData, 'ingresos');
+            
+            // Chart Servicios
+            updateComparisonChart('comparisonChartServicio', 'Serveis per mes', labels, years, yearlyData, 'servicios');
+            
+            // Chart €/Hora
+            updateComparisonChart('comparisonChartHora', '€/Hora per mes', labels, years, yearlyData, 'hora');
+        }
+
+        function updateComparisonChart(canvasId, title, labels, years, yearlyData, metric) {
+            const ctx = document.getElementById(canvasId);
+            
+            const colors = ['#ffc107', '#4caf50', '#2196f3', '#ff4444', '#9c27b0'];
+            
+            const datasets = years.map((year, index) => {
+                const data = labels.map((label, idx) => {
+                    const monthNum = Object.keys(monthNames).find(k => monthNames[k] === label);
+                    const monthData = yearlyData[year][monthNum];
+                    
+                    if (!monthData) return 0;
+                    
+                    if (metric === 'ingresos') {
+                        return roundTo5Cents(monthData.ingresos);
+                    } else if (metric === 'servicios') {
+                        return monthData.servicios;
+                    } else if (metric === 'hora') {
+                        return monthData.horas > 0 ? roundTo5Cents(monthData.ingresos / monthData.horas) : 0;
+                    }
+                });
+                
+                return {
+                    label: year,
+                    data: data,
+                    borderColor: colors[index % colors.length],
+                    backgroundColor: colors[index % colors.length] + '20',
+                    tension: 0.4
+                };
+            });
+
+            let chart = null;
+            if (canvasId === 'comparisonChartIngresos') chart = comparisonChartIngresos;
+            else if (canvasId === 'comparisonChartServicio') chart = comparisonChartServicio;
+            else if (canvasId === 'comparisonChartHora') chart = comparisonChartHora;
+            
+            if (chart) chart.destroy();
+
+            const formatCallback = metric === 'ingresos' || metric === 'hora' 
+                ? (value) => formatCurrency(value)
+                : (value) => value.toString();
+
+            chart = new Chart(ctx, {
                 type: 'line',
                 data: {
                     labels: labels,
-                    datasets: chartDatasets
+                    datasets: datasets
                 },
                 options: {
                     responsive: true,
-                    maintainAspectRatio: true,
+                    maintainAspectRatio: false,
                     plugins: {
                         legend: {
                             display: true,
-                            labels: {
-                                color: '#b0b0b0',
-                                font: { size: 12 },
-                                usePointStyle: true,
-                                padding: 15
-                            }
+                            position: 'top',
+                            labels: { color: '#ffffff' }
                         },
                         tooltip: {
-                            backgroundColor: '#2a2a2a',
-                            titleColor: '#ffc107',
-                            bodyColor: '#ffffff',
-                            borderColor: '#404040',
-                            borderWidth: 1,
-                            padding: 12,
                             callbacks: {
                                 label: (context) => {
-                                    return `${context.dataset.label}: ${formatCallback(context.parsed.y)}`;
+                                    const label = context.dataset.label || '';
+                                    const value = context.parsed.y;
+                                    return `${label}: ${formatCallback(value)}`;
                                 }
                             }
                         }
@@ -1781,6 +1782,83 @@
             } else if (canvasId === 'comparisonChartHora') {
                 comparisonChartHora = chart;
             }
+        }
+
+        // ALL DAYS TABLE
+        function updateAllDaysTable() {
+            const sorted = [...allData].sort((a, b) => b.fecha.localeCompare(a.fecha));
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Dia</th>
+                            <th>Ingressos</th>
+                            <th>Serveis</th>
+                            <th>€/Servei</th>
+                            <th>Hores</th>
+                            <th>€/Hora</th>
+                            <th>Accions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sorted.forEach(row => {
+                const fecha = new Date(row.fecha + 'T12:00:00');
+                const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
+                const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
+                const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
+                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 300);
+                const hasObservations = row.observacions && row.observacions.trim() !== '';
+
+                html += `
+                    <tr>
+                        <td>${formatDate(row.fecha)}</td>
+                        <td>${diaSemana}</td>
+                        <td>
+                            <span class="revenue-amount" style="color: ${revenueColor}">${formatCurrency(roundTo5Cents(row.ingresos_dia || 0))}</span>
+                            ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
+                        </td>
+                        <td>${row.servicios_dia || 0}</td>
+                        <td>${formatCurrency(mediaPrecio)}</td>
+                        <td>${row.horas_trabajadas ? row.horas_trabajadas.toFixed(1) : '-'}</td>
+                        <td>${row.horas_trabajadas ? formatCurrency(mediaHora) : '-'}</td>
+                        <td>
+                            <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${row.fecha}')">✏️</button>
+                        </td>
+                    </tr>
+                `;
+            });
+
+            html += `
+                    </tbody>
+                </table>
+            `;
+
+            document.getElementById('allDaysTable').innerHTML = html;
+        }
+
+        // MODAL FUNCTIONS
+        function openEditModal(fecha) {
+            const data = allData.find(d => d.fecha === fecha);
+            if (!data) return;
+
+            currentEditDate = fecha;
+            
+            document.getElementById('fechaMonth').value = fecha;
+            document.getElementById('ingresosMonth').value = data.ingresos_dia || '';
+            document.getElementById('serviciosMonth').value = data.servicios_dia || '';
+            document.getElementById('horasMonth').value = data.horas_trabajadas || '';
+            document.getElementById('observacionsMonth').value = data.observacions || '';
+            
+            document.getElementById('editModal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('editModal').classList.remove('active');
+            currentEditDate = null;
         }
 
         // FORM FUNCTIONS
@@ -1830,7 +1908,12 @@
                     updateDashboard();
                     updateMonthlyView();
                     updateHistoricView();
+                    updateAllDaysTable();
                     resetForm(source);
+                    if (source === 'month') {
+                        closeModal();
+                        closeMonthModal();
+                    }
                 } else {
                     showAlert('Error en desar', 'error', source);
                 }
@@ -1880,7 +1963,9 @@
                     updateDashboard();
                     updateMonthlyView();
                     updateHistoricView();
+                    updateAllDaysTable();
                     closeModal();
+                    closeMonthModal();
                     showAlert('Dia eliminat correctament', 'success', 'add');
                 } else {
                     showAlert('Error en eliminar el dia', 'error', 'add');
@@ -1923,6 +2008,7 @@
                         updateDashboard();
                         updateMonthlyView();
                         updateHistoricView();
+                        updateAllDaysTable();
                         alert(`Dades importades: ${importedData.length} registres`);
                     } else {
                         alert('Error en desar les dades');
@@ -1939,8 +2025,16 @@
         }
 
         function exportToCSV() {
+            const startMonth = document.getElementById('historicStartMonth').value;
+            const endMonth = document.getElementById('historicEndMonth').value;
+            
+            const filtered = allData.filter(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                return mesAnio >= startMonth && mesAnio <= endMonth;
+            });
+
             const headers = ['Data', 'Dia', 'Ingressos', 'Serveis', '€/Servei', 'Hores', '€/Hora', 'Observacions'];
-            const rows = filteredData.map(row => {
+            const rows = filtered.map(row => {
                 const fecha = new Date(row.fecha + 'T12:00:00');
                 const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
                 const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
