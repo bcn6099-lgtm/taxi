@@ -613,14 +613,16 @@
             padding: 1rem;
             cursor: pointer;
             transition: all 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
         }
         
         .month-item:hover {
             border-color: var(--accent);
-            transform: translateX(5px);
+        }
+        
+        .month-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
         }
         
         /* NOMBRE DEL MES */
@@ -635,6 +637,18 @@
             font-weight: 700;
             color: var(--accent);
             font-size: 1.25rem;
+        }
+        
+        /* CONTENIDO DESPLEGABLE DEL MES */
+        .month-details {
+            display: none;
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border);
+        }
+        
+        .month-item.expanded .month-details {
+            display: block;
         }
         
         /* PORCENTAJES COMPARATIVOS - Debajo de ingresos totales */
@@ -801,9 +815,6 @@
                 <h1 class="page-title">📈 Resum General</h1>
                 
                 <div class="filters">
-                    <select id="yearFilter" onchange="updateDashboard()">
-                        <option value="all">Tots els anys</option>
-                    </select>
                     <select id="monthFilter" onchange="updateDashboard()">
                         <option value="all">Tots els mesos</option>
                     </select>
@@ -818,11 +829,15 @@
                     <canvas id="revenueChart"></canvas>
                 </div>
 
-                <div class="chart-container">
-                    <div class="chart-header">
-                        <h3 class="chart-title">Comparació per dia de la setmana</h3>
+                <div class="stats-grid" style="grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));">
+                    <div class="stat-card">
+                        <div class="stat-label">Suma total d'ingressos</div>
+                        <div class="stat-value" id="totalIngresosSum">0€</div>
                     </div>
-                    <canvas id="weekdayChart"></canvas>
+                    <div class="stat-card">
+                        <div class="stat-label">Suma total de serveis</div>
+                        <div class="stat-value" id="totalServiciosSum">0</div>
+                    </div>
                 </div>
             </div>
 
@@ -882,6 +897,13 @@
                     <button class="btn btn-primary" onclick="exportToCSV()">Exportar CSV</button>
                 </div>
 
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3 class="chart-title">Gràfic d'ingressos</h3>
+                    </div>
+                    <canvas id="historicChart"></canvas>
+                </div>
+
                 <div class="table-container" id="historicTableContainer"></div>
             </div>
 
@@ -906,21 +928,21 @@
 
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3 class="chart-title">Comparativa d'ingressos per any</h3>
+                        <h3 class="chart-title">Ingressos per mesos de tots els anys</h3>
                     </div>
                     <canvas id="comparisonChartIngresos"></canvas>
                 </div>
 
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3 class="chart-title">Comparativa de serveis per any</h3>
+                        <h3 class="chart-title">Mitjana diària per mesos de tots els anys</h3>
                     </div>
-                    <canvas id="comparisonChartServicio"></canvas>
+                    <canvas id="comparisonChartMediaDia"></canvas>
                 </div>
 
                 <div class="chart-container">
                     <div class="chart-header">
-                        <h3 class="chart-title">Comparativa d'€/hora per any</h3>
+                        <h3 class="chart-title">Mitjana per hora per mesos de tots els anys</h3>
                     </div>
                     <canvas id="comparisonChartHora"></canvas>
                 </div>
@@ -1011,8 +1033,9 @@
         let revenueChart = null;
         let weekdayChart = null;
         let comparisonChartIngresos = null;
-        let comparisonChartServicio = null;
+        let comparisonChartMediaDia = null;
         let comparisonChartHora = null;
+        let historicChart = null;
         let historicViewMode = 'days'; // 'days' o 'months'
 
         const diasSemana = {
@@ -1085,22 +1108,31 @@
         function populateYearFilters() {
             const years = [...new Set(allData.map(d => d.fecha.substring(0, 4)))].sort().reverse();
             
-            const yearFilter = document.getElementById('yearFilter');
             const yearFilterMonthly = document.getElementById('yearFilterMonthly');
             
-            yearFilter.innerHTML = '<option value="all">Tots els anys</option>';
             yearFilterMonthly.innerHTML = '<option value="all">Tots els anys</option>';
             
             years.forEach(year => {
-                yearFilter.innerHTML += `<option value="${year}">${year}</option>`;
                 yearFilterMonthly.innerHTML += `<option value="${year}">${year}</option>`;
             });
 
+            // Populate month filter with Mes Año format
             const monthFilter = document.getElementById('monthFilter');
+            const allMonths = [...new Set(allData.map(d => d.mes_anio || d.fecha.substring(0, 7)))].sort().reverse();
+            
             monthFilter.innerHTML = '<option value="all">Tots els mesos</option>';
-            Object.entries(monthNames).forEach(([num, name]) => {
-                monthFilter.innerHTML += `<option value="${num}">${name}</option>`;
+            allMonths.forEach(mesAnio => {
+                const [year, monthNum] = mesAnio.split('-');
+                const monthName = monthNames[monthNum];
+                monthFilter.innerHTML += `<option value="${mesAnio}">${monthName} ${year}</option>`;
             });
+            
+            // Select current month
+            const now = new Date();
+            const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            if (allMonths.includes(currentMonth)) {
+                monthFilter.value = currentMonth;
+            }
 
             // Populate month range selectors for Historic
             populateMonthRangeSelectors('historic');
@@ -1139,6 +1171,10 @@
         }
 
         function formatCurrency(value) {
+            // Si el valor es 1000 o mayor, no mostrar decimales
+            if (value >= 1000) {
+                return Math.round(value) + '€';
+            }
             return value.toFixed(2) + '€';
         }
 
@@ -1165,13 +1201,18 @@
 
         // DASHBOARD
         function updateDashboard() {
-            const yearFilter = document.getElementById('yearFilter').value;
             const monthFilter = document.getElementById('monthFilter').value;
 
+            // Si no hay filtro, usar el mes actual
+            let targetMonth = monthFilter;
+            if (monthFilter === 'all') {
+                const now = new Date();
+                targetMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
+            }
+
             filteredData = allData.filter(d => {
-                const matchYear = yearFilter === 'all' || d.fecha.startsWith(yearFilter);
-                const matchMonth = monthFilter === 'all' || d.fecha.substring(5, 7) === monthFilter;
-                return matchYear && matchMonth;
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                return mesAnio === targetMonth;
             });
 
             const totalIngresos = filteredData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
@@ -1181,61 +1222,71 @@
             const mediaDia = filteredData.length > 0 ? totalIngresos / filteredData.length : 0;
             const mediaServicio = totalServicios > 0 ? totalIngresos / totalServicios : 0;
             const mediaHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
+            const proyeccion = mediaDia * 21;
 
-            // Cálculo de cambios comparativos
-            const currentYear = yearFilter !== 'all' ? parseInt(yearFilter) : new Date().getFullYear();
+            // Cálculo de cambios comparativos con el año anterior
+            const [currentYear, currentMonth] = targetMonth.split('-');
+            const previousYearMonth = `${parseInt(currentYear) - 1}-${currentMonth}`;
             const previousYearData = allData.filter(d => {
-                const year = parseInt(d.fecha.substring(0, 4));
-                const month = d.fecha.substring(5, 7);
-                const matchPrevYear = year === currentYear - 1;
-                const matchMonth = monthFilter === 'all' || month === monthFilter;
-                return matchPrevYear && matchMonth;
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                return mesAnio === previousYearMonth;
             });
 
             const prevTotalIngresos = previousYearData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
-            const changeIngresos = calculateChange(totalIngresos, prevTotalIngresos);
-            
             const prevMediaDia = previousYearData.length > 0 ? prevTotalIngresos / previousYearData.length : 0;
             const changeMediaDia = calculateChange(mediaDia, prevMediaDia);
+            
+            const prevTotalServicios = previousYearData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
+            const prevMediaServicio = prevTotalServicios > 0 ? prevTotalIngresos / prevTotalServicios : 0;
+            const changeMediaServicio = calculateChange(mediaServicio, prevMediaServicio);
+            
+            const prevTotalHoras = previousYearData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
+            const prevMediaHora = prevTotalHoras > 0 ? prevTotalIngresos / prevTotalHoras : 0;
+            const changeMediaHora = calculateChange(mediaHora, prevMediaHora);
 
-            // Get conditional colors for media dia and media hora
-            const mediaDiaColor = getConditionalColor(mediaDia, 150, 300);
-            const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
+            // Get conditional colors for media dia and media hora (150->200 y 15->23)
+            const mediaDiaColor = getConditionalColor(mediaDia, 150, 200);
+            const mediaHoraColor = getConditionalColor(mediaHora, 15, 23);
 
             const statsHtml = `
                 <div class="stat-card">
-                    <div class="stat-label">Ingressos totals</div>
+                    <div class="stat-label">Ingressos del mes</div>
                     <div class="stat-value">${formatCurrency(roundTo5Cents(totalIngresos))}</div>
-                    <div class="stat-change ${changeIngresos >= 0 ? 'positive' : 'negative'}">
-                        ${changeIngresos >= 0 ? '▲' : '▼'} ${Math.abs(changeIngresos).toFixed(1)}% vs any anterior
-                    </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Mitjana per dia</div>
                     <div class="stat-value" style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</div>
                     <div class="stat-change ${changeMediaDia >= 0 ? 'positive' : 'negative'}">
-                        ${changeMediaDia >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaDia).toFixed(1)}% vs any anterior
+                        ${changeMediaDia >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaDia).toFixed(1)}%
                     </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">Serveis totals</div>
-                    <div class="stat-value">${totalServicios}</div>
-                    <div class="stat-change">${filteredData.length} dies</div>
-                </div>
-                <div class="stat-card">
-                    <div class="stat-label">€ per servei</div>
+                    <div class="stat-label">Mitjana per servei</div>
                     <div class="stat-value">${formatCurrency(roundTo5Cents(mediaServicio))}</div>
+                    <div class="stat-change ${changeMediaServicio >= 0 ? 'positive' : 'negative'}">
+                        ${changeMediaServicio >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaServicio).toFixed(1)}%
+                    </div>
                 </div>
                 <div class="stat-card">
-                    <div class="stat-label">€ per hora</div>
+                    <div class="stat-label">Mitjana per hora</div>
                     <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(mediaHora))}</div>
+                    <div class="stat-change ${changeMediaHora >= 0 ? 'positive' : 'negative'}">
+                        ${changeMediaHora >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaHora).toFixed(1)}%
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Projecció del mes (21 dies)</div>
+                    <div class="stat-value">${formatCurrency(roundTo5Cents(proyeccion))}</div>
                 </div>
             `;
 
             document.getElementById('statsGrid').innerHTML = statsHtml;
+            
+            // Update totals below chart
+            document.getElementById('totalIngresosSum').textContent = formatCurrency(roundTo5Cents(totalIngresos));
+            document.getElementById('totalServiciosSum').textContent = totalServicios;
 
             updateRevenueChart();
-            updateWeekdayChart();
         }
 
         function updateRevenueChart() {
@@ -1293,71 +1344,6 @@
             });
         }
 
-        function updateWeekdayChart() {
-            const ctx = document.getElementById('weekdayChart');
-            
-            const weekdayData = {};
-            Object.values(diasSemana).forEach(day => {
-                weekdayData[day] = { total: 0, count: 0 };
-            });
-
-            filteredData.forEach(d => {
-                const date = new Date(d.fecha + 'T12:00:00');
-                const dayName = date.toLocaleDateString('en-US', { weekday: 'long' });
-                const diaCatalan = diasSemana[dayName];
-                if (diaCatalan) {
-                    weekdayData[diaCatalan].total += d.ingresos_dia || 0;
-                    weekdayData[diaCatalan].count += 1;
-                }
-            });
-
-            const labels = Object.keys(weekdayData);
-            const data = labels.map(day => {
-                const avg = weekdayData[day].count > 0 ? weekdayData[day].total / weekdayData[day].count : 0;
-                return roundTo5Cents(avg);
-            });
-
-            if (weekdayChart) weekdayChart.destroy();
-
-            weekdayChart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'Mitjana',
-                        data: data,
-                        backgroundColor: '#ffc107'
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: { display: false },
-                        tooltip: {
-                            callbacks: {
-                                label: (context) => formatCurrency(context.parsed.y)
-                            }
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: { color: '#404040' },
-                            ticks: {
-                                color: '#b0b0b0',
-                                callback: (value) => formatCurrency(value)
-                            }
-                        },
-                        x: {
-                            grid: { display: false },
-                            ticks: { color: '#b0b0b0' }
-                        }
-                    }
-                }
-            });
-        }
-
         // MONTHLY VIEW
         function updateMonthlyView() {
             const yearFilter = document.getElementById('yearFilterMonthly').value;
@@ -1402,22 +1388,86 @@
                 
                 const comparisons = `
                     <div class="comparison-percentages">
-                        ${prevYearIngresos > 0 ? `<span class="${changePrevYear >= 0 ? 'positive' : 'negative'}">${changePrevYear >= 0 ? '▲' : '▼'}${Math.abs(changePrevYear).toFixed(1)}% <small>(Any anterior)</small></span>` : ''}
-                        ${year2019Ingresos > 0 ? `<span class="${change2019 >= 0 ? 'positive' : 'negative'}">${change2019 >= 0 ? '▲' : '▼'}${Math.abs(change2019).toFixed(1)}% <small>(2019)</small></span>` : ''}
+                        ${prevYearIngresos > 0 ? `<span>${changePrevYear >= 0 ? '▲' : '▼'}${Math.abs(changePrevYear).toFixed(1)}% <small>(Any anterior)</small></span>` : ''}
+                        ${year2019Ingresos > 0 ? `<span>${change2019 >= 0 ? '▲' : '▼'}${Math.abs(change2019).toFixed(1)}% <small>(2019)</small></span>` : ''}
                     </div>
                 `;
                 
-                html += `
-                    <div class="month-item" onclick="showMonthDetails('${mesAnio}')">
-                        <div>
-                            <div class="month-name">${monthName} ${year}</div>
-                            <div style="font-size: 0.75rem; color: var(--text-secondary);">
-                                ${data.dias} dies · ${data.servicios} serveis
+                // Get month data details
+                const monthData = allData.filter(d => (d.mes_anio || d.fecha.substring(0, 7)) === mesAnio);
+                const totalIngresos = monthData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
+                const totalServicios = monthData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
+                const totalHoras = monthData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
+                
+                const mediaDia = monthData.length > 0 ? totalIngresos / monthData.length : 0;
+                const mediaServicio = totalServicios > 0 ? totalIngresos / totalServicios : 0;
+                const mediaHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
+                
+                const mediaDiaColor = getConditionalColor(mediaDia, 150, 200);
+                const mediaHoraColor = getConditionalColor(mediaHora, 15, 23);
+                
+                let daysHtml = '';
+                monthData.sort((a, b) => b.fecha.localeCompare(a.fecha)).forEach(d => {
+                    const date = new Date(d.fecha + 'T12:00:00');
+                    const dayName = diasSemana[date.toLocaleDateString('en-US', { weekday: 'long' })];
+                    const revenueColor = getConditionalColor(d.ingresos_dia || 0, 150, 200);
+                    const hasObservations = d.observacions && d.observacions.trim() !== '';
+                    
+                    daysHtml += `
+                        <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid var(--border); align-items: center;">
+                            <div>
+                                <strong>${formatDate(d.fecha)}</strong> - ${dayName}
+                            </div>
+                            <div style="text-align: right;">
+                                <span class="revenue-amount" style="color: ${revenueColor}">${formatCurrency(roundTo5Cents(d.ingresos_dia || 0))}</span>
+                                ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
+                                <button class="btn btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${d.fecha}'); event.stopPropagation();">✏️</button>
                             </div>
                         </div>
-                        <div style="text-align: right;">
-                            <div class="month-revenue">${formatCurrency(roundTo5Cents(data.ingresos))}</div>
-                            ${comparisons}
+                    `;
+                });
+                
+                html += `
+                    <div class="month-item" onclick="toggleMonthDetails(event, '${mesAnio}')">
+                        <div class="month-item-header">
+                            <div>
+                                <div class="month-name">${monthName} ${year}</div>
+                                <div style="font-size: 0.75rem; color: var(--text-secondary);">
+                                    ${data.dias} dies · ${data.servicios} serveis
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="month-revenue">${formatCurrency(roundTo5Cents(data.ingresos))}</div>
+                                ${comparisons}
+                            </div>
+                        </div>
+                        <div class="month-details" id="details-${mesAnio}">
+                            <div class="stats-grid">
+                                <div class="stat-card">
+                                    <div class="stat-label">Total</div>
+                                    <div class="stat-value">${formatCurrency(roundTo5Cents(totalIngresos))}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Mitjana/dia</div>
+                                    <div class="stat-value" style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">Serveis</div>
+                                    <div class="stat-value">${totalServicios}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">€/servei</div>
+                                    <div class="stat-value">${formatCurrency(roundTo5Cents(mediaServicio))}</div>
+                                </div>
+                                <div class="stat-card">
+                                    <div class="stat-label">€/hora</div>
+                                    <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(mediaHora))}</div>
+                                </div>
+                            </div>
+                            <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Dies:</h4>
+                            <div style="max-height: 300px; overflow-y: auto;">
+                                ${daysHtml}
+                            </div>
                         </div>
                     </div>
                 `;
@@ -1425,78 +1475,13 @@
 
             document.getElementById('monthList').innerHTML = html || '<p style="text-align:center; color: var(--text-secondary);">No hi ha dades disponibles</p>';
         }
+        
+        function toggleMonthDetails(event, mesAnio) {
+            event.currentTarget.classList.toggle('expanded');
+        }
 
         function showMonthDetails(mesAnio) {
-            const monthData = allData.filter(d => (d.mes_anio || d.fecha.substring(0, 7)) === mesAnio);
-            
-            const [year, month] = mesAnio.split('-');
-            const monthName = monthNames[month];
-            
-            document.getElementById('monthModalTitle').textContent = `${monthName} ${year}`;
-            
-            const totalIngresos = monthData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
-            const totalServicios = monthData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
-            const totalHoras = monthData.reduce((sum, d) => sum + (d.horas_trabajadas || 0), 0);
-            
-            const mediaDia = monthData.length > 0 ? totalIngresos / monthData.length : 0;
-            const mediaServicio = totalServicios > 0 ? totalIngresos / totalServicios : 0;
-            const mediaHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
-            
-            // Get conditional colors
-            const mediaDiaColor = getConditionalColor(mediaDia, 150, 300);
-            const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
-            
-            let detailsHtml = `
-                <div class="stats-grid">
-                    <div class="stat-card">
-                        <div class="stat-label">Total</div>
-                        <div class="stat-value">${formatCurrency(roundTo5Cents(totalIngresos))}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Mitjana/dia</div>
-                        <div class="stat-value" style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">Serveis</div>
-                        <div class="stat-value">${totalServicios}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">€/servei</div>
-                        <div class="stat-value">${formatCurrency(roundTo5Cents(mediaServicio))}</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-label">€/hora</div>
-                        <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(mediaHora))}</div>
-                    </div>
-                </div>
-                <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Dies:</h4>
-                <div style="max-height: 300px; overflow-y: auto;">
-            `;
-            
-            monthData.sort((a, b) => b.fecha.localeCompare(a.fecha)).forEach(d => {
-                const date = new Date(d.fecha + 'T12:00:00');
-                const dayName = diasSemana[date.toLocaleDateString('en-US', { weekday: 'long' })];
-                const revenueColor = getConditionalColor(d.ingresos_dia || 0, 150, 300);
-                const hasObservations = d.observacions && d.observacions.trim() !== '';
-                
-                detailsHtml += `
-                    <div style="display: flex; justify-content: space-between; padding: 0.5rem; border-bottom: 1px solid var(--border); align-items: center;">
-                        <div>
-                            <strong>${formatDate(d.fecha)}</strong> - ${dayName}
-                        </div>
-                        <div style="text-align: right;">
-                            <span class="revenue-amount" style="color: ${revenueColor}">${formatCurrency(roundTo5Cents(d.ingresos_dia || 0))}</span>
-                            ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
-                            <button class="btn btn-secondary" style="margin-left: 0.5rem; padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${d.fecha}'); event.stopPropagation();">✏️</button>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            detailsHtml += '</div>';
-            
-            document.getElementById('monthModalContent').innerHTML = detailsHtml;
-            document.getElementById('monthModal').classList.add('active');
+            // Esta función ya no se usa, mantenida por compatibilidad
         }
 
         function closeMonthModal() {
@@ -1523,11 +1508,87 @@
                 return mesAnio >= startMonth && mesAnio <= endMonth;
             });
 
+            // Update chart
+            updateHistoricChart(filtered);
+
             if (historicViewMode === 'days') {
                 updateHistoricTableDays(filtered);
             } else {
                 updateHistoricTableMonths(filtered);
             }
+        }
+
+        function updateHistoricChart(data) {
+            const ctx = document.getElementById('historicChart');
+            
+            let labels = [];
+            let chartData = [];
+            
+            if (historicViewMode === 'days') {
+                const sorted = [...data].sort((a, b) => a.fecha.localeCompare(b.fecha));
+                labels = sorted.map(d => formatDate(d.fecha));
+                chartData = sorted.map(d => roundTo5Cents(d.ingresos_dia || 0));
+            } else {
+                const monthlyData = {};
+                data.forEach(d => {
+                    const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                    if (!monthlyData[mesAnio]) {
+                        monthlyData[mesAnio] = 0;
+                    }
+                    monthlyData[mesAnio] += d.ingresos_dia || 0;
+                });
+                
+                const sorted = Object.keys(monthlyData).sort();
+                labels = sorted.map(mesAnio => {
+                    const [year, month] = mesAnio.split('-');
+                    return `${monthNames[month]} ${year}`;
+                });
+                chartData = sorted.map(mesAnio => roundTo5Cents(monthlyData[mesAnio]));
+            }
+
+            if (historicChart) historicChart.destroy();
+
+            historicChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingressos',
+                        data: chartData,
+                        backgroundColor: '#ffc107'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => formatCurrency(context.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#404040' },
+                            ticks: {
+                                color: '#b0b0b0',
+                                callback: (value) => formatCurrency(value)
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: '#b0b0b0',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
         }
 
         function updateHistoricTableDays(data) {
@@ -1544,6 +1605,7 @@
                             <th>€/Servei</th>
                             <th>Hores</th>
                             <th>€/Hora</th>
+                            <th>Observacions</th>
                             <th>Accions</th>
                         </tr>
                     </thead>
@@ -1555,7 +1617,7 @@
                 const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
                 const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
                 const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
-                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 300);
+                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 200);
                 const hasObservations = row.observacions && row.observacions.trim() !== '';
 
                 html += `
@@ -1570,6 +1632,7 @@
                         <td>${formatCurrency(mediaPrecio)}</td>
                         <td>${row.horas_trabajadas ? row.horas_trabajadas.toFixed(1) : '-'}</td>
                         <td>${row.horas_trabajadas ? formatCurrency(mediaHora) : '-'}</td>
+                        <td style="font-size: 0.75rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${row.observacions || ''}">${row.observacions || '-'}</td>
                         <td>
                             <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${row.fecha}')">✏️</button>
                         </td>
@@ -1627,8 +1690,8 @@
                 const mediaServicio = mData.servicios > 0 ? mData.ingresos / mData.servicios : 0;
                 const mediaHora = mData.horas > 0 ? mData.ingresos / mData.horas : 0;
                 
-                const mediaDiaColor = getConditionalColor(mediaDia, 150, 300);
-                const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
+                const mediaDiaColor = getConditionalColor(mediaDia, 150, 200);
+                const mediaHoraColor = getConditionalColor(mediaHora, 15, 23);
 
                 html += `
                     <tr>
@@ -1669,12 +1732,13 @@
                 
                 if (!yearlyData[year]) yearlyData[year] = {};
                 if (!yearlyData[year][month]) {
-                    yearlyData[year][month] = { ingresos: 0, servicios: 0, horas: 0 };
+                    yearlyData[year][month] = { ingresos: 0, servicios: 0, horas: 0, dias: 0 };
                 }
                 
                 yearlyData[year][month].ingresos += d.ingresos_dia || 0;
                 yearlyData[year][month].servicios += d.servicios_dia || 0;
                 yearlyData[year][month].horas += d.horas_trabajadas || 0;
+                yearlyData[year][month].dias += 1;
             });
 
             const years = Object.keys(yearlyData).sort();
@@ -1685,8 +1749,8 @@
             // Chart Ingresos
             updateComparisonChart('comparisonChartIngresos', 'Ingressos per mes', labels, years, yearlyData, 'ingresos');
             
-            // Chart Servicios
-            updateComparisonChart('comparisonChartServicio', 'Serveis per mes', labels, years, yearlyData, 'servicios');
+            // Chart Media Diaria
+            updateComparisonChart('comparisonChartMediaDia', 'Mitjana diària per mes', labels, years, yearlyData, 'mediaDia');
             
             // Chart €/Hora
             updateComparisonChart('comparisonChartHora', '€/Hora per mes', labels, years, yearlyData, 'hora');
@@ -1706,8 +1770,8 @@
                     
                     if (metric === 'ingresos') {
                         return roundTo5Cents(monthData.ingresos);
-                    } else if (metric === 'servicios') {
-                        return monthData.servicios;
+                    } else if (metric === 'mediaDia') {
+                        return monthData.dias > 0 ? roundTo5Cents(monthData.ingresos / monthData.dias) : 0;
                     } else if (metric === 'hora') {
                         return monthData.horas > 0 ? roundTo5Cents(monthData.ingresos / monthData.horas) : 0;
                     }
@@ -1724,14 +1788,12 @@
 
             let chart = null;
             if (canvasId === 'comparisonChartIngresos') chart = comparisonChartIngresos;
-            else if (canvasId === 'comparisonChartServicio') chart = comparisonChartServicio;
+            else if (canvasId === 'comparisonChartMediaDia') chart = comparisonChartMediaDia;
             else if (canvasId === 'comparisonChartHora') chart = comparisonChartHora;
             
             if (chart) chart.destroy();
 
-            const formatCallback = metric === 'ingresos' || metric === 'hora' 
-                ? (value) => formatCurrency(value)
-                : (value) => value.toString();
+            const formatCallback = (value) => formatCurrency(value);
 
             chart = new Chart(ctx, {
                 type: 'line',
@@ -1777,8 +1839,8 @@
 
             if (canvasId === 'comparisonChartIngresos') {
                 comparisonChartIngresos = chart;
-            } else if (canvasId === 'comparisonChartServicio') {
-                comparisonChartServicio = chart;
+            } else if (canvasId === 'comparisonChartMediaDia') {
+                comparisonChartMediaDia = chart;
             } else if (canvasId === 'comparisonChartHora') {
                 comparisonChartHora = chart;
             }
@@ -1799,6 +1861,7 @@
                             <th>€/Servei</th>
                             <th>Hores</th>
                             <th>€/Hora</th>
+                            <th>Observacions</th>
                             <th>Accions</th>
                         </tr>
                     </thead>
@@ -1810,7 +1873,7 @@
                 const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
                 const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
                 const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
-                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 300);
+                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 200);
                 const hasObservations = row.observacions && row.observacions.trim() !== '';
 
                 html += `
@@ -1825,6 +1888,7 @@
                         <td>${formatCurrency(mediaPrecio)}</td>
                         <td>${row.horas_trabajadas ? row.horas_trabajadas.toFixed(1) : '-'}</td>
                         <td>${row.horas_trabajadas ? formatCurrency(mediaHora) : '-'}</td>
+                        <td style="font-size: 0.75rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${row.observacions || ''}">${row.observacions || '-'}</td>
                         <td>
                             <button class="btn btn-secondary" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" onclick="openEditModal('${row.fecha}')">✏️</button>
                         </td>
