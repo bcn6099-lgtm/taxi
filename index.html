@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facturació Taxi</title>
     <style>
-        /* IMPORTACIÓN DE FUENTE GOOGLE FONTS - Inter */
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+        /* IMPORTACIÓN DE FUENTE GOOGLE FONTS - Nunito */
+        @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap');
         
         /* RESET GLOBAL */
         * {
@@ -31,7 +31,7 @@
         
         /* ESTILOS DEL BODY */
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Nunito', sans-serif;
             background: var(--bg-primary);
             color: var(--text-primary);
             line-height: 1.5;
@@ -1039,7 +1039,7 @@
 
         // CAMBIO: Límite superior 6200
         function getMonthlyRevenueColor(value) {
-            return getConditionalColor(value, 3500, 6200);
+            return getConditionalColor(value, 2500, 6700);
         }
 
         function getPositiveColor(percentage) {
@@ -1124,8 +1124,8 @@
                 return html;
             };
 
-            const mediaDiaColor = getConditionalColor(currentStats.mediaDia, 150, 200);
-            const mediaHoraColor = getConditionalColor(currentStats.mediaHora, 15, 23);
+            const mediaDiaColor = getConditionalColor(currentStats.mediaDia, 150, 300);
+            const mediaHoraColor = getConditionalColor(currentStats.mediaHora, 15, 25);
             const proyeccionColor = getMonthlyRevenueColor(proyeccion);
 
             // CAMBIO: Construcción del HTML con 3 comparativas
@@ -1278,8 +1278,8 @@
                 const mediaServicio = totalServicios > 0 ? totalIngresos / totalServicios : 0;
                 const mediaHora = totalHoras > 0 ? totalIngresos / totalHoras : 0;
                 
-                const mediaDiaColor = getConditionalColor(mediaDia, 150, 200);
-                const mediaHoraColor = getConditionalColor(mediaHora, 15, 23);
+                const mediaDiaColor = getConditionalColor(mediaDia, 150, 300);
+                const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
                 const monthRevenueColor = getMonthlyRevenueColor(totalIngresos);
                 
                 const observaciones = monthData
@@ -1291,7 +1291,7 @@
                 monthData.sort((a, b) => b.fecha.localeCompare(a.fecha)).forEach(d => {
                     const date = new Date(d.fecha + 'T12:00:00');
                     const dayName = diasSemana[date.toLocaleDateString('en-US', { weekday: 'long' })];
-                    const revenueColor = getConditionalColor(d.ingresos_dia || 0, 150, 200);
+                    const revenueColor = getConditionalColor(d.ingresos_dia || 0, 150, 300);
                     const hasObservations = d.observacions && d.observacions.trim() !== '';
                     
                     daysHtml += `
@@ -1490,7 +1490,7 @@
                 const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
                 const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
                 const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
-                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 200);
+                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 300);
                 const hasObservations = row.observacions && row.observacions.trim() !== '';
 
                 html += `
@@ -1564,8 +1564,8 @@
                 const mediaServicio = mData.servicios > 0 ? mData.ingresos / mData.servicios : 0;
                 const mediaHora = mData.horas > 0 ? mData.ingresos / mData.horas : 0;
                 
-                const mediaDiaColor = getConditionalColor(mediaDia, 150, 200);
-                const mediaHoraColor = getConditionalColor(mediaHora, 15, 23);
+                const mediaDiaColor = getConditionalColor(mediaDia, 50, 300);
+                const mediaHoraColor = getConditionalColor(mediaHora, 10, 27);
                 const monthRevenueColor = getMonthlyRevenueColor(mData.ingresos);
                 const hasObservations = monthsWithObservations.has(mesAnio);
 
