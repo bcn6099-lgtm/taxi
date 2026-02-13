@@ -222,14 +222,16 @@
             color: var(--text-secondary);
         }
         
-        /* CAMBIO POSITIVO - Verde */
+        /* CAMBIO POSITIVO - Verde más intenso cuanto más alto */
         .stat-change.positive {
             color: var(--color-green);
+            font-weight: 600;
         }
         
-        /* CAMBIO NEGATIVO - Rojo */
+        /* CAMBIO NEGATIVO - Rojo más intenso cuanto más bajo */
         .stat-change.negative {
             color: var(--color-red);
+            font-weight: 600;
         }
         
         /* CONTENEDOR DE GRÁFICOS */
@@ -419,6 +421,17 @@
             padding: 0.75rem;
             font-family: inherit;
             transition: all 0.2s;
+        }
+        
+        /* OCULTAR FLECHAS EN INPUTS NUMÉRICOS */
+        input[type="number"]::-webkit-inner-spin-button,
+        input[type="number"]::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        
+        input[type="number"] {
+            -moz-appearance: textfield;
         }
         
         /* INPUTS AL ENFOCARSE */
@@ -874,8 +887,8 @@
                 
                 <!-- SELECTOR DE VISTA: DÍAS O MESES -->
                 <div class="view-selector">
-                    <button class="view-btn active" onclick="setHistoricView('days')">Per dies</button>
-                    <button class="view-btn" onclick="setHistoricView('months')">Per mesos</button>
+                    <button class="view-btn" onclick="setHistoricView('days')">Per dies</button>
+                    <button class="view-btn active" onclick="setHistoricView('months')">Per mesos</button>
                 </div>
                 
                 <!-- SELECTOR HORIZONTAL DE RANGO DE FECHAS -->
@@ -1036,7 +1049,7 @@
         let comparisonChartMediaDia = null;
         let comparisonChartHora = null;
         let historicChart = null;
-        let historicViewMode = 'days'; // 'days' o 'months'
+        let historicViewMode = 'months'; // 'days' o 'months' - INICIO EN MESES
 
         const diasSemana = {
             'Monday': 'Dilluns',
@@ -1199,6 +1212,31 @@
             }
         }
 
+        // FUNCIÓN PARA COLOR CONDICIONAL DE INGRESOS MENSUALES
+        function getMonthlyRevenueColor(value) {
+            return getConditionalColor(value, 3000, 7000);
+        }
+
+        // FUNCIÓN PARA OBTENER COLOR DINÁMICO VERDE (más intenso cuanto más positivo)
+        function getPositiveColor(percentage) {
+            // Cuanto mayor el porcentaje, más intenso el verde
+            const intensity = Math.min(Math.abs(percentage) / 50, 1); // Normalizar a 0-1
+            const r = Math.round(76 + (255 - 76) * (1 - intensity));
+            const g = Math.round(175 + (80 - 175) * (1 - intensity));
+            const b = Math.round(80 + (175 - 80) * (1 - intensity));
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
+        // FUNCIÓN PARA OBTENER COLOR DINÁMICO ROJO (más intenso cuanto más negativo)
+        function getNegativeColor(percentage) {
+            // Cuanto mayor el porcentaje negativo, más intenso el rojo
+            const intensity = Math.min(Math.abs(percentage) / 50, 1); // Normalizar a 0-1
+            const r = Math.round(255);
+            const g = Math.round(68 + (187 - 68) * (1 - intensity));
+            const b = Math.round(68 + (187 - 68) * (1 - intensity));
+            return `rgb(${r}, ${g}, ${b})`;
+        }
+
         // DASHBOARD
         function updateDashboard() {
             const monthFilter = document.getElementById('monthFilter').value;
@@ -1256,21 +1294,21 @@
                 <div class="stat-card">
                     <div class="stat-label">Mitjana per dia</div>
                     <div class="stat-value" style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</div>
-                    <div class="stat-change ${changeMediaDia >= 0 ? 'positive' : 'negative'}">
+                    <div class="stat-change" style="color: ${changeMediaDia >= 0 ? getPositiveColor(changeMediaDia) : getNegativeColor(changeMediaDia)}; font-weight: 600;">
                         ${changeMediaDia >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaDia).toFixed(1)}%
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Mitjana per servei</div>
                     <div class="stat-value">${formatCurrency(roundTo5Cents(mediaServicio))}</div>
-                    <div class="stat-change ${changeMediaServicio >= 0 ? 'positive' : 'negative'}">
+                    <div class="stat-change" style="color: ${changeMediaServicio >= 0 ? getPositiveColor(changeMediaServicio) : getNegativeColor(changeMediaServicio)}; font-weight: 600;">
                         ${changeMediaServicio >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaServicio).toFixed(1)}%
                     </div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Mitjana per hora</div>
                     <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(mediaHora))}</div>
-                    <div class="stat-change ${changeMediaHora >= 0 ? 'positive' : 'negative'}">
+                    <div class="stat-change" style="color: ${changeMediaHora >= 0 ? getPositiveColor(changeMediaHora) : getNegativeColor(changeMediaHora)}; font-weight: 600;">
                         ${changeMediaHora >= 0 ? '▲' : '▼'} ${Math.abs(changeMediaHora).toFixed(1)}%
                     </div>
                 </div>
@@ -1282,9 +1320,12 @@
 
             document.getElementById('statsGrid').innerHTML = statsHtml;
             
-            // Update totals below chart
-            document.getElementById('totalIngresosSum').textContent = formatCurrency(roundTo5Cents(totalIngresos));
-            document.getElementById('totalServiciosSum').textContent = totalServicios;
+            // Update totals below chart - TODOS LOS AÑOS Y MESES
+            const allTotalIngresos = allData.reduce((sum, d) => sum + (d.ingresos_dia || 0), 0);
+            const allTotalServicios = allData.reduce((sum, d) => sum + (d.servicios_dia || 0), 0);
+            
+            document.getElementById('totalIngresosSum').textContent = formatCurrency(roundTo5Cents(allTotalIngresos));
+            document.getElementById('totalServiciosSum').textContent = allTotalServicios;
 
             updateRevenueChart();
         }
@@ -1388,8 +1429,8 @@
                 
                 const comparisons = `
                     <div class="comparison-percentages">
-                        ${prevYearIngresos > 0 ? `<span>${changePrevYear >= 0 ? '▲' : '▼'}${Math.abs(changePrevYear).toFixed(1)}% <small>(Any anterior)</small></span>` : ''}
-                        ${year2019Ingresos > 0 ? `<span>${change2019 >= 0 ? '▲' : '▼'}${Math.abs(change2019).toFixed(1)}% <small>(2019)</small></span>` : ''}
+                        ${prevYearIngresos > 0 ? `<span style="color: ${changePrevYear >= 0 ? getPositiveColor(changePrevYear) : getNegativeColor(changePrevYear)}; font-weight: 600;">${changePrevYear >= 0 ? '▲' : '▼'}${Math.abs(changePrevYear).toFixed(1)}% <small>(Any anterior)</small></span>` : ''}
+                        ${year2019Ingresos > 0 ? `<span style="color: ${change2019 >= 0 ? getPositiveColor(change2019) : getNegativeColor(change2019)}; font-weight: 600;">${change2019 >= 0 ? '▲' : '▼'}${Math.abs(change2019).toFixed(1)}% <small>(2019)</small></span>` : ''}
                     </div>
                 `;
                 
@@ -1405,6 +1446,13 @@
                 
                 const mediaDiaColor = getConditionalColor(mediaDia, 150, 200);
                 const mediaHoraColor = getConditionalColor(mediaHora, 15, 23);
+                const monthRevenueColor = getMonthlyRevenueColor(totalIngresos);
+                
+                // Recopilar observaciones únicas del mes
+                const observaciones = monthData
+                    .filter(d => d.observacions && d.observacions.trim() !== '')
+                    .map(d => `<li><strong>${formatDate(d.fecha)}:</strong> ${d.observacions}</li>`)
+                    .join('');
                 
                 let daysHtml = '';
                 monthData.sort((a, b) => b.fecha.localeCompare(a.fecha)).forEach(d => {
@@ -1437,7 +1485,7 @@
                                 </div>
                             </div>
                             <div style="text-align: right;">
-                                <div class="month-revenue">${formatCurrency(roundTo5Cents(data.ingresos))}</div>
+                                <div class="month-revenue" style="color: ${monthRevenueColor}">${formatCurrency(roundTo5Cents(data.ingresos))}</div>
                                 ${comparisons}
                             </div>
                         </div>
@@ -1464,6 +1512,12 @@
                                     <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(mediaHora))}</div>
                                 </div>
                             </div>
+                            ${observaciones ? `
+                                <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Observacions:</h4>
+                                <ul style="margin-left: 1.5rem; color: var(--text-secondary); font-size: 0.875rem;">
+                                    ${observaciones}
+                                </ul>
+                            ` : ''}
                             <h4 style="margin-top: 1.5rem; margin-bottom: 0.5rem;">Dies:</h4>
                             <div style="max-height: 300px; overflow-y: auto;">
                                 ${daysHtml}
@@ -1650,6 +1704,7 @@
 
         function updateHistoricTableMonths(data) {
             const monthlyData = {};
+            const monthsWithObservations = new Set();
             
             data.forEach(d => {
                 const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
@@ -1660,6 +1715,11 @@
                 monthlyData[mesAnio].servicios += d.servicios_dia || 0;
                 monthlyData[mesAnio].horas += d.horas_trabajadas || 0;
                 monthlyData[mesAnio].dias += 1;
+                
+                // Verificar si tiene observaciones
+                if (d.observacions && d.observacions.trim() !== '') {
+                    monthsWithObservations.add(mesAnio);
+                }
             });
 
             const sortedMonths = Object.keys(monthlyData).sort().reverse();
@@ -1692,12 +1752,17 @@
                 
                 const mediaDiaColor = getConditionalColor(mediaDia, 150, 200);
                 const mediaHoraColor = getConditionalColor(mediaHora, 15, 23);
+                const monthRevenueColor = getMonthlyRevenueColor(mData.ingresos);
+                const hasObservations = monthsWithObservations.has(mesAnio);
 
                 html += `
                     <tr>
                         <td><strong>${monthName} ${year}</strong></td>
                         <td>${mData.dias}</td>
-                        <td><strong>${formatCurrency(roundTo5Cents(mData.ingresos))}</strong></td>
+                        <td>
+                            <strong style="color: ${monthRevenueColor}">${formatCurrency(roundTo5Cents(mData.ingresos))}</strong>
+                            ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
+                        </td>
                         <td style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</td>
                         <td>${mData.servicios}</td>
                         <td>${formatCurrency(roundTo5Cents(mediaServicio))}</td>
