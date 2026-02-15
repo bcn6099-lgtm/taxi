@@ -661,21 +661,27 @@
             }
             
             .calendar-grid {
-                gap: 0.25rem;
+                gap: 0.2rem;
             }
             
             .calendar-day {
-                padding: 0.25rem;
+                padding: 0.2rem;
+                border-radius: 4px;
             }
             
             .calendar-day-number {
-                font-size: 0.6rem;
-                top: 0.15rem;
-                left: 0.3rem;
+                font-size: 0.55rem;
+                top: 0.1rem;
+                left: 0.2rem;
             }
             
             .calendar-day-amount {
-                font-size: 0.85rem;
+                font-size: 0.65rem;
+                line-height: 1.1;
+            }
+            
+            .observation-alert {
+                font-size: 0.8rem;
             }
         }
         
@@ -976,9 +982,17 @@
                         <canvas id="revenueChart"></canvas>
                     </div>
                 </div>
-            </div>
+                
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Ingressos Mensuals (Últims 12 mesos)</h2>
+                    </div>
+                    <div style="position: relative; height: 300px;">
+                        <canvas id="monthlyRevenueChart"></canvas>
+                    </div>
+                </div>
 
-                            <div class="total-summary">
+                                <div class="total-summary">
                     <div class="total-item">
                         <div class="total-label">Total Ingressos</div>
                         <div class="total-value" id="totalIngresosSum">0€</div>
@@ -988,6 +1002,7 @@
                         <div class="total-value" id="totalServiciosSum">0</div>
                     </div>
                 </div>
+            </div>
 
             <!-- DIES VIEW PAGE -->
             <div id="dies" class="page">
@@ -1267,22 +1282,51 @@
             }
             
             try {
-                const transaction = db.transaction([STORE_NAME], 'readwrite');
-                const objectStore = transaction.objectStore(STORE_NAME);
-                
-                await objectStore.clear();
-                
-                for (const record of data) {
-                    await objectStore.add(record);
-                }
-                
                 return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readwrite');
+                    const objectStore = transaction.objectStore(STORE_NAME);
+                    
+                    // Clear existing data
+                    const clearRequest = objectStore.clear();
+                    
+                    clearRequest.onsuccess = () => {
+                        // Add all records
+                        let addedCount = 0;
+                        let hasError = false;
+                        
+                        if (data.length === 0) {
+                            resolve(true);
+                            return;
+                        }
+                        
+                        data.forEach((record, index) => {
+                            const addRequest = objectStore.add(record);
+                            
+                            addRequest.onsuccess = () => {
+                                addedCount++;
+                                if (addedCount === data.length && !hasError) {
+                                    console.log('Data saved successfully:', addedCount, 'records');
+                                }
+                            };
+                            
+                            addRequest.onerror = () => {
+                                console.error('Error adding record:', addRequest.error);
+                                hasError = true;
+                            };
+                        });
+                    };
+                    
+                    clearRequest.onerror = () => {
+                        console.error('Error clearing data:', clearRequest.error);
+                        reject(false);
+                    };
+                    
                     transaction.oncomplete = () => {
-                        console.log('Data saved successfully');
                         resolve(true);
                     };
+                    
                     transaction.onerror = () => {
-                        console.error('Error saving data:', transaction.error);
+                        console.error('Transaction error:', transaction.error);
                         reject(false);
                     };
                 });
@@ -1327,6 +1371,7 @@
         let currentEditDate = null;
         let currentMonthView = new Date();
         let revenueChart = null;
+        let monthlyRevenueChart = null;
         let historicChart = null;
         let historicViewMode = 'days';
         const comparisonCharts = {};
@@ -1594,6 +1639,7 @@
             document.getElementById('totalServiciosSum').textContent = allTotalServicios;
 
             updateRevenueChart();
+            updateMonthlyRevenueChart();
         }
 
         function updateRevenueChart() {
@@ -1615,6 +1661,76 @@
                         backgroundColor: 'rgba(255, 193, 7, 0.1)',
                         tension: 0.4,
                         fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => formatCurrency(context.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            grid: { color: '#404040' },
+                            ticks: {
+                                color: '#b0b0b0',
+                                callback: (value) => formatCurrency(value)
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: '#b0b0b0',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateMonthlyRevenueChart() {
+            // Agrupar por mes
+            const monthlyData = {};
+            allData.forEach(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                if (!monthlyData[mesAnio]) {
+                    monthlyData[mesAnio] = 0;
+                }
+                monthlyData[mesAnio] += d.ingresos_dia || 0;
+            });
+
+            // Obtener los últimos 12 meses
+            const sortedMonths = Object.keys(monthlyData).sort();
+            const last12Months = sortedMonths.slice(-12);
+            
+            const labels = last12Months.map(mesAnio => {
+                const [year, month] = mesAnio.split('-');
+                return `${monthNames[month]} ${year}`;
+            });
+            
+            const data = last12Months.map(mesAnio => roundTo5Cents(monthlyData[mesAnio]));
+
+            const ctx = document.getElementById('monthlyRevenueChart');
+            if (monthlyRevenueChart) monthlyRevenueChart.destroy();
+
+            monthlyRevenueChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Ingressos Mensuals',
+                        data: data,
+                        backgroundColor: 'rgba(255, 193, 7, 0.6)',
+                        borderColor: '#ffc107',
+                        borderWidth: 2
                     }]
                 },
                 options: {
@@ -2534,4 +2650,3 @@
     </script>
 </body>
 </html>
-
