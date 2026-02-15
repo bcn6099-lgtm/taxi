@@ -25,6 +25,7 @@
             --color-green: #4caf50;
             --color-red: #ff4444;
             --color-yellow: #ffc107;
+            --color-magenta: #7FFF00;
         }
         
         body {
@@ -86,6 +87,16 @@
             background: var(--bg-card);
             color: var(--accent);
             border-left-color: var(--accent);
+        }
+        
+        .menu-item.danger {
+            color: var(--color-red);
+        }
+        
+        .menu-item.danger:hover {
+            background: rgba(255, 68, 68, 0.1);
+            color: var(--color-red);
+            border-left-color: var(--color-red);
         }
         
         .menu-divider {
@@ -637,10 +648,10 @@
         }
         
         .observation-alert {
-            color: var(--accent);
+            color: var(--color-yellow);
             font-weight: 700;
-            margin-left: 0.25rem;
-            font-size: 1.2rem;
+            margin-right: 0.25rem;
+            font-size: 1.1em;
             vertical-align: middle;
         }
         
@@ -904,11 +915,14 @@
             <div class="menu-item" onclick="navigateTo('mesos')">📆 Mesos</div>
             <div class="menu-item" onclick="navigateTo('historic')">📋 Històric</div>
             <div class="menu-item" onclick="navigateTo('comparison')">🔄 Comparativa</div>
+            <div class="menu-item" onclick="navigateTo('beneficis')">💰 Beneficis</div>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="navigateTo('add')">➕ Afegir dia</div>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="exportJSON()">💾 Exportar JSON</div>
             <div class="menu-item" onclick="document.getElementById('importFile').click()">📂 Importar JSON</div>
+            <div class="menu-divider"></div>
+            <div class="menu-item danger" onclick="confirmDeleteAllData()">🗑️ Esborrar totes les dades</div>
             <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
         </div>
     </div>
@@ -992,7 +1006,7 @@
                     </div>
                 </div>
 
-                                <div class="total-summary">
+                <div class="total-summary">
                     <div class="total-item">
                         <div class="total-label">Total Ingressos</div>
                         <div class="total-value" id="totalIngresosSum">0€</div>
@@ -1048,6 +1062,7 @@
                 
                 <div class="view-selector">
                     <button class="view-btn active" onclick="setHistoricViewMode('days')">Per dies</button>
+                    <button class="view-btn" onclick="setHistoricViewMode('weeks')">Per setmanes</button>
                     <button class="view-btn" onclick="setHistoricViewMode('months')">Per mesos</button>
                 </div>
 
@@ -1056,17 +1071,17 @@
                     <div class="range-slider-inputs">
                         <div class="range-input">
                             <label>Des de:</label>
-                            <select id="historicStartMonth"></select>
+                            <select id="historicStartMonth" onchange="updateHistoricView()"></select>
                         </div>
                         <div class="range-input">
                             <label>Fins a:</label>
-                            <select id="historicEndMonth"></select>
+                            <select id="historicEndMonth" onchange="updateHistoricView()"></select>
                         </div>
                         <button class="btn btn-primary" onclick="updateHistoricView()">Actualitzar</button>
                     </div>
                 </div>
                 
-                <div class="chart-container">
+                <div class="chart-container" style="height: 500px;">
                     <canvas id="historicChart" height="80"></canvas>
                 </div>
                 
@@ -1106,6 +1121,39 @@
                     <h3 class="chart-title">€/Hora per mes</h3>
                     <canvas id="comparisonChartHora"></canvas>
                 </div>
+            </div>
+
+            <!-- BENEFICIS PAGE -->
+            <div id="beneficis" class="page">
+                <h1 class="page-title">💰 Beneficis</h1>
+                
+                <div class="filters">
+                    <label for="yearFilterBeneficis">Any:</label>
+                    <select id="yearFilterBeneficis" onchange="updateBeneficisView()">
+                        <option value="all">Tots els anys</option>
+                    </select>
+                </div>
+
+                <div class="range-slider-container">
+                    <span class="range-slider-label">Selecciona el rang de dates:</span>
+                    <div class="range-slider-inputs">
+                        <div class="range-input">
+                            <label>Des de:</label>
+                            <select id="beneficisStartMonth" onchange="updateBeneficisView()"></select>
+                        </div>
+                        <div class="range-input">
+                            <label>Fins a:</label>
+                            <select id="beneficisEndMonth" onchange="updateBeneficisView()"></select>
+                        </div>
+                        <button class="btn btn-primary" onclick="updateBeneficisView()">Actualitzar</button>
+                    </div>
+                </div>
+                
+                <div class="chart-container" style="height: 500px;">
+                    <canvas id="beneficisChart" height="80"></canvas>
+                </div>
+
+                <div id="beneficisContainer"></div>
             </div>
 
             <!-- ADD DAY PAGE -->
@@ -1240,13 +1288,56 @@
         </div>
     </div>
 
+    <!-- GASTOS MODAL -->
+    <div class="modal" id="gastosModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 class="modal-title" id="gastosModalTitle">Editar Gastos</h2>
+                <button class="modal-close" onclick="closeGastosModal()">×</button>
+            </div>
+            
+            <div id="alertContainerGastos"></div>
+            
+            <form id="editGastosForm" onsubmit="saveGastos(event); return false;">
+                <input type="hidden" id="gastosMesAnio">
+                
+                <div class="form-group">
+                    <label class="form-label" for="gastosAmount">Gastos del Mes (€)</label>
+                    <input type="number" id="gastosAmount" class="form-input" step="0.01" required>
+                </div>
+                
+                <div style="background: var(--bg-secondary); padding: 1rem; border-radius: 8px; margin-bottom: 1rem;">
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="color: var(--text-secondary);">Ingressos:</span>
+                        <span id="gastosIngresos" style="font-weight: 600;">0€</span>
+                    </div>
+                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                        <span style="color: var(--text-secondary);">Gastos:</span>
+                        <span id="gastosGastos" style="font-weight: 600;">0€</span>
+                    </div>
+                    <div style="height: 1px; background: var(--border); margin: 0.5rem 0;"></div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary); font-weight: 600;">Beneficis:</span>
+                        <span id="gastosBeneficios" style="font-weight: 700; font-size: 1.125rem;">0€</span>
+                    </div>
+                </div>
+                
+                <div class="modal-actions">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="button" class="btn btn-secondary" onclick="closeGastosModal()">Cancel·lar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         // ==========================================
         // INDEXEDDB CONFIGURATION
         // ==========================================
         const DB_NAME = 'TaxiFacturacioDB';
-        const DB_VERSION = 1;
+        const DB_VERSION = 2;
         const STORE_NAME = 'facturacio_data';
+        const GASTOS_STORE_NAME = 'gastos_data';
         let db = null;
 
         async function initDB() {
@@ -1266,10 +1357,18 @@
                 
                 request.onupgradeneeded = (event) => {
                     const db = event.target.result;
+                    
+                    // Store de facturación
                     if (!db.objectStoreNames.contains(STORE_NAME)) {
                         const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'fecha' });
                         objectStore.createIndex('mes_anio', 'mes_anio', { unique: false });
-                        console.log('Object store created');
+                        console.log('Facturacio object store created');
+                    }
+                    
+                    // Store de gastos
+                    if (!db.objectStoreNames.contains(GASTOS_STORE_NAME)) {
+                        const gastosStore = db.createObjectStore(GASTOS_STORE_NAME, { keyPath: 'mes_anio' });
+                        console.log('Gastos object store created');
                     }
                 };
             });
@@ -1362,28 +1461,102 @@
             }
         }
 
+        async function saveGastosToStorage(gastosArray) {
+            if (!db) {
+                console.error('Database not initialized');
+                return false;
+            }
+            
+            try {
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([GASTOS_STORE_NAME], 'readwrite');
+                    const objectStore = transaction.objectStore(GASTOS_STORE_NAME);
+                    
+                    gastosArray.forEach(record => {
+                        objectStore.put(record);
+                    });
+                    
+                    transaction.oncomplete = () => {
+                        console.log('Gastos saved successfully');
+                        resolve(true);
+                    };
+                    
+                    transaction.onerror = () => {
+                        console.error('Transaction error:', transaction.error);
+                        reject(false);
+                    };
+                });
+            } catch (error) {
+                console.error('Error in saveGastosToStorage:', error);
+                return false;
+            }
+        }
+
+        async function getStoredGastos() {
+            if (!db) {
+                console.error('Database not initialized');
+                return [];
+            }
+            
+            try {
+                const transaction = db.transaction([GASTOS_STORE_NAME], 'readonly');
+                const objectStore = transaction.objectStore(GASTOS_STORE_NAME);
+                const request = objectStore.getAll();
+                
+                return new Promise((resolve, reject) => {
+                    request.onsuccess = () => {
+                        resolve(request.result || []);
+                    };
+                    request.onerror = () => {
+                        console.error('Error getting gastos:', request.error);
+                        resolve([]);
+                    };
+                });
+            } catch (error) {
+                console.error('Error in getStoredGastos:', error);
+                return [];
+            }
+        }
+
+        async function loadGastosData() {
+            try {
+                gastosData = await getStoredGastos();
+                console.log('Gastos data loaded:', gastosData.length, 'records');
+            } catch (error) {
+                console.error('Error loading gastos data:', error);
+                gastosData = [];
+            }
+        }
+
+        function getGastosForMonth(mesAnio) {
+            const gastos = gastosData.find(g => g.mes_anio === mesAnio);
+            return gastos ? gastos.gastos : 0;
+        }
+
         // ==========================================
         // VARIABLES GLOBALES
         // ==========================================
         let allData = [];
         let filteredData = [];
         let datosIniciales = [];
+        let gastosData = [];
         let currentEditDate = null;
         let currentMonthView = new Date();
         let revenueChart = null;
         let monthlyRevenueChart = null;
         let historicChart = null;
+        let beneficisChart = null;
         let historicViewMode = 'days';
         const comparisonCharts = {};
 
         const diasSemana = {
             'Monday': 'dl',
-            'Tuesday': 'dm',
+            'Tuesday': 'dt',
             'Wednesday': 'dc',
             'Thursday': 'dj',
             'Friday': 'dv',
             'Saturday': 'ds',
-            'Sunday': 'du'
+            'Sunday': 'dg'
         };
 
         const monthNames = {
@@ -1428,7 +1601,16 @@
         }
 
         function getMonthlyRevenueColor(value) {
-            return getConditionalColor(value, 2500, 6700);
+            if (value > 6000) return 'var(--color-magenta)';
+            if (value >= 4500) return 'var(--color-green)';
+            if (value >= 2000) return 'var(--accent)';
+            return 'var(--color-red)';
+        }
+
+        function getDailyRevenueColor(value) {
+            if (value > 300) return 'var(--color-magenta)';
+            if (value >= 150) return 'var(--color-green)';
+            return 'var(--color-red)';
         }
 
         function getPositiveColor(percentage) {
@@ -1437,6 +1619,49 @@
 
         function getNegativeColor(percentage) {
             return 'var(--color-red)';
+        }
+
+        function getWeeklyRevenueColor(revenue) {
+            if (revenue >= 1500) return 'var(--color-magenta)';
+            if (revenue >= 1200) return 'var(--color-green)';
+            if (revenue >= 1000) return 'var(--color-yellow)';
+            return 'var(--color-red)';
+        }
+
+        function getWeekKey(date) {
+            // Calcular número de semana ISO (lunes como primer día de la semana)
+            const tempDate = new Date(date.getTime());
+            tempDate.setHours(0, 0, 0, 0);
+            // Jueves de esa semana
+            tempDate.setDate(tempDate.getDate() + 3 - (tempDate.getDay() + 6) % 7);
+            // Primer jueves del año
+            const week1 = new Date(tempDate.getFullYear(), 0, 4);
+            // Calcular número de semana
+            const weekNumber = 1 + Math.round(((tempDate.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            return `${tempDate.getFullYear()}-W${String(weekNumber).padStart(2, '0')}`;
+        }
+
+        function getWeekDateRange(weekKey) {
+            const [year, weekStr] = weekKey.split('-W');
+            const weekNum = parseInt(weekStr);
+            
+            // Primer jueves del año
+            const jan4 = new Date(parseInt(year), 0, 4);
+            const week1Monday = new Date(jan4);
+            week1Monday.setDate(jan4.getDate() - (jan4.getDay() + 6) % 7);
+            
+            // Lunes de la semana deseada
+            const weekMonday = new Date(week1Monday);
+            weekMonday.setDate(week1Monday.getDate() + (weekNum - 1) * 7);
+            
+            // Domingo de la semana
+            const weekSunday = new Date(weekMonday);
+            weekSunday.setDate(weekMonday.getDate() + 6);
+            
+            return {
+                start: weekMonday,
+                end: weekSunday
+            };
         }
 
         // ==========================================
@@ -1479,6 +1704,13 @@
                 yearFilterMesos.innerHTML += `<option value="${year}">${year}</option>`;
             });
 
+            // Filter para Beneficis
+            const yearFilterBeneficis = document.getElementById('yearFilterBeneficis');
+            yearFilterBeneficis.innerHTML = '<option value="all">Tots els anys</option>';
+            years.forEach(year => {
+                yearFilterBeneficis.innerHTML += `<option value="${year}">${year}</option>`;
+            });
+
             const monthFilter = document.getElementById('monthFilter');
             const allMonths = [...new Set(allData.map(d => d.mes_anio || d.fecha.substring(0, 7)))].sort().reverse();
             monthFilter.innerHTML = '<option value="all">Tots els mesos</option>';
@@ -1494,16 +1726,32 @@
                 monthFilter.value = currentMonth;
             }
 
+            // Populate all range selectors
             populateMonthRangeSelectors('historic');
             populateMonthRangeSelectors('comparison');
+            populateMonthRangeSelectors('beneficis');
         }
 
         function populateMonthRangeSelectors(view) {
             const months = [...new Set(allData.map(d => d.mes_anio || d.fecha.substring(0, 7)))].sort();
-            const startSelect = document.getElementById(view === 'historic' ? 'historicStartMonth' : 'comparisonStartMonth');
-            const endSelect = document.getElementById(view === 'historic' ? 'historicEndMonth' : 'comparisonEndMonth');
+            let startSelect, endSelect;
+            
+            if (view === 'historic') {
+                startSelect = document.getElementById('historicStartMonth');
+                endSelect = document.getElementById('historicEndMonth');
+            } else if (view === 'comparison') {
+                startSelect = document.getElementById('comparisonStartMonth');
+                endSelect = document.getElementById('comparisonEndMonth');
+            } else if (view === 'beneficis') {
+                startSelect = document.getElementById('beneficisStartMonth');
+                endSelect = document.getElementById('beneficisEndMonth');
+            }
+            
+            if (!startSelect || !endSelect) return;
+            
             startSelect.innerHTML = '';
             endSelect.innerHTML = '';
+            
             months.forEach((month, index) => {
                 const [year, monthNum] = month.split('-');
                 const monthName = monthNames[monthNum];
@@ -1536,6 +1784,7 @@
             if (page === 'mesos') updateMesosView();
             if (page === 'historic') updateHistoricView();
             if (page === 'comparison') updateComparisonView();
+            if (page === 'beneficis') updateBeneficisView();
             if (page === 'add') updateAllDaysTable();
         }
 
@@ -1839,14 +2088,13 @@
                     dayCell.classList.add('has-data');
                     dayCell.onclick = () => openEditModal(dateStr);
                     
-                    const revenueColor = getConditionalColor(dayData.ingresos_dia || 0, 150, 300);
+                    const revenueColor = getDailyRevenueColor(dayData.ingresos_dia || 0);
                     const hasObservations = dayData.observacions && dayData.observacions.trim() !== '';
                     
                     dayCell.innerHTML = `
                         <div class="calendar-day-number">${day}</div>
                         <div class="calendar-day-amount" style="color: ${revenueColor}">
-                            ${formatCurrency(dayData.ingresos_dia)}
-                            ${hasObservations ? ' <span class="observation-alert">*</span>' : ''}
+                            ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(dayData.ingresos_dia)}
                         </div>
                     `;
                 } else {
@@ -1930,15 +2178,12 @@
                     <div class="month-card" onclick="openMonthDetail('${mesAnio}')">
                         <div class="month-card-header">
                             <div class="month-card-left">
-                                <div class="month-card-title">
-                                    ${monthName} ${year}
-                                    ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
-                                </div>
+                                <div class="month-card-title">${monthName} ${year}</div>
                                 <div class="month-card-subtitle">${mData.dias} dies · ${mData.servicios} serveis</div>
                             </div>
                             <div style="text-align: right;">
                                 <div class="month-card-revenue" style="color: ${revenueColor}">
-                                    ${formatCurrency(roundTo5Cents(mData.ingresos))}
+                                    ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(mData.ingresos))}
                                 </div>
                                 <div class="month-card-comparisons">
                                     ${prevYearLabel ? prevYearLabel : ''}
@@ -1951,6 +2196,223 @@
             });
 
             document.getElementById('mesosContainer').innerHTML = html;
+        }
+
+        // ==========================================
+        // BENEFICIS VIEW
+        // ==========================================
+        function updateBeneficisView() {
+            const yearFilter = document.getElementById('yearFilterBeneficis').value;
+            const startMonth = document.getElementById('beneficisStartMonth').value;
+            const endMonth = document.getElementById('beneficisEndMonth').value;
+            
+            if (!startMonth || !endMonth) {
+                console.log('Beneficis selectors not ready yet');
+                return;
+            }
+            
+            // Agrupar ingresos por mes
+            const monthlyIngresos = {};
+            allData.forEach(d => {
+                const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
+                if (!monthlyIngresos[mesAnio]) {
+                    monthlyIngresos[mesAnio] = 0;
+                }
+                monthlyIngresos[mesAnio] += d.ingresos_dia || 0;
+            });
+            
+            // Filtrar por año y rango si es necesario
+            let months = Object.keys(monthlyIngresos).sort().reverse();
+            if (yearFilter !== 'all') {
+                months = months.filter(m => m.startsWith(yearFilter));
+            }
+            
+            // Filtrar por rango para el gráfico
+            const monthsForChart = Object.keys(monthlyIngresos)
+                .filter(m => m >= startMonth && m <= endMonth)
+                .sort();
+            
+            updateBeneficisChart(monthlyIngresos, monthsForChart);
+            
+            let html = '';
+            
+            months.forEach(mesAnio => {
+                const [year, month] = mesAnio.split('-');
+                const monthName = monthNames[month];
+                
+                const ingresos = Math.round(monthlyIngresos[mesAnio]);
+                const gastos = getGastosForMonth(mesAnio);
+                const beneficios = Math.round(ingresos - gastos);
+                
+                const beneficiosColor = beneficios >= 0 ? 
+                    (beneficios > 2000 ? 'var(--color-green)' : 'var(--accent)') : 
+                    'var(--color-red)';
+                
+                html += `
+                    <div class="month-card" onclick="openGastosModal('${mesAnio}', ${ingresos}, ${gastos})">
+                        <div class="month-card-header">
+                            <div class="month-card-left">
+                                <div class="month-card-title">${monthName} ${year}</div>
+                                <div class="month-card-subtitle">
+                                    Ingressos: ${formatCurrency(ingresos)} · Gastos: ${formatCurrency(gastos)}
+                                </div>
+                            </div>
+                            <div style="text-align: right;">
+                                <div class="month-card-revenue" style="color: ${beneficiosColor}">
+                                    ${formatCurrency(beneficios)}
+                                </div>
+                                <div class="month-card-subtitle" style="margin-top: 0.25rem;">Beneficis</div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('beneficisContainer').innerHTML = html || '<p style="text-align: center; color: var(--text-secondary); padding: 2rem;">No hi ha dades disponibles</p>';
+        }
+
+        function updateBeneficisChart(monthlyIngresos, monthsForChart) {
+            const labels = monthsForChart.map(mesAnio => {
+                const [year, month] = mesAnio.split('-');
+                return `${monthNames[month]} ${year}`;
+            });
+            
+            const beneficiosData = monthsForChart.map(mesAnio => {
+                const ingresos = monthlyIngresos[mesAnio] || 0;
+                const gastos = getGastosForMonth(mesAnio);
+                return Math.round(ingresos - gastos);
+            });
+
+            const ctx = document.getElementById('beneficisChart');
+            if (beneficisChart) beneficisChart.destroy();
+
+            beneficisChart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Beneficis',
+                        data: beneficiosData,
+                        backgroundColor: 'rgba(76, 175, 80, 0.6)',
+                        borderColor: '#4caf50',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: (context) => formatCurrency(context.parsed.y)
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 7000,
+                            grid: { color: '#404040' },
+                            ticks: {
+                                color: '#b0b0b0',
+                                callback: (value) => formatCurrency(value)
+                            }
+                        },
+                        x: {
+                            grid: { display: false },
+                            ticks: { 
+                                color: '#b0b0b0',
+                                maxRotation: 45,
+                                minRotation: 45
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function openGastosModal(mesAnio, ingresos, currentGastos) {
+            const [year, month] = mesAnio.split('-');
+            const monthName = monthNames[month];
+            
+            document.getElementById('gastosModalTitle').textContent = `Gastos - ${monthName} ${year}`;
+            document.getElementById('gastosMesAnio').value = mesAnio;
+            document.getElementById('gastosAmount').value = currentGastos;
+            
+            updateGastosPreview(ingresos, currentGastos);
+            
+            document.getElementById('gastosModal').classList.add('active');
+            
+            // Actualizar preview cuando cambia el input
+            document.getElementById('gastosAmount').oninput = function() {
+                const newGastos = parseFloat(this.value) || 0;
+                updateGastosPreview(ingresos, newGastos);
+            };
+        }
+
+        function updateGastosPreview(ingresos, gastos) {
+            const beneficios = ingresos - gastos;
+            const beneficiosColor = beneficios >= 0 ? 
+                (beneficios > 2000 ? 'var(--color-green)' : 'var(--accent)') : 
+                'var(--color-red)';
+            
+            document.getElementById('gastosIngresos').textContent = formatCurrency(ingresos);
+            document.getElementById('gastosGastos').textContent = formatCurrency(gastos);
+            document.getElementById('gastosBeneficios').textContent = formatCurrency(beneficios);
+            document.getElementById('gastosBeneficios').style.color = beneficiosColor;
+        }
+
+        function closeGastosModal() {
+            document.getElementById('gastosModal').classList.remove('active');
+            document.getElementById('editGastosForm').reset();
+        }
+
+        async function saveGastos(event) {
+            event.preventDefault();
+            
+            const mesAnio = document.getElementById('gastosMesAnio').value;
+            const gastosAmount = parseFloat(document.getElementById('gastosAmount').value);
+            
+            try {
+                // Buscar si ya existe el registro
+                const existingIndex = gastosData.findIndex(g => g.mes_anio === mesAnio);
+                
+                const record = {
+                    mes_anio: mesAnio,
+                    gastos: gastosAmount
+                };
+                
+                if (existingIndex >= 0) {
+                    gastosData[existingIndex] = record;
+                } else {
+                    gastosData.push(record);
+                }
+                
+                const saved = await saveGastosToStorage(gastosData);
+                
+                if (saved) {
+                    await loadGastosData();
+                    updateBeneficisView();
+                    closeGastosModal();
+                    showAlertInModal('Gastos guardats correctament', 'success');
+                } else {
+                    showAlertInModal('Error en guardar els gastos', 'error');
+                }
+            } catch (error) {
+                console.error('Error saving gastos:', error);
+                showAlertInModal('Error en guardar els gastos', 'error');
+            }
+        }
+
+        function showAlertInModal(message, type) {
+            const container = document.getElementById('alertContainerGastos');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.textContent = message;
+            container.innerHTML = '';
+            container.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
         }
 
         // ==========================================
@@ -2025,7 +2487,7 @@
                 ${sortedDays.map(day => {
                     const fecha = new Date(day.fecha + 'T12:00:00');
                     const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
-                    const revenueColor = getConditionalColor(day.ingresos_dia || 0, 150, 300);
+                    const revenueColor = getDailyRevenueColor(day.ingresos_dia || 0);
                     const hasObservations = day.observacions && day.observacions.trim() !== '';
                     
                     return `
@@ -2033,7 +2495,7 @@
                             <div class="month-detail-day-date">${formatDate(day.fecha)} - ${diaSemana.toUpperCase()}</div>
                             <div style="display: flex; align-items: center; gap: 1rem;">
                                 <div class="month-detail-day-revenue" style="color: ${revenueColor}">
-                                    ${formatCurrency(roundTo5Cents(day.ingresos_dia))}${hasObservations ? ' <span class="observation-alert">*</span>' : ''}
+                                    ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(day.ingresos_dia))}
                                 </div>
                                 <div class="month-detail-day-icon">✏️</div>
                             </div>
@@ -2077,6 +2539,12 @@
         function updateHistoricView() {
             const startMonth = document.getElementById('historicStartMonth').value;
             const endMonth = document.getElementById('historicEndMonth').value;
+            
+            if (!startMonth || !endMonth) {
+                console.log('Historic selectors not ready yet');
+                return;
+            }
+            
             const filtered = allData.filter(d => {
                 const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
                 return mesAnio >= startMonth && mesAnio <= endMonth;
@@ -2086,6 +2554,8 @@
 
             if (historicViewMode === 'days') {
                 updateHistoricTableDays(filtered);
+            } else if (historicViewMode === 'weeks') {
+                updateHistoricTableWeeks(filtered);
             } else {
                 updateHistoricTableMonths(filtered);
             }
@@ -2100,6 +2570,23 @@
                 const sorted = [...data].sort((a, b) => a.fecha.localeCompare(b.fecha));
                 labels = sorted.map(d => formatDate(d.fecha));
                 chartData = sorted.map(d => roundTo5Cents(d.ingresos_dia || 0));
+            } else if (historicViewMode === 'weeks') {
+                // Agrupar por semanas
+                const weeklyData = {};
+                data.forEach(d => {
+                    const date = new Date(d.fecha + 'T12:00:00');
+                    const weekKey = getWeekKey(date);
+                    if (!weeklyData[weekKey]) {
+                        weeklyData[weekKey] = 0;
+                    }
+                    weeklyData[weekKey] += d.ingresos_dia || 0;
+                });
+                const sorted = Object.keys(weeklyData).sort();
+                labels = sorted.map(weekKey => {
+                    const [year, week] = weekKey.split('-W');
+                    return `Setm ${week}/${year}`;
+                });
+                chartData = sorted.map(weekKey => roundTo5Cents(weeklyData[weekKey]));
             } else {
                 const monthlyData = {};
                 data.forEach(d => {
@@ -2187,7 +2674,7 @@
                 const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
                 const mediaPrecio = row.servicios_dia ? roundTo5Cents(row.ingresos_dia / row.servicios_dia) : 0;
                 const mediaHora = row.horas_trabajadas ? roundTo5Cents(row.ingresos_dia / row.horas_trabajadas) : 0;
-                const revenueColor = getConditionalColor(row.ingresos_dia || 0, 150, 300);
+                const revenueColor = getDailyRevenueColor(row.ingresos_dia || 0);
                 const hasObservations = row.observacions && row.observacions.trim() !== '';
 
                 html += `
@@ -2195,8 +2682,7 @@
                         <td>${formatDate(row.fecha)}</td>
                         <td class="weekday-abbr">${diaSemana}</td>
                         <td>
-                            <span class="revenue-amount" style="color: ${revenueColor}">${formatCurrency(roundTo5Cents(row.ingresos_dia || 0))}</span>
-                            ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
+                            <span class="revenue-amount" style="color: ${revenueColor}">${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(row.ingresos_dia || 0))}</span>
                         </td>
                         <td style="font-size: 0.75rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${row.observacions || ''}">${row.observacions || '-'}</td>
                         <td>${row.horas_trabajadas ? formatCurrency(mediaHora) : '-'}</td>
@@ -2270,8 +2756,7 @@
                     <tr>
                         <td><strong>${monthName} ${year}</strong></td>
                         <td>
-                            <strong style="color: ${monthRevenueColor}">${formatCurrency(roundTo5Cents(mData.ingresos))}</strong>
-                            ${hasObservations ? '<span class="observation-alert">*</span>' : ''}
+                            <strong style="color: ${monthRevenueColor}">${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(mData.ingresos))}</strong>
                         </td>
                         <td style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</td>
                         <td style="color: ${mediaHoraColor}">${mData.horas > 0 ? formatCurrency(roundTo5Cents(mediaHora)) : '-'}</td>
@@ -2287,12 +2772,90 @@
             document.getElementById('historicTableContainer').innerHTML = html;
         }
 
+        function updateHistoricTableWeeks(data) {
+            // Agrupar por semanas
+            const weeklyData = {};
+            data.forEach(d => {
+                const date = new Date(d.fecha + 'T12:00:00');
+                const weekKey = getWeekKey(date);
+                if (!weeklyData[weekKey]) {
+                    weeklyData[weekKey] = { ingresos: 0, servicios: 0, horas: 0, dias: 0 };
+                }
+                weeklyData[weekKey].ingresos += d.ingresos_dia || 0;
+                weeklyData[weekKey].servicios += d.servicios_dia || 0;
+                weeklyData[weekKey].horas += d.horas_trabajadas || 0;
+                weeklyData[weekKey].dias += 1;
+            });
+
+            const sortedWeeks = Object.keys(weeklyData).sort().reverse();
+            
+            let html = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Setmana</th>
+                            <th>Periode</th>
+                            <th>Ingressos</th>
+                            <th>Mitjana/dia</th>
+                            <th>Mitjana/hora</th>
+                            <th>€/Servei</th>
+                            <th>Serveis</th>
+                            <th>Dies</th>
+                            <th>Hores</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+
+            sortedWeeks.forEach(weekKey => {
+                const wData = weeklyData[weekKey];
+                const [year, weekStr] = weekKey.split('-W');
+                const weekNum = parseInt(weekStr);
+                
+                const dateRange = getWeekDateRange(weekKey);
+                const startStr = `${dateRange.start.getDate()}/${dateRange.start.getMonth() + 1}`;
+                const endStr = `${dateRange.end.getDate()}/${dateRange.end.getMonth() + 1}/${dateRange.end.getFullYear()}`;
+                
+                const mediaDia = wData.dias > 0 ? wData.ingresos / wData.dias : 0;
+                const mediaServicio = wData.servicios > 0 ? wData.ingresos / wData.servicios : 0;
+                const mediaHora = wData.horas > 0 ? wData.ingresos / wData.horas : 0;
+                
+                const mediaDiaColor = getConditionalColor(mediaDia, 150, 320);
+                const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
+                const weekRevenueColor = getWeeklyRevenueColor(wData.ingresos);
+
+                html += `
+                    <tr>
+                        <td><strong>Setm ${weekNum} ${year}</strong></td>
+                        <td>${startStr} - ${endStr}</td>
+                        <td>
+                            <strong style="color: ${weekRevenueColor}">${Math.round(wData.ingresos)}€</strong>
+                        </td>
+                        <td style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</td>
+                        <td style="color: ${mediaHoraColor}">${wData.horas > 0 ? formatCurrency(roundTo5Cents(mediaHora)) : '-'}</td>
+                        <td>${formatCurrency(roundTo5Cents(mediaServicio))}</td>
+                        <td>${wData.servicios}</td>
+                        <td>${wData.dias}</td>
+                        <td>${wData.horas > 0 ? wData.horas.toFixed(1) : '-'}</td>
+                    </tr>
+                `;
+            });
+
+            html += `</tbody></table>`;
+            document.getElementById('historicTableContainer').innerHTML = html;
+        }
+
         // ==========================================
         // COMPARISON VIEW
         // ==========================================
         function updateComparisonView() {
             const startMonth = document.getElementById('comparisonStartMonth').value;
             const endMonth = document.getElementById('comparisonEndMonth').value;
+            
+            if (!startMonth || !endMonth) {
+                console.log('Comparison selectors not ready yet');
+                return;
+            }
             const filtered = allData.filter(d => {
                 const mesAnio = d.mes_anio || d.fecha.substring(0, 7);
                 return mesAnio >= startMonth && mesAnio <= endMonth;
@@ -2493,7 +3056,7 @@
                     await loadData();
                     populateYearFilters();
                     updateDashboard();
-                    updateMonthlyView();
+                    updateMesosView();
                     updateHistoricView();
                     updateAllDaysTable();
                     resetForm(source);
@@ -2545,7 +3108,7 @@
                     await loadData();
                     populateYearFilters();
                     updateDashboard();
-                    updateMonthlyView();
+                    updateMesosView();
                     updateHistoricView();
                     updateAllDaysTable();
                     closeModal();
@@ -2557,6 +3120,50 @@
             } catch (error) {
                 console.error('Error deleting:', error);
                 showAlert('Error en eliminar el dia', 'error', 'add');
+            }
+        }
+
+        // ==========================================
+        // DELETE ALL DATA
+        // ==========================================
+        async function confirmDeleteAllData() {
+            if (!confirm('ATENCIÓ: Això eliminarà TOTES les dades de facturació i gastos de forma permanent. Aquesta acció NO es pot desfer.\n\nEstàs completament segur que vols continuar?')) {
+                return;
+            }
+            
+            // Segunda confirmación
+            if (!confirm('Última confirmació: Realment vols esborrar TOTES les dades? Aquesta acció és irreversible.')) {
+                return;
+            }
+            
+            try {
+                // Borrar datos de facturación
+                await saveToStorage([]);
+                
+                // Borrar datos de gastos
+                await saveGastosToStorage([]);
+                
+                // Recargar datos
+                await loadData();
+                await loadGastosData();
+                
+                // Actualizar todas las vistas
+                populateYearFilters();
+                updateDashboard();
+                updateDiesView();
+                updateMesosView();
+                updateHistoricView();
+                updateComparisonView();
+                updateBeneficisView();
+                updateAllDaysTable();
+                
+                alert('Totes les dades han estat esborrades correctament.');
+                
+                // Cerrar el menú
+                toggleMenu();
+            } catch (error) {
+                console.error('Error deleting all data:', error);
+                alert('Error en esborrar les dades. Si us plau, torna-ho a intentar.');
             }
         }
 
@@ -2588,7 +3195,7 @@
                         await loadData();
                         populateYearFilters();
                         updateDashboard();
-                        updateMonthlyView();
+                        updateMesosView();
                         updateHistoricView();
                         updateAllDaysTable();
                         alert(`Dades importades: ${importedData.length} registres`);
@@ -2631,7 +3238,57 @@
                 datosIniciales = [];
             }
             
+            // Cargar datos de facturación
             await loadData();
+            
+            // Cargar datos de gastos
+            try {
+                await loadGastosData();
+                console.log('Gastos cargados:', gastosData.length);
+                
+                // Si no hay datos de gastos, cargar datos iniciales
+                if (gastosData.length === 0) {
+                    console.log('No hay datos de gastos, cargando datos iniciales...');
+                    const gastosIniciales = [
+                        {"mes_anio":"2020-02","gastos":1169},{"mes_anio":"2020-03","gastos":1169},{"mes_anio":"2020-04","gastos":1169},
+                        {"mes_anio":"2020-05","gastos":1169},{"mes_anio":"2020-06","gastos":1169},{"mes_anio":"2020-07","gastos":1169},
+                        {"mes_anio":"2020-08","gastos":1169},{"mes_anio":"2020-09","gastos":1169},{"mes_anio":"2020-10","gastos":1169},
+                        {"mes_anio":"2020-11","gastos":1169},{"mes_anio":"2020-12","gastos":1169},{"mes_anio":"2021-01","gastos":1169},
+                        {"mes_anio":"2021-02","gastos":1169},{"mes_anio":"2021-03","gastos":1169},{"mes_anio":"2021-04","gastos":1169},
+                        {"mes_anio":"2021-05","gastos":1169},{"mes_anio":"2021-06","gastos":1169},{"mes_anio":"2021-07","gastos":1169},
+                        {"mes_anio":"2021-08","gastos":1169},{"mes_anio":"2021-09","gastos":1169},{"mes_anio":"2021-10","gastos":1169},
+                        {"mes_anio":"2021-11","gastos":1169},{"mes_anio":"2021-12","gastos":1675},{"mes_anio":"2022-01","gastos":1621},
+                        {"mes_anio":"2022-02","gastos":1621},{"mes_anio":"2022-03","gastos":1621},{"mes_anio":"2022-04","gastos":1621},
+                        {"mes_anio":"2022-05","gastos":1621},{"mes_anio":"2022-06","gastos":1621},{"mes_anio":"2022-07","gastos":1621},
+                        {"mes_anio":"2022-08","gastos":1321},{"mes_anio":"2022-09","gastos":2239},{"mes_anio":"2022-10","gastos":2492},
+                        {"mes_anio":"2022-11","gastos":2538},{"mes_anio":"2022-12","gastos":2538},{"mes_anio":"2023-01","gastos":2549},
+                        {"mes_anio":"2023-02","gastos":2549},{"mes_anio":"2023-03","gastos":2688},{"mes_anio":"2023-04","gastos":2688},
+                        {"mes_anio":"2023-05","gastos":2688},{"mes_anio":"2023-06","gastos":2688},{"mes_anio":"2023-07","gastos":2688},
+                        {"mes_anio":"2023-08","gastos":2688},{"mes_anio":"2023-09","gastos":2688},{"mes_anio":"2023-10","gastos":2896},
+                        {"mes_anio":"2023-11","gastos":2896},{"mes_anio":"2023-12","gastos":2896},{"mes_anio":"2024-01","gastos":2950},
+                        {"mes_anio":"2024-02","gastos":2950},{"mes_anio":"2024-03","gastos":2959},{"mes_anio":"2024-04","gastos":2959},
+                        {"mes_anio":"2024-05","gastos":2959},{"mes_anio":"2024-06","gastos":2959},{"mes_anio":"2024-07","gastos":2959},
+                        {"mes_anio":"2024-08","gastos":2959},{"mes_anio":"2024-09","gastos":2959},{"mes_anio":"2024-10","gastos":2959},
+                        {"mes_anio":"2024-11","gastos":2959},{"mes_anio":"2024-12","gastos":2959},{"mes_anio":"2025-01","gastos":2959},
+                        {"mes_anio":"2025-02","gastos":2959},{"mes_anio":"2025-03","gastos":2922},{"mes_anio":"2025-04","gastos":2922},
+                        {"mes_anio":"2025-05","gastos":2922},{"mes_anio":"2025-06","gastos":2922},{"mes_anio":"2025-07","gastos":2922},
+                        {"mes_anio":"2025-08","gastos":2922},{"mes_anio":"2025-09","gastos":2922},{"mes_anio":"2025-10","gastos":3005},
+                        {"mes_anio":"2025-11","gastos":3005},{"mes_anio":"2025-12","gastos":3005},{"mes_anio":"2026-01","gastos":3005}
+                    ];
+                    
+                    const saved = await saveGastosToStorage(gastosIniciales);
+                    if (saved) {
+                        await loadGastosData();
+                        console.log('Datos iniciales de gastos guardados:', gastosData.length);
+                    } else {
+                        console.error('Error al guardar datos iniciales de gastos');
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading gastos:', error);
+                gastosData = [];
+            }
+            
             populateYearFilters();
             updateDashboard();
             updateDiesView();
