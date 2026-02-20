@@ -2920,17 +2920,23 @@
 
             if (comparisonCharts[canvasId]) comparisonCharts[canvasId].destroy();
 
+            const isMobile = window.innerWidth < 600;
             comparisonCharts[canvasId] = new Chart(ctx, {
                 type: 'line',
                 data: { labels: labels, datasets: datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: true,
-                    aspectRatio: 2.5,
+                    aspectRatio: isMobile ? 1.0 : 2.5,
                     plugins: {
                         legend: { 
                             display: true,
-                            labels: { color: '#b0b0b0' }
+                            labels: { 
+                                color: '#b0b0b0',
+                                boxWidth: isMobile ? 20 : 40,
+                                font: { size: isMobile ? 10 : 12 },
+                                padding: isMobile ? 6 : 10
+                            }
                         },
                         tooltip: {
                             callbacks: {
@@ -2944,12 +2950,18 @@
                             grid: { color: '#404040' },
                             ticks: {
                                 color: '#b0b0b0',
+                                font: { size: isMobile ? 9 : 12 },
                                 callback: (value) => formatCurrency(value)
                             }
                         },
                         x: {
                             grid: { display: false },
-                            ticks: { color: '#b0b0b0' }
+                            ticks: { 
+                                color: '#b0b0b0',
+                                font: { size: isMobile ? 9 : 12 },
+                                maxRotation: isMobile ? 45 : 0,
+                                minRotation: isMobile ? 45 : 0
+                            }
                         }
                     }
                 }
