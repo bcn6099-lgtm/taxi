@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCN TERMINAL SPLIT</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: #000000;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 600px;
+            width: 100%;
+            background: #000000;
+            padding: 24px;
+        }
+        
+        h1 {
+            font-size: 28px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 8px;
+            letter-spacing: -0.5px;
+        }
+        
+        .current-time {
+            font-size: 48px;
+            font-weight: 500;
+            color: #ffffff;
+            margin-bottom: 24px;
+            font-family: monospace;
+        }
+        
+        /* Botón de configuración */
+        .config-button {
+            background: transparent;
+            border: 1px solid #ffc107;
+            color: #ffc107;
+            padding: 8px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            border-radius: 0;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .config-button:hover {
+            background: #ffc107;
+            color: #000000;
+        }
+        
+        /* Panel de configuración oculto */
+        .config-panel {
+            display: none;
+            margin-bottom: 24px;
+            padding: 20px;
+            background: #111111;
+            border: 1px solid #333333;
+        }
+        
+        .config-panel.visible {
+            display: block;
+        }
+        
+        .config-panel input {
+            width: 100%;
+            padding: 12px;
+            background: #000000;
+            border: 1px solid #333333;
+            color: #ffffff;
+            font-size: 14px;
+            font-family: monospace;
+            margin-bottom: 12px;
+        }
+        
+        .config-panel input:focus {
+            outline: none;
+            border-color: #ffc107;
+        }
+        
+        .config-buttons {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        
+        .primary-button {
+            background: #ffc107;
+            color: #000000;
+            border: none;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 0;
+            font-weight: 500;
+        }
+        
+        .primary-button:hover {
+            background: #ffd54f;
+        }
+        
+        .secondary-button {
+            background: transparent;
+            color: #ffffff;
+            border: 1px solid #333333;
+            padding: 10px 20px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 0;
+        }
+        
+        .secondary-button:hover {
+            border-color: #ffc107;
+            color: #ffc107;
+        }
+        
+        .status-message {
+            margin-top: 12px;
+            padding: 10px;
+            font-size: 13px;
+            background: #111111;
+            border: 1px solid #333333;
+            color: #cccccc;
+        }
+        
+        .terminal-header {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            padding: 12px 0;
+            border-bottom: 2px solid #ffc107;
+            font-weight: 600;
+            font-size: 16px;
+            color: #ffffff;
+        }
+        
+        .terminal-header div:first-child {
+            text-align: left;
+        }
+        
+        .terminal-header div:not(:first-child) {
+            text-align: right;
+        }
+        
+        .table-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            padding: 8px 0;
+            border-bottom: 1px solid #333333;
+            font-size: 16px;
+            color: #ffffff;
+        }
+        
+        .table-row div:first-child {
+            text-align: left;
+            color: #cccccc;
+        }
+        
+        .table-row div:not(:first-child) {
+            text-align: right;
+            color: #ffc107;
+            font-weight: 500;
+        }
+        
+        .stats-bar {
+            margin: 20px 0;
+            font-size: 13px;
+            color: #cccccc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .cache-badge, .dedup-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            background: #333333;
+            color: #ffffff;
+            font-size: 11px;
+        }
+        
+        .footer-note {
+            margin-top: 24px;
+            font-size: 12px;
+            color: #666666;
+            text-align: left;
+            border-top: 1px solid #333333;
+            padding-top: 16px;
+        }
+        
+        .debug-info {
+            background: #111111;
+            border: 1px solid #333333;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 11px;
+            max-height: 200px;
+            overflow: auto;
+            white-space: pre-wrap;
+            color: #cccccc;
+        }
+        
+        .loading, .error, .empty-state {
+            text-align: center;
+            padding: 40px;
+            background: #000000;
+            color: #ffffff;
+        }
+        
+        .empty-state p:first-child {
+            color: #ffffff;
+        }
+        
+        .empty-state p:last-child {
+            color: #666666;
+        }
+        
+        .footer {
+            margin-top: 24px;
+            font-size: 11px;
+            color: #444444;
+            text-align: center;
+        }
+        
+        .footer a {
+            color: #ffc107;
+            text-decoration: none;
+        }
+        
+        .footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>BCN TERMINAL SPLIT</h1>
+        <div class="current-time" id="currentTime">20:13</div>
+        
+        <!-- Botón de configuración -->
+        <button class="config-button" id="configBtn">
+            <span>⚙️</span> CONFIGURACIÓN
+        </button>
+        
+        <!-- Panel de configuración (oculto por defecto) -->
+        <div class="config-panel" id="configPanel">
+            <input type="text" id="apiKeyInput" placeholder="RapidAPI Key" value="">
+            <div class="config-buttons">
+                <button class="primary-button" id="loadFlightsBtn">CARGAR VUELOS</button>
+                <button class="secondary-button" id="testApiBtn">PROBAR API</button>
+                <button class="secondary-button" id="clearCacheBtn">LIMPIAR CACHÉ</button>
+                <button class="secondary-button" id="debugBtn">DEBUG</button>
+            </div>
+            <div class="status-message" id="apiStatus">
+                Introduce tu API Key en configuración
+            </div>
+            <div id="debugPanel" class="debug-info" style="display: none;"></div>
+        </div>
+        
+        <div class="stats-bar" id="statsBar" style="display: none;">
+            <span id="flightCount">0 vuelos</span>
+            <span class="cache-badge" id="cacheBadge" style="display: none;">CACHÉ</span>
+            <span class="dedup-badge" id="dedupBadge" style="display: none;">0 DUPLICADOS</span>
+        </div>
+        
+        <div id="flightsContainer">
+            <div class="empty-state" id="emptyState">
+                <p>Carga los datos para ver el split de terminales</p>
+                <p style="font-size: 12px; margin-top: 10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>AeroDataBox via RapidAPI · Plan gratuito: 500/mes</p>
+            <p id="cacheInfo" style="font-size: 10px; color: #333333;"></p>
+        </div>
+    </div>
+    
+    <script>
+        (function() {
+            // Elementos DOM
+            const configBtn = document.getElementById('configBtn');
+            const configPanel = document.getElementById('configPanel');
+            const apiKeyInput = document.getElementById('apiKeyInput');
+            const loadBtn = document.getElementById('loadFlightsBtn');
+            const testBtn = document.getElementById('testApiBtn');
+            const clearCacheBtn = document.getElementById('clearCacheBtn');
+            const debugBtn = document.getElementById('debugBtn');
+            const apiStatus = document.getElementById('apiStatus');
+            const statsBar = document.getElementById('statsBar');
+            const flightCountSpan = document.getElementById('flightCount');
+            const flightsContainer = document.getElementById('flightsContainer');
+            const emptyState = document.getElementById('emptyState');
+            const cacheBadge = document.getElementById('cacheBadge');
+            const dedupBadge = document.getElementById('dedupBadge');
+            const cacheInfo = document.getElementById('cacheInfo');
+            const debugPanel = document.getElementById('debugPanel');
+            const currentTimeEl = document.getElementById('currentTime');
+            
+            // Constantes
+            const RAPIDAPI_HOST = 'aerodatabox.p.rapidapi.com';
+            const AIRPORT = 'BCN';
+            const CACHE_KEY = 'aerodatabox_flights_cache';
+            const CACHE_DURATION = 5 * 60 * 1000; // 5 minutos
+            
+            // Variable para depuración
+            let lastRawData = null;
+            let lastProcessedData = null;
+            
+            // Toggle panel de configuración
+            configBtn.addEventListener('click', () => {
+                configPanel.classList.toggle('visible');
+            });
+            
+            // Actualizar hora actual
+            function updateCurrentTime() {
+                const ahora = new Date();
+                const horas = ahora.getHours().toString().padStart(2, '0');
+                const minutos = ahora.getMinutes().toString().padStart(2, '0');
+                currentTimeEl.textContent = `${horas}:${minutos}`;
+            }
+            updateCurrentTime();
+            setInterval(updateCurrentTime, 60000);
+            
+            // Generar franjas horarias desde 20:00 hasta 07:00
+            function generateTimeSlots() {
+                const slots = [];
+                for (let i = 20; i <= 23; i++) {
+                    slots.push(`${i.toString().padStart(2, '0')}:00`);
+                }
+                for (let i = 0; i <= 7; i++) {
+                    slots.push(`${i.toString().padStart(2, '0')}:00`);
+                }
+                return slots;
+            }
+            
+            const TIME_SLOTS = generateTimeSlots();
+            
+            // Utilidades
+            function formatDateForAPI(date) {
+                return date.toISOString().split('T')[0];
+            }
+            
+            function formatTimeForAPI(date) {
+                return date.toTimeString().split(' ')[0].substring(0,5);
+            }
+            
+            function getHourFromDate(dateString) {
+                if (!dateString) return null;
+                const date = new Date(dateString);
+                if (isNaN(date.getTime())) return null;
+                return date.getHours();
+            }
+            
+            // EXTRAER HORA DE LLEGADA
+            function extractArrivalTime(flight) {
+                if (flight.movement && flight.movement.scheduledTime) {
+                    if (typeof flight.movement.scheduledTime === 'object') {
+                        return flight.movement.scheduledTime.local || flight.movement.scheduledTime.utc;
+                    }
+                    return flight.movement.scheduledTime;
+                }
+                return null;
+            }
+            
+            // EXTRAER AEROPUERTO DE ORIGEN
+            function extractOrigin(flight) {
+                if (flight.movement && flight.movement.airport) {
+                    return {
+                        iata: flight.movement.airport.iata || '???',
+                        name: flight.movement.airport.name || 'Desconocido'
+                    };
+                }
+                return { iata: '???', name: 'Desconocido' };
+            }
+            
+            // EXTRAER TERMINAL
+            function extractTerminal(flight) {
+                if (flight.movement && flight.movement.terminal) {
+                    return flight.movement.terminal;
+                }
+                return '1';
+            }
+            
+            // Guardar en caché
+            function saveToCache(data) {
+                const cacheData = {
+                    timestamp: Date.now(),
+                    flights: data
+                };
+                localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
+                updateCacheInfo();
+            }
+            
+            // Obtener de caché
+            function getFromCache() {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (!cached) return null;
+                
+                try {
+                    const cacheData = JSON.parse(cached);
+                    const now = Date.now();
+                    
+                    if (now - cacheData.timestamp < CACHE_DURATION) {
+                        return cacheData.flights;
+                    } else {
+                        localStorage.removeItem(CACHE_KEY);
+                        return null;
+                    }
+                } catch (e) {
+                    localStorage.removeItem(CACHE_KEY);
+                    return null;
+                }
+            }
+            
+            // Actualizar info de caché
+            function updateCacheInfo() {
+                const cached = localStorage.getItem(CACHE_KEY);
+                if (cached) {
+                    try {
+                        const cacheData = JSON.parse(cached);
+                        const expiresIn = Math.round((CACHE_DURATION - (Date.now() - cacheData.timestamp)) / 60000);
+                        if (expiresIn > 0) {
+                            cacheInfo.textContent = `CACHÉ EXPIRA EN ${expiresIn} MIN`;
+                        } else {
+                            cacheInfo.textContent = '';
+                        }
+                    } catch (e) {
+                        cacheInfo.textContent = '';
+                    }
+                } else {
+                    cacheInfo.textContent = '';
+                }
+            }
+            
+            // Eliminar duplicados de código compartido
+            function removeCodeshareDuplicates(flights) {
+                if (!flights || flights.length === 0) return { unique: [], duplicateCount: 0 };
+                
+                const uniqueFlights = new Map();
+                let duplicateCount = 0;
+                
+                flights.forEach((flight) => {
+                    const origin = extractOrigin(flight);
+                    const timeStr = extractArrivalTime(flight);
+                    
+                    if (!timeStr) return;
+                    
+                    const originCode = origin.iata;
+                    
+                    let timeDate;
+                    try {
+                        const cleanTimeStr = timeStr.replace('+01:00', '').replace('Z', '');
+                        timeDate = new Date(cleanTimeStr);
+                    } catch (e) {
+                        return;
+                    }
+                    
+                    if (isNaN(timeDate.getTime())) return;
+                    
+                    // Redondear al minuto
+                    const roundedTime = new Date(timeDate);
+                    roundedTime.setSeconds(0, 0);
+                    
+                    const key = `${originCode}_${roundedTime.getTime()}`;
+                    
+                    if (!uniqueFlights.has(key)) {
+                        uniqueFlights.set(key, flight);
+                    } else {
+                        duplicateCount++;
+                    }
+                });
+                
+                return {
+                    unique: Array.from(uniqueFlights.values()),
+                    duplicateCount: duplicateCount
+                };
+            }
+            
+            // Agrupar vuelos por hora y terminal
+            function groupFlightsByTimeSlots(flights) {
+                const slots = {};
+                TIME_SLOTS.forEach(slot => {
+                    slots[slot] = { t1: 0, t2: 0 };
+                });
+                
+                flights.forEach(flight => {
+                    const timeStr = extractArrivalTime(flight);
+                    if (!timeStr) return;
+                    
+                    const hour = getHourFromDate(timeStr);
+                    if (hour === null) return;
+                    
+                    const slotKey = `${hour.toString().padStart(2, '0')}:00`;
+                    
+                    if (slots[slotKey]) {
+                        const terminal = extractTerminal(flight);
+                        const terminalNorm = terminal.toString().trim();
+                        
+                        if (terminalNorm === '2' || terminalNorm === 'T2') {
+                            slots[slotKey].t2++;
+                        } else {
+                            slots[slotKey].t1++;
+                        }
+                    }
+                });
+                
+                return slots;
+            }
+            
+            // Mostrar la tabla
+            function displayTimeSlots(flights, fromCache = false, originalCount = null) {
+                if (!flights || flights.length === 0) {
+                    flightsContainer.innerHTML = `
+                        <div class="empty-state">
+                            <p>No hay datos disponibles</p>
+                            <p style="font-size: 12px; margin-top: 10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
+                        </div>
+                    `;
+                    flightCountSpan.textContent = '0 vuelos';
+                    statsBar.style.display = 'flex';
+                    return;
+                }
+                
+                // Eliminar duplicados
+                const { unique: uniqueFlights, duplicateCount } = removeCodeshareDuplicates(flights);
+                lastProcessedData = uniqueFlights;
+                
+                const slots = groupFlightsByTimeSlots(uniqueFlights);
+                
+                flightCountSpan.textContent = `${uniqueFlights.length} VUELOS`;
+                statsBar.style.display = 'flex';
+                
+                if (fromCache) {
+                    cacheBadge.style.display = 'inline-block';
+                } else {
+                    cacheBadge.style.display = 'none';
+                }
+                
+                if (duplicateCount > 0) {
+                    dedupBadge.style.display = 'inline-block';
+                    dedupBadge.textContent = `${duplicateCount} DUPLICADOS`;
+                } else {
+                    dedupBadge.style.display = 'none';
+                }
+                
+                // Construir tabla
+                let tableHTML = `
+                    <div class="terminal-header">
+                        <div></div>
+                        <div>TERMINAL 1</div>
+                        <div>TERMINAL 2</div>
+                    </div>
+                `;
+                
+                TIME_SLOTS.forEach(slot => {
+                    const counts = slots[slot] || { t1: 0, t2: 0 };
+                    tableHTML += `
+                        <div class="table-row">
+                            <div>${slot}</div>
+                            <div>${counts.t1}</div>
+                            <div>${counts.t2}</div>
+                        </div>
+                    `;
+                });
+                
+                tableHTML += `
+                    <div class="footer-note">
+                        FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API
+                    </div>
+                `;
+                
+                flightsContainer.innerHTML = tableHTML;
+            }
+            
+            // Mostrar debug
+            function showDebugInfo() {
+                let debugText = '';
+                
+                if (lastRawData) {
+                    debugText += `TOTAL API: ${lastRawData.length}\n\n`;
+                    
+                    const samples = lastRawData.slice(0, 3).map(f => ({
+                        movement: f.movement ? {
+                            airport: f.movement.airport?.iata,
+                            time: f.movement.scheduledTime,
+                            terminal: f.movement.terminal
+                        } : null,
+                        airline: f.airline?.name,
+                        number: f.number
+                    }));
+                    
+                    debugText += 'PRIMEROS 3:\n';
+                    debugText += JSON.stringify(samples, null, 2);
+                    
+                    if (lastProcessedData) {
+                        debugText += `\n\nÚNICOS: ${lastProcessedData.length}`;
+                    }
+                } else {
+                    debugText = 'Sin datos cargados';
+                }
+                
+                debugPanel.textContent = debugText;
+                debugPanel.style.display = 'block';
+            }
+            
+            // Probar API
+            async function testApiKey() {
+                const apiKey = apiKeyInput.value.trim();
+                
+                if (!apiKey) {
+                    apiStatus.textContent = '❌ Introduce API Key';
+                    return false;
+                }
+                
+                apiStatus.textContent = '⏳ Verificando...';
+                
+                try {
+                    const ahora = new Date();
+                    const dentro1h = new Date(ahora.getTime() + 1 * 60 * 60 * 1000);
+                    
+                    const fromLocal = `${formatDateForAPI(ahora)}T${formatTimeForAPI(ahora)}`;
+                    const toLocal = `${formatDateForAPI(dentro1h)}T${formatTimeForAPI(dentro1h)}`;
+                    
+                    const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${fromLocal}/${toLocal}`;
+                    
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-RapidAPI-Key': apiKey,
+                            'X-RapidAPI-Host': RAPIDAPI_HOST
+                        }
+                    });
+                    
+                    if (response.status === 401) throw new Error('API Key inválida');
+                    if (response.status === 429) throw new Error('Límite alcanzado');
+                    if (!response.ok) throw new Error(`Error ${response.status}`);
+                    
+                    apiStatus.textContent = '✅ API Key válida';
+                    localStorage.setItem('aerodatabox_key', apiKey);
+                    
+                    return true;
+                    
+                } catch (error) {
+                    apiStatus.textContent = `❌ ${error.message}`;
+                    return false;
+                }
+            }
+            
+            // Cargar vuelos
+            async function loadFlights() {
+                const apiKey = apiKeyInput.value.trim();
+                
+                if (!apiKey) {
+                    apiStatus.textContent = '❌ Introduce API Key';
+                    return;
+                }
+                
+                // Verificar caché
+                const cachedFlights = getFromCache();
+                if (cachedFlights) {
+                    displayTimeSlots(cachedFlights, true, cachedFlights.length);
+                    apiStatus.textContent = '📦 Datos en caché';
+                    return;
+                }
+                
+                try {
+                    const ahora = new Date();
+                    const dentro12h = new Date(ahora.getTime() + 12 * 60 * 60 * 1000);
+                    
+                    const fromLocal = `${formatDateForAPI(ahora)}T${formatTimeForAPI(ahora)}`;
+                    const toLocal = `${formatDateForAPI(dentro12h)}T${formatTimeForAPI(dentro12h)}`;
+                    
+                    const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${fromLocal}/${toLocal}`;
+                    
+                    const response = await fetch(url, {
+                        headers: {
+                            'X-RapidAPI-Key': apiKey,
+                            'X-RapidAPI-Host': RAPIDAPI_HOST
+                        }
+                    });
+                    
+                    if (!response.ok) {
+                        if (response.status === 401) throw new Error('API Key inválida');
+                        if (response.status === 429) throw new Error('Límite alcanzado');
+                        throw new Error(`Error ${response.status}`);
+                    }
+                    
+                    const data = await response.json();
+                    
+                    let arrivals = [];
+                    if (Array.isArray(data)) {
+                        arrivals = data;
+                    } else if (data && data.arrivals) {
+                        arrivals = data.arrivals;
+                    }
+                    
+                    lastRawData = arrivals;
+                    
+                    if (arrivals.length === 0) {
+                        flightsContainer.innerHTML = `
+                            <div class="empty-state">
+                                <p>No hay vuelos programados</p>
+                                <p style="font-size: 12px; margin-top: 10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
+                            </div>
+                        `;
+                        flightCountSpan.textContent = '0 vuelos';
+                        statsBar.style.display = 'flex';
+                        return;
+                    }
+                    
+                    // Guardar en caché y mostrar
+                    saveToCache(arrivals);
+                    displayTimeSlots(arrivals, false, arrivals.length);
+                    
+                    apiStatus.textContent = '✅ Datos cargados';
+                    
+                } catch (error) {
+                    apiStatus.textContent = `❌ ${error.message}`;
+                    
+                    const cachedFlights = getFromCache();
+                    if (cachedFlights) {
+                        displayTimeSlots(cachedFlights, true, cachedFlights.length);
+                        apiStatus.textContent = '📦 Mostrando caché';
+                    }
+                }
+            }
+            
+            // Limpiar caché
+            function clearCache() {
+                localStorage.removeItem(CACHE_KEY);
+                cacheBadge.style.display = 'none';
+                dedupBadge.style.display = 'none';
+                cacheInfo.textContent = '';
+                apiStatus.textContent = '🗑️ Caché limpiado';
+                flightsContainer.innerHTML = emptyState.outerHTML;
+                statsBar.style.display = 'none';
+                debugPanel.style.display = 'none';
+            }
+            
+            // Event listeners
+            loadBtn.addEventListener('click', loadFlights);
+            testBtn.addEventListener('click', testApiKey);
+            clearCacheBtn.addEventListener('click', clearCache);
+            debugBtn.addEventListener('click', showDebugInfo);
+            
+            // Cargar key guardada
+            const savedKey = localStorage.getItem('aerodatabox_key');
+            if (savedKey) {
+                apiKeyInput.value = savedKey;
+                
+                const cachedFlights = getFromCache();
+                if (cachedFlights) {
+                    apiStatus.textContent = '📦 Hay datos en caché';
+                } else {
+                    apiStatus.textContent = 'API Key cargada';
+                }
+            }
+            
+            setInterval(updateCacheInfo, 60000);
+            updateCacheInfo();
+        })();
+    </script>
+</body>
+</html>
