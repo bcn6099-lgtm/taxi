@@ -3,1448 +3,1146 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Anàlisi Financera del Negoci 2018–2026</title>
+<title>Anàlisi Financera · Taxi Barcelona · Jordi Cabrejas</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,300&display=swap" rel="stylesheet">
 <style>
-  :root {
-    --navy: #0f1e38;
-    --navy-mid: #1a3058;
-    --blue: #2d5fa0;
-    --blue-light: #4a83cc;
-    --gold: #e8a020;
-    --gold-light: #f5c660;
-    --green: #1e8c5a;
-    --red: #d63031;
-    --orange: #e07020;
-    --bg: #f0f3f8;
-    --card: #ffffff;
-    --text: #0f1e38;
-    --muted: #6b7a9a;
-    --border: #dde3ef;
-  }
+:root {
+  --navy:    #0d1c35;
+  --navy2:   #162944;
+  --blue:    #2a5a9f;
+  --bluelt:  #4a83cc;
+  --gold:    #e8a020;
+  --goldlt:  #f5c660;
+  --green:   #1b8a52;
+  --greenlt: #27ae70;
+  --red:     #cc2e2e;
+  --orange:  #d96520;
+  --bg:      #eef1f7;
+  --white:   #ffffff;
+  --text:    #0d1c35;
+  --muted:   #637090;
+  --border:  #dde3ef;
+  --card:    #ffffff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text)}
 
-  * { box-sizing: border-box; margin: 0; padding: 0; }
+/* ─── NAV ─── */
+#nav{
+  position:fixed;top:0;left:0;right:0;z-index:200;
+  background:var(--navy);height:54px;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.5rem;
+  box-shadow:0 2px 24px rgba(0,0,0,.35);
+}
+.brand{font-family:'Playfair Display',serif;font-size:.95rem;font-weight:700;color:#fff}
+.brand span{color:var(--gold)}
+#nav-pills{display:flex;gap:.2rem;flex-wrap:nowrap}
+.np{
+  background:none;border:none;
+  color:rgba(255,255,255,.45);
+  font-family:'DM Sans',sans-serif;font-size:.72rem;font-weight:500;
+  padding:.32rem .65rem;border-radius:20px;cursor:pointer;
+  transition:all .18s;white-space:nowrap;
+}
+.np:hover{color:#fff;background:rgba(255,255,255,.1)}
+.np.active{background:var(--gold);color:var(--navy);font-weight:600}
+#pgcnt{font-size:.72rem;color:rgba(255,255,255,.35);min-width:50px;text-align:right}
 
-  body {
-    font-family: 'DM Sans', sans-serif;
-    background: var(--bg);
-    color: var(--text);
-    min-height: 100vh;
-  }
+/* ─── PAGES ─── */
+.page{display:none;min-height:100vh;padding-top:54px;animation:fadeUp .35s ease}
+.page.active{display:block}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 
-  /* ──────────────────────────────────────
-     NAVIGATION
-  ────────────────────────────────────── */
-  #nav {
-    position: fixed;
-    top: 0; left: 0; right: 0;
-    z-index: 100;
-    background: var(--navy);
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 2rem;
-    height: 56px;
-    box-shadow: 0 2px 20px rgba(0,0,0,.3);
-  }
+/* ─── PAGE HEADER ─── */
+.ph{background:var(--navy);padding:2.2rem 2.5rem 1.8rem;position:relative;overflow:hidden}
+.ph::after{content:'';position:absolute;right:-60px;top:-60px;width:220px;height:220px;
+  border-radius:50%;background:rgba(255,255,255,.03)}
+.ph .inner{max-width:1160px;margin:0 auto;position:relative;z-index:1}
+.ph .snum{font-size:.68rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:.4rem}
+.ph h1{font-family:'Playfair Display',serif;font-size:clamp(1.5rem,3vw,2.2rem);
+  font-weight:900;color:#fff;line-height:1.15}
+.ph .sub{margin-top:.45rem;font-size:.88rem;color:rgba(255,255,255,.5);font-weight:300}
+.goldbar{height:3px;background:var(--gold)}
 
-  #nav .brand {
-    font-family: 'Playfair Display', serif;
-    font-size: 1rem;
-    font-weight: 700;
-    color: #fff;
-    letter-spacing: .02em;
-  }
-  #nav .brand span { color: var(--gold); }
+/* ─── CONTENT ─── */
+.content{max-width:1160px;margin:0 auto;padding:1.8rem 2.5rem}
 
-  #nav-pills {
-    display: flex;
-    gap: .25rem;
-  }
+/* ─── STAT CARDS ─── */
+.sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.9rem;margin-bottom:1.4rem}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:10px;
+  padding:1.1rem 1.3rem;border-left:4px solid var(--blue);
+  box-shadow:0 2px 8px rgba(0,0,0,.04)}
+.sc.gold{border-left-color:var(--gold)}
+.sc.green{border-left-color:var(--green)}
+.sc.red{border-left-color:var(--red)}
+.sc.orange{border-left-color:var(--orange)}
+.sc.purple{border-left-color:#7c5cbf}
+.sc .sv{font-family:'Playfair Display',serif;font-size:1.8rem;font-weight:700;color:var(--navy);line-height:1}
+.sc .sl{font-size:.73rem;font-weight:600;color:var(--muted);margin-top:.32rem;text-transform:uppercase;letter-spacing:.05em}
+.sc .sd{font-size:.79rem;color:var(--muted);margin-top:.18rem}
 
-  .nav-pill {
-    background: none;
-    border: none;
-    color: rgba(255,255,255,.5);
-    font-family: 'DM Sans', sans-serif;
-    font-size: .75rem;
-    font-weight: 500;
-    padding: .35rem .75rem;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all .2s;
-    white-space: nowrap;
-  }
-  .nav-pill:hover { color: #fff; background: rgba(255,255,255,.1); }
-  .nav-pill.active { background: var(--gold); color: var(--navy); font-weight: 600; }
+/* ─── SECTION CARD ─── */
+section.card{background:var(--card);border:1px solid var(--border);border-radius:12px;
+  box-shadow:0 2px 12px rgba(0,0,0,.04);padding:1.4rem;margin-bottom:1.4rem}
+.st{font-family:'Playfair Display',serif;font-size:1rem;font-weight:700;color:var(--navy);
+  margin-bottom:.9rem;padding-bottom:.5rem;border-bottom:2px solid var(--border)}
 
-  #page-counter {
-    font-size: .75rem;
-    color: rgba(255,255,255,.4);
-    min-width: 60px;
-    text-align: right;
-  }
+/* ─── CHART WRAP ─── */
+.cw{position:relative;width:100%}
 
-  /* ──────────────────────────────────────
-     PAGES
-  ────────────────────────────────────── */
-  .page {
-    display: none;
-    min-height: 100vh;
-    padding-top: 56px;
-    animation: fadeIn .4s ease;
-  }
-  .page.active { display: block; }
+/* ─── GRID ─── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:1.3rem}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+@media(max-width:780px){.g2,.g3{grid-template-columns:1fr}#nav-pills{display:none}}
 
-  @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(12px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
+/* ─── TABLE ─── */
+.dt{width:100%;border-collapse:collapse;font-size:.85rem}
+.dt th{background:var(--navy);color:#fff;font-weight:600;font-size:.72rem;
+  text-transform:uppercase;letter-spacing:.06em;padding:.65rem .9rem;text-align:left}
+.dt td{padding:.62rem .9rem;border-bottom:1px solid var(--border)}
+.dt tr:last-child td{border-bottom:none}
+.dt tr:nth-child(even) td{background:#f7f9fc}
+.dt .hl td{background:#eaf4ef!important;font-weight:600}
+.pos{color:var(--green);font-weight:600}
+.neg{color:var(--red);font-weight:600}
+.neu{color:var(--muted)}
 
-  /* ──────────────────────────────────────
-     PAGE NAVIGATION ARROWS
-  ────────────────────────────────────── */
-  .page-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1.5rem 2.5rem 2rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+/* ─── INSIGHTS ─── */
+.ilist{display:flex;flex-direction:column;gap:.7rem}
+.ins{display:flex;gap:.85rem;align-items:flex-start;
+  background:var(--card);border:1px solid var(--border);
+  border-radius:8px;padding:.85rem .95rem}
+.ins .ico{width:30px;height:30px;border-radius:50%;display:flex;align-items:center;
+  justify-content:center;font-size:.9rem;flex-shrink:0}
+.ico.blue{background:#dae8f8}.ico.green{background:#d3f0e2}
+.ico.red{background:#fde6e6}.ico.gold{background:#fef2d4}
+.ico.orange{background:#fde5ce}.ico.purple{background:#ede5f7}
+.ins .it{font-size:.86rem;font-weight:600;color:var(--navy);margin-bottom:.18rem}
+.ins .ib{font-size:.8rem;color:var(--muted);line-height:1.45}
 
-  .page-btn {
-    display: flex;
-    align-items: center;
-    gap: .5rem;
-    background: var(--card);
-    border: 1px solid var(--border);
-    color: var(--navy);
-    font-family: 'DM Sans', sans-serif;
-    font-size: .85rem;
-    font-weight: 500;
-    padding: .6rem 1.2rem;
-    border-radius: 8px;
-    cursor: pointer;
-    transition: all .2s;
-    box-shadow: 0 1px 4px rgba(0,0,0,.06);
-  }
-  .page-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
-  .page-btn:disabled { opacity: .3; cursor: not-allowed; }
-  .page-btn:disabled:hover { background: var(--card); color: var(--navy); border-color: var(--border); }
+/* ─── LEGEND ─── */
+.leg{display:flex;flex-wrap:wrap;gap:.5rem 1.1rem;margin-top:.9rem}
+.leg .li{display:flex;align-items:center;gap:.38rem;font-size:.78rem;color:var(--muted)}
+.ld{width:12px;height:12px;border-radius:3px;flex-shrink:0}
 
-  .page-dots {
-    display: flex;
-    gap: .4rem;
-  }
-  .dot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--border);
-    transition: all .2s;
-    cursor: pointer;
-  }
-  .dot.active { background: var(--gold); transform: scale(1.3); }
+/* ─── PAGE NAV ─── */
+.pnav{display:flex;justify-content:space-between;align-items:center;
+  padding:1.3rem 2.5rem 2rem;max-width:1160px;margin:0 auto}
+.pbtn{display:flex;align-items:center;gap:.4rem;
+  background:var(--card);border:1px solid var(--border);
+  color:var(--navy);font-family:'DM Sans',sans-serif;
+  font-size:.82rem;font-weight:500;padding:.55rem 1.1rem;
+  border-radius:8px;cursor:pointer;transition:all .18s;
+  box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.pbtn:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.pbtn:disabled{opacity:.3;cursor:default}
+.pbtn:disabled:hover{background:var(--card);color:var(--navy);border-color:var(--border)}
+.pdots{display:flex;gap:.38rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--border);
+  cursor:pointer;transition:all .18s}
+.dot.active{background:var(--gold);transform:scale(1.3)}
 
-  /* ──────────────────────────────────────
-     SHARED LAYOUT HELPERS
-  ────────────────────────────────────── */
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 0 2.5rem;
-  }
+/* ─── PHOTO BAND ─── */
+.photo-band{display:grid;gap:0;overflow:hidden;border-radius:12px;margin-bottom:1.4rem}
+.photo-band.p2{grid-template-columns:1fr 1fr}
+.photo-band.p3{grid-template-columns:1fr 1fr 1fr}
+.photo-band img{width:100%;height:220px;object-fit:cover;display:block;transition:transform .4s}
+.photo-band img:hover{transform:scale(1.04);z-index:1}
 
-  .page-header {
-    background: var(--navy);
-    padding: 2.5rem 2.5rem 2rem;
-  }
-  .page-header .inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  .page-header .section-num {
-    font-size: .7rem;
-    font-weight: 600;
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: .5rem;
-  }
-  .page-header h1 {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(1.6rem, 3vw, 2.4rem);
-    font-weight: 900;
-    color: #fff;
-    line-height: 1.15;
-  }
-  .page-header .subtitle {
-    margin-top: .5rem;
-    font-size: .9rem;
-    color: rgba(255,255,255,.55);
-    font-weight: 300;
-  }
-  .gold-bar {
-    height: 3px;
-    background: var(--gold);
-    margin-top: 1.5rem;
-  }
+/* ─── COVER ─── */
+#p1{background:var(--navy);display:flex;flex-direction:column}
+#p1.active{display:flex}
+.cover-wrap{flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+  padding:2.5rem;max-width:1160px;margin:0 auto;width:100%;position:relative}
+.cover-hero{
+  position:absolute;inset:0;
+  background:linear-gradient(to bottom, rgba(13,28,53,.2) 0%, rgba(13,28,53,.85) 60%, var(--navy) 100%);
+  z-index:1
+}
+.cover-img{position:absolute;inset:0;overflow:hidden}
+.cover-img img{width:100%;height:100%;object-fit:cover;opacity:.55}
+.cover-content{position:relative;z-index:2;padding-bottom:1rem}
+.cover-eye{font-size:.68rem;font-weight:600;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:1rem}
+.cover-title{font-family:'Playfair Display',serif;font-size:clamp(2.6rem,6vw,5rem);
+  font-weight:900;color:#fff;line-height:1.05}
+.cover-title .acc{color:var(--gold);display:block}
+.cover-div{width:70px;height:3px;background:var(--gold);margin:1.6rem 0}
+.cover-date{font-size:.95rem;color:rgba(255,255,255,.5);margin-bottom:2.5rem}
+.cover-stats{display:flex;gap:2.5rem;flex-wrap:wrap}
+.cs .val{font-family:'Playfair Display',serif;font-size:2rem;font-weight:700;color:#fff;line-height:1}
+.cs .lbl{font-size:.7rem;color:rgba(255,255,255,.38);margin-top:.28rem;text-transform:uppercase;letter-spacing:.08em}
 
-  .content-area {
-    padding: 2rem 2.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
+/* ─── AIRPORT COMPARISON ─── */
+.airport-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.2rem;margin-bottom:1.4rem}
+.airport-card{border-radius:12px;padding:1.4rem;color:#fff;position:relative;overflow:hidden}
+.airport-card.odd{background:linear-gradient(135deg,#1a4a8a,#2d5fa0)}
+.airport-card.even{background:linear-gradient(135deg,#1b6040,#1e8a52)}
+.airport-card .atitle{font-family:'Playfair Display',serif;font-size:1.05rem;font-weight:700;margin-bottom:.3rem}
+.airport-card .asub{font-size:.78rem;color:rgba(255,255,255,.65);margin-bottom:1rem}
+.airport-card .anum{font-family:'Playfair Display',serif;font-size:2rem;font-weight:900}
+.airport-card .albl{font-size:.72rem;color:rgba(255,255,255,.55);margin-top:.15rem}
+.airport-card .aside{margin-top:.9rem;font-size:.82rem;color:rgba(255,255,255,.7);line-height:1.5}
 
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: 0 2px 12px rgba(0,0,0,.05);
-  }
+/* ─── CONCLUSION GRID ─── */
+.cgrid{display:grid;grid-template-columns:1fr 1fr;gap:1.1rem}
+@media(max-width:680px){.cgrid{grid-template-columns:1fr}}
+.cc{background:var(--navy2);border-radius:12px;padding:1.4rem;
+  border:1px solid rgba(255,255,255,.06);position:relative;overflow:hidden}
+.cc::before{content:'';position:absolute;top:0;left:0;width:4px;height:100%}
+.cc.c1::before{background:var(--green)}.cc.c2::before{background:var(--gold)}
+.cc.c3::before{background:var(--bluelt)}.cc.c4::before{background:var(--orange)}
+.cc.c5::before{background:#a855f7}.cc.c6::before{background:var(--red)}
+.cc .cnum{font-family:'Playfair Display',serif;font-size:2.2rem;font-weight:900;
+  opacity:.1;position:absolute;top:.4rem;right:.9rem;color:#fff;line-height:1}
+.cc .ctitle{font-family:'Playfair Display',serif;font-size:.98rem;font-weight:700;
+  margin-bottom:.6rem}
+.cc.c1 .ctitle{color:#7ee8a2}.cc.c2 .ctitle{color:var(--goldlt)}
+.cc.c3 .ctitle{color:#90c0ee}.cc.c4 .ctitle{color:#f5a870}
+.cc.c5 .ctitle{color:#c4a8f5}.cc.c6 .ctitle{color:#f59090}
+.cc .cbody{font-size:.82rem;color:rgba(255,255,255,.58);line-height:1.6}
 
-  /* ──────────────────────────────────────
-     PAGE 1 – PORTADA
-  ────────────────────────────────────── */
-  #p1 {
-    background: var(--navy);
-    display: flex;
-    flex-direction: column;
-  }
-  #p1.active { display: flex; }
+/* ─── DAY CARDS ─── */
+.daygrid{display:grid;grid-template-columns:repeat(7,1fr);gap:.55rem;margin-bottom:1.3rem}
+@media(max-width:860px){.daygrid{grid-template-columns:repeat(4,1fr)}}
+.dc{background:var(--card);border:1px solid var(--border);border-radius:8px;
+  padding:.75rem .5rem;text-align:center}
+.dc.wk{background:#fffbef;border-color:#f0d890}
+.dc.rest{background:#f5f5f5;border-color:#ddd;opacity:.6}
+.dc .dn{font-size:.68rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.05em}
+.dc .dv{font-family:'Playfair Display',serif;font-size:1.35rem;font-weight:700;color:var(--navy);margin:.28rem 0 .1rem}
+.dc.wk .dv{color:var(--orange)}
+.dc.rest .dv{color:var(--muted)}
+.dc .ds{font-size:.7rem;color:var(--muted)}
 
-  .cover-body {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    padding: 3rem 2.5rem;
-    max-width: 1200px;
-    margin: 0 auto;
-    width: 100%;
-  }
-
-  .cover-eyebrow {
-    font-size: .72rem;
-    font-weight: 600;
-    letter-spacing: .18em;
-    text-transform: uppercase;
-    color: var(--gold);
-    margin-bottom: 1.2rem;
-  }
-
-  .cover-title {
-    font-family: 'Playfair Display', serif;
-    font-size: clamp(2.8rem, 7vw, 5.5rem);
-    font-weight: 900;
-    color: #fff;
-    line-height: 1.05;
-  }
-  .cover-title .accent { color: var(--gold); display: block; }
-
-  .cover-divider {
-    width: 80px;
-    height: 3px;
-    background: var(--gold);
-    margin: 2rem 0;
-  }
-
-  .cover-date {
-    font-size: 1.05rem;
-    color: rgba(255,255,255,.5);
-    margin-bottom: 3rem;
-  }
-
-  .cover-stats {
-    display: flex;
-    gap: 3rem;
-    flex-wrap: wrap;
-  }
-
-  .cover-stat .val {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.2rem;
-    font-weight: 700;
-    color: #fff;
-    line-height: 1;
-  }
-  .cover-stat .lbl {
-    font-size: .78rem;
-    color: rgba(255,255,255,.4);
-    margin-top: .3rem;
-    text-transform: uppercase;
-    letter-spacing: .08em;
-  }
-
-  /* ──────────────────────────────────────
-     STAT CARDS
-  ────────────────────────────────────── */
-  .stat-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .stat-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 1.2rem 1.4rem;
-    border-left: 4px solid var(--blue);
-    box-shadow: 0 2px 8px rgba(0,0,0,.04);
-  }
-  .stat-card.gold  { border-left-color: var(--gold); }
-  .stat-card.green { border-left-color: var(--green); }
-  .stat-card.red   { border-left-color: var(--red); }
-  .stat-card.orange { border-left-color: var(--orange); }
-
-  .stat-card .sv {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.9rem;
-    font-weight: 700;
-    color: var(--navy);
-    line-height: 1;
-  }
-  .stat-card .sl {
-    font-size: .78rem;
-    font-weight: 600;
-    color: var(--muted);
-    margin-top: .35rem;
-    text-transform: uppercase;
-    letter-spacing: .05em;
-  }
-  .stat-card .sd {
-    font-size: .8rem;
-    color: var(--muted);
-    margin-top: .2rem;
-  }
-
-  /* ──────────────────────────────────────
-     CHART WRAPPER
-  ────────────────────────────────────── */
-  .chart-wrap {
-    position: relative;
-    width: 100%;
-  }
-
-  /* ──────────────────────────────────────
-     GRID LAYOUTS
-  ────────────────────────────────────── */
-  .two-col {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.5rem;
-  }
-  .three-col {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1rem;
-  }
-
-  @media (max-width: 768px) {
-    .two-col, .three-col { grid-template-columns: 1fr; }
-    .cover-stats { gap: 1.5rem; }
-    #nav-pills { display: none; }
-  }
-
-  /* ──────────────────────────────────────
-     TABLE
-  ────────────────────────────────────── */
-  .data-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: .88rem;
-  }
-  .data-table th {
-    background: var(--navy);
-    color: #fff;
-    font-weight: 600;
-    font-size: .75rem;
-    text-transform: uppercase;
-    letter-spacing: .06em;
-    padding: .75rem 1rem;
-    text-align: left;
-  }
-  .data-table td {
-    padding: .7rem 1rem;
-    border-bottom: 1px solid var(--border);
-  }
-  .data-table tr:last-child td { border-bottom: none; }
-  .data-table tr:nth-child(even) td { background: #f8fafc; }
-  .data-table .highlight td { background: #eef7f1 !important; font-weight: 600; }
-  .pos { color: var(--green); font-weight: 600; }
-  .neg { color: var(--red); font-weight: 600; }
-  .neu { color: var(--muted); }
-
-  /* ──────────────────────────────────────
-     INSIGHT BOXES
-  ────────────────────────────────────── */
-  .insight-list {
-    display: flex;
-    flex-direction: column;
-    gap: .75rem;
-  }
-  .insight {
-    display: flex;
-    gap: .9rem;
-    align-items: flex-start;
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: .9rem 1rem;
-  }
-  .insight .icon {
-    width: 32px; height: 32px;
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1rem;
-    flex-shrink: 0;
-  }
-  .insight .icon.blue   { background: #dbe8f8; }
-  .insight .icon.green  { background: #d4f0e3; }
-  .insight .icon.red    { background: #fde8e8; }
-  .insight .icon.gold   { background: #fef3d6; }
-  .insight .icon.orange { background: #fde8d0; }
-  .insight .it { font-size: .87rem; font-weight: 600; color: var(--navy); margin-bottom: .2rem; }
-  .insight .ib { font-size: .82rem; color: var(--muted); line-height: 1.45; }
-
-  /* ──────────────────────────────────────
-     SEASON LEGEND
-  ────────────────────────────────────── */
-  .season-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: .6rem 1.2rem;
-    margin-top: 1rem;
-  }
-  .season-legend .item {
-    display: flex;
-    align-items: center;
-    gap: .4rem;
-    font-size: .8rem;
-    color: var(--muted);
-  }
-  .legend-dot {
-    width: 12px; height: 12px;
-    border-radius: 3px;
-    flex-shrink: 0;
-  }
-
-  /* ──────────────────────────────────────
-     CONCLUSION CARDS
-  ────────────────────────────────────── */
-  .conclusion-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 1.2rem;
-  }
-  @media (max-width: 768px) { .conclusion-grid { grid-template-columns: 1fr; } }
-
-  .conclusion-card {
-    background: var(--navy);
-    border-radius: 12px;
-    padding: 1.5rem;
-    border: 1px solid rgba(255,255,255,.08);
-    position: relative;
-    overflow: hidden;
-  }
-  .conclusion-card::before {
-    content: '';
-    position: absolute;
-    top: 0; left: 0;
-    width: 4px; height: 100%;
-  }
-  .conclusion-card.c1::before { background: var(--green); }
-  .conclusion-card.c2::before { background: var(--gold); }
-  .conclusion-card.c3::before { background: var(--blue-light); }
-  .conclusion-card.c4::before { background: var(--orange); }
-
-  .conclusion-card .num {
-    font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    font-weight: 900;
-    opacity: .12;
-    position: absolute;
-    top: .5rem; right: 1rem;
-    color: #fff;
-    line-height: 1;
-  }
-  .conclusion-card .ctitle {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.05rem;
-    font-weight: 700;
-    color: #fff;
-    margin-bottom: .7rem;
-  }
-  .conclusion-card.c1 .ctitle { color: #7ee8a2; }
-  .conclusion-card.c2 .ctitle { color: var(--gold-light); }
-  .conclusion-card.c3 .ctitle { color: #8ab8ee; }
-  .conclusion-card.c4 .ctitle { color: #f5a870; }
-  .conclusion-card .cbody {
-    font-size: .85rem;
-    color: rgba(255,255,255,.6);
-    line-height: 1.6;
-  }
-
-  /* ──────────────────────────────────────
-     DAY CARDS
-  ────────────────────────────────────── */
-  .day-grid {
-    display: grid;
-    grid-template-columns: repeat(7, 1fr);
-    gap: .6rem;
-  }
-  @media (max-width: 900px) { .day-grid { grid-template-columns: repeat(4, 1fr); } }
-
-  .day-card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: .8rem .6rem;
-    text-align: center;
-  }
-  .day-card.weekend { background: #fffbf0; border-color: #f5d8a0; }
-  .day-card .dname { font-size: .72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
-  .day-card .dval  { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--navy); margin: .3rem 0 .1rem; }
-  .day-card.weekend .dval { color: var(--orange); }
-  .day-card .dsub  { font-size: .72rem; color: var(--muted); }
-
-  /* scrollbar */
-  ::-webkit-scrollbar { width: 6px; }
-  ::-webkit-scrollbar-track { background: var(--bg); }
-  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-
-  section.card { padding: 1.5rem; margin-bottom: 1.5rem; }
-  .section-title {
-    font-family: 'Playfair Display', serif;
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--navy);
-    margin-bottom: 1rem;
-    padding-bottom: .5rem;
-    border-bottom: 2px solid var(--border);
-  }
+/* ─── MISC ─── */
+.tag{display:inline-block;font-size:.7rem;font-weight:600;padding:.18rem .5rem;
+  border-radius:4px;text-transform:uppercase;letter-spacing:.05em}
+.tag.green{background:#d3f0e2;color:#0d6e3a}
+.tag.red{background:#fde6e6;color:#a01a1a}
+.tag.blue{background:#dae8f8;color:#1a4a8a}
+.tag.gold{background:#fef2d4;color:#8a5a0a}
+.note{font-size:.73rem;color:var(--muted);font-style:italic;padding:.5rem .2rem}
 </style>
 </head>
 <body>
 
 <!-- NAV -->
 <nav id="nav">
-  <div class="brand">Anàlisi <span>Financera</span></div>
+  <div class="brand">Taxi <span>Barcelona</span> · Jordi Cabrejas</div>
   <div id="nav-pills">
-    <button class="nav-pill active" onclick="goTo(0)">Portada</button>
-    <button class="nav-pill" onclick="goTo(1)">Evolució Anual</button>
-    <button class="nav-pill" onclick="goTo(2)">COVID & Recuperació</button>
-    <button class="nav-pill" onclick="goTo(3)">Estacionalitat</button>
-    <button class="nav-pill" onclick="goTo(4)">Dies Setmana</button>
-    <button class="nav-pill" onclick="goTo(5)">Preus & Productivitat</button>
-    <button class="nav-pill" onclick="goTo(6)">KPIs & Taula</button>
-    <button class="nav-pill" onclick="goTo(7)">Conclusions</button>
+    <button class="np active" onclick="goTo(0)">Portada</button>
+    <button class="np" onclick="goTo(1)">Ingressos Anuals</button>
+    <button class="np" onclick="goTo(2)">COVID &amp; Recuperació</button>
+    <button class="np" onclick="goTo(3)">Estacionalitat</button>
+    <button class="np" onclick="goTo(4)">Aeroport vs Pista</button>
+    <button class="np" onclick="goTo(5)">Dies Setmana</button>
+    <button class="np" onclick="goTo(6)">Ingressos &amp; Despeses</button>
+    <button class="np" onclick="goTo(7)">Factures 24-25</button>
+    <button class="np" onclick="goTo(8)">KPIs &amp; Taula</button>
+    <button class="np" onclick="goTo(9)">Conclusions</button>
   </div>
-  <div id="page-counter">1 / 8</div>
+  <div id="pgcnt">1 / 10</div>
 </nav>
 
-<!-- ═══════════════════════════════════════
-     PAGE 1 — PORTADA
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     P1 · PORTADA
+════════════════════════════════════════════════════════ -->
 <div class="page active" id="p1">
-  <div class="cover-body">
-    <div class="cover-eyebrow">Anàlisi Financera · Dades reals de facturació diària</div>
-    <h1 class="cover-title">
-      Informe del
-      <span class="accent">Negoci</span>
-    </h1>
-    <div class="cover-divider"></div>
-    <p class="cover-date">Agost 2018 – Febrer 2026 · 7,5 anys de dades</p>
-    <div class="cover-stats">
-      <div class="cover-stat"><div class="val">~398.000€</div><div class="lbl">Total facturado</div></div>
-      <div class="cover-stat"><div class="val">1.702</div><div class="lbl">Dies analitzats</div></div>
-      <div class="cover-stat"><div class="val">65.362€</div><div class="lbl">Millor any (2024)</div></div>
-      <div class="cover-stat"><div class="val">22,33€/h</div><div class="lbl">Màx. productivitat</div></div>
+  <div style="position:relative;flex:1;min-height:calc(100vh - 54px - 80px)">
+    <div class="cover-img">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Barcelona_-_Sagrada_Fam%C3%ADlia_-_180807134831.jpg/1280px-Barcelona_-_Sagrada_Fam%C3%ADlia_-_180807134831.jpg"
+           alt="Barcelona" onerror="this.style.display='none'">
+    </div>
+    <div class="cover-hero"></div>
+    <div style="position:relative;z-index:2;max-width:1160px;margin:0 auto;padding:2.5rem;
+                display:flex;flex-direction:column;justify-content:flex-end;
+                min-height:calc(100vh - 54px - 80px)">
+      <div style="padding-bottom:1rem">
+        <div class="cover-eye">Informe Financer · Llicència de Taxi · Client 764</div>
+        <h1 class="cover-title">
+          Taxi
+          <span class="acc">Barcelona</span>
+        </h1>
+        <div class="cover-div"></div>
+        <p class="cover-date">Agost 2018 – Febrer 2026 · 7,5 anys de dades reals</p>
+        <div class="cover-stats">
+          <div class="cs"><div class="val">~398.000€</div><div class="lbl">Total facturado</div></div>
+          <div class="cs"><div class="val">65.362€</div><div class="lbl">Millor any (2024)</div></div>
+          <div class="cs"><div class="val">~29.900€</div><div class="lbl">Benefici net 2024</div></div>
+          <div class="cs"><div class="val">45,7%</div><div class="lbl">Marge net 2024</div></div>
+        </div>
+      </div>
     </div>
   </div>
-  <div class="page-nav">
-    <button class="page-btn" disabled>← Anterior</button>
-    <div class="page-dots" id="dots-1"></div>
-    <button class="page-btn" onclick="goTo(1)">Evolució Anual →</button>
+  <div class="pnav">
+    <button class="pbtn" disabled>← Anterior</button>
+    <div class="pdots" id="d0"></div>
+    <button class="pbtn" onclick="goTo(1)">Ingressos Anuals →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE 2 — EVOLUCIÓ ANUAL
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     P2 · INGRESSOS ANUALS
+════════════════════════════════════════════════════════ -->
 <div class="page" id="p2">
-  <div class="page-header">
+  <div class="ph">
     <div class="inner">
-      <div class="section-num">01 · Evolució Anual</div>
-      <h1>Facturació Total per Any</h1>
-      <p class="subtitle">Ingressos anuals 2018–2025 i taxes de creixement interanual</p>
+      <div class="snum">01 · Ingressos Anuals</div>
+      <h1>Evolució de la Facturació 2018–2025</h1>
+      <p class="sub">Ingressos totals per any · variacions per dies treballats i tarifa oficial</p>
     </div>
-    <div class="gold-bar"></div>
+  </div><div class="goldbar"></div>
+
+  <!-- Photo band -->
+  <div style="max-width:1160px;margin:1.5rem auto 0;padding:0 2.5rem">
+    <div class="photo-band p3" style="border-radius:12px;overflow:hidden;height:160px">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Taxis_Barcelona.jpg/800px-Taxis_Barcelona.jpg"
+           alt="Taxis Barcelona" style="height:160px"
+           onerror="this.parentElement.style.display='none'">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a1/Taxi_cab_in_Barcelona.jpg/800px-Taxi_cab_in_Barcelona.jpg"
+           alt="Taxi Barcelona" style="height:160px"
+           onerror="this.style.display='none'">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5d/BCN_Taxi_2012.jpg/800px-BCN_Taxi_2012.jpg"
+           alt="Taxi BCN" style="height:160px"
+           onerror="this.style.display='none'">
+    </div>
   </div>
 
-  <div class="content-area">
-    <div class="stat-grid">
-      <div class="stat-card green"><div class="sv">65.362€</div><div class="sl">Rècord 2024</div><div class="sd">Millor any de la història</div></div>
-      <div class="stat-card gold"><div class="sv">+7%</div><div class="sl">Creixement 23→24</div><div class="sd">Cinquè any positiu consecutiu</div></div>
-      <div class="stat-card red"><div class="sv">-67%</div><div class="sl">Caiguda 2020</div><div class="sd">Impacte màxim del COVID-19</div></div>
-      <div class="stat-card"><div class="sv">+0,4%</div><div class="sl">CAGR 2019–2024</div><div class="sd">Creixement anual compost</div></div>
+  <div class="content">
+    <div class="sgrid">
+      <div class="sc green"><div class="sv">65.362€</div><div class="sl">Rècord 2024</div><div class="sd">Millor any de la història</div></div>
+      <div class="sc gold"><div class="sv">+7%</div><div class="sl">Creixement 23→24</div><div class="sd">5è any positiu consecutiu</div></div>
+      <div class="sc red"><div class="sv">-67%</div><div class="sl">Caiguda 2020</div><div class="sd">COVID-19 + restriccions BCN</div></div>
+      <div class="sc"><div class="sv">~250</div><div class="sl">Dies treballats 2024</div><div class="sd">Divendres = descans fix</div></div>
     </div>
 
     <section class="card">
-      <div class="section-title">Facturació Anual (€)</div>
-      <div class="chart-wrap" style="height:340px">
-        <canvas id="chartAnual"></canvas>
-      </div>
+      <div class="st">Facturació Anual Total (€)</div>
+      <div class="cw" style="height:320px"><canvas id="cAnual"></canvas></div>
+      <p class="note">ℹ️ Les variacions entre anys reflecteixen tant la demanda com els dies efectivament treballats (vacances, malaltia). La tarifa oficial no depèn del taxista.</p>
     </section>
 
     <section class="card">
-      <div class="section-title">Creixement Any a Any (%)</div>
-      <div class="chart-wrap" style="height:220px">
-        <canvas id="chartYoY"></canvas>
-      </div>
+      <div class="st">Creixement Interanual (%)</div>
+      <div class="cw" style="height:200px"><canvas id="cYoY"></canvas></div>
     </section>
   </div>
 
-  <div class="page-nav container">
-    <button class="page-btn" onclick="goTo(0)">← Portada</button>
-    <div class="page-dots" id="dots-2"></div>
-    <button class="page-btn" onclick="goTo(2)">COVID & Recuperació →</button>
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(0)">← Portada</button>
+    <div class="pdots" id="d1"></div>
+    <button class="pbtn" onclick="goTo(2)">COVID &amp; Recuperació →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE 3 — COVID & RECOVERY
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     P3 · COVID & RECOVERY
+════════════════════════════════════════════════════════ -->
 <div class="page" id="p3">
-  <div class="page-header">
+  <div class="ph">
     <div class="inner">
-      <div class="section-num">02 · COVID-19 i Recuperació</div>
+      <div class="snum">02 · COVID-19 i Recuperació</div>
       <h1>De la Crisi al Màxim Històric</h1>
-      <p class="subtitle">Evolució mensual 2019–2024 · El col·lapse i la recuperació</p>
+      <p class="sub">Evolució mensual 2019–2024 · el col·lapse i la remontada</p>
     </div>
-    <div class="gold-bar"></div>
-  </div>
+  </div><div class="goldbar"></div>
 
-  <div class="content-area">
+  <div class="content">
     <section class="card">
-      <div class="section-title">Ingressos Mensuals 2019–2024 (€)</div>
-      <div class="chart-wrap" style="height:350px">
-        <canvas id="chartMonthly"></canvas>
-      </div>
+      <div class="st">Ingressos Mensuals 2019–2024 (€)</div>
+      <div class="cw" style="height:340px"><canvas id="cMonthly"></canvas></div>
     </section>
 
-    <div class="three-col" style="margin-bottom:1.5rem">
-      <div class="stat-card red">
-        <div class="sv">470€</div>
-        <div class="sl">Mínim Absolut</div>
-        <div class="sd">Abril 2020 — confinament total</div>
-      </div>
-      <div class="stat-card gold">
-        <div class="sv">+83%</div>
-        <div class="sl">Recuperació 2021</div>
-        <div class="sd">Primer any de repunt fort</div>
-      </div>
-      <div class="stat-card green">
-        <div class="sv">6.627€</div>
-        <div class="sl">Màxim Mensual</div>
-        <div class="sd">Juny 2024 — rècord total</div>
-      </div>
+    <div class="g3" style="margin-bottom:1.4rem">
+      <div class="sc red"><div class="sv">470€</div><div class="sl">Mínim absolut</div><div class="sd">Abril 2020 – confinament total</div></div>
+      <div class="sc gold"><div class="sv">+83%</div><div class="sl">Recuperació 2021</div><div class="sd">Primer any de repunt fort</div></div>
+      <div class="sc green"><div class="sv">6.627€</div><div class="sl">Màxim mensual</div><div class="sd">Juny 2024 – rècord absolut</div></div>
     </div>
 
     <section class="card">
-      <div class="section-title">Anàlisi de Fases</div>
-      <div class="insight-list">
-        <div class="insight">
-          <div class="icon red">⚠️</div>
-          <div>
-            <div class="it">Fase 1 · Col·lapse COVID (Mar–Abr 2020)</div>
-            <div class="ib">Caiguda del 67% anual. El mínim mensual de 470€ (Abril) representa només el 7% d'un bon mes de 2019. El negoci sobreviu però amb una facturació mínima de subsistència.</div>
-          </div>
+      <div class="st">Les Tres Fases del Negoci</div>
+      <div class="ilist">
+        <div class="ins">
+          <div class="ico red">⚠️</div>
+          <div><div class="it">Fase 1 · Col·lapse COVID (Març–Desembre 2020)</div>
+          <div class="ib">Reducció del 67% anual. Les restriccions de mobilitat a Barcelona van buidar els carrers. Abril va ser el mes crític amb només 470€. El negoci subsistia però amb mínims de supervivència. Les hores treballades van caure dràsticament.</div></div>
         </div>
-        <div class="insight">
-          <div class="icon gold">📈</div>
-          <div>
-            <div class="it">Fase 2 · Recuperació Gradual (Jun 2020 – Des 2021)</div>
-            <div class="ib">Creixement sostingut des del mínim. L'any 2021 tanca a 39.006€ (+83% vs 2020), però encara lluny dels 63.937€ de 2019. La recuperació és sòlida però lenta.</div>
-          </div>
+        <div class="ins">
+          <div class="ico gold">📈</div>
+          <div><div class="it">Fase 2 · Recuperació Progressiva (2021–2022)</div>
+          <div class="ib">Creixement sostingut mesura que es reobria la mobilitat. El 2021 tanca a +83% però segueix molt per sota del pre-COVID. El 2022 supera per fi els 49.000€. La recuperació és real però irregular, amb alguns mesos de vacances que penalitzen el total.</div></div>
         </div>
-        <div class="insight">
-          <div class="icon green">🚀</div>
-          <div>
-            <div class="it">Fase 3 · Superació del Nivell Pre-COVID (2023–2024)</div>
-            <div class="ib">El 2023 supera finalment el 2019 amb 61.212€. El 2024 estableix el nou rècord de 65.362€, demostrant que el negoci no solament s'ha recuperat sinó que ha crescut.</div>
-          </div>
+        <div class="ins">
+          <div class="ico green">🚀</div>
+          <div><div class="it">Fase 3 · Superació Pre-COVID i Rècords (2023–2024)</div>
+          <div class="ib">El 2023 supera per primer cop el nivell de 2019 (63.937€) tancant a 61.212€. El 2024 estableix el rècord amb 65.362€. La demanda de taxi a Barcelona s'ha consolidat i fins i tot supera els nivells pre-pandèmia gràcies al turisme i la mobilitat urbana.</div></div>
         </div>
       </div>
     </section>
   </div>
 
-  <div class="page-nav container">
-    <button class="page-btn" onclick="goTo(1)">← Evolució Anual</button>
-    <div class="page-dots" id="dots-3"></div>
-    <button class="page-btn" onclick="goTo(3)">Estacionalitat →</button>
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(1)">← Ingressos Anuals</button>
+    <div class="pdots" id="d2"></div>
+    <button class="pbtn" onclick="goTo(3)">Estacionalitat →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE 4 — ESTACIONALITAT
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     P4 · ESTACIONALITAT
+════════════════════════════════════════════════════════ -->
 <div class="page" id="p4">
-  <div class="page-header">
+  <div class="ph">
     <div class="inner">
-      <div class="section-num">03 · Estacionalitat Mensual</div>
+      <div class="snum">03 · Estacionalitat Mensual</div>
       <h1>Patrons per Mes de l'Any</h1>
-      <p class="subtitle">Ingressos mitjans per mes (anys complets 2019–2024) i distribució estacional</p>
+      <p class="sub">Ingressos mitjans per mes (2021–2024) · Temporades i dies treballats</p>
     </div>
-    <div class="gold-bar"></div>
-  </div>
+  </div><div class="goldbar"></div>
 
-  <div class="content-area">
+  <div class="content">
     <section class="card">
-      <div class="section-title">Ingressos Mitjans per Mes (€)</div>
-      <div class="chart-wrap" style="height:320px">
-        <canvas id="chartSeasonal"></canvas>
-      </div>
-      <div class="season-legend">
-        <div class="item"><div class="legend-dot" style="background:#607080"></div>Temporada baixa (Gen, Feb, Nov, Des)</div>
-        <div class="item"><div class="legend-dot" style="background:#4a83cc"></div>Temporada mitja (Mar, Abr, Set)</div>
-        <div class="item"><div class="legend-dot" style="background:#1e8c5a"></div>Temporada alta (Mai, Jun)</div>
-        <div class="item"><div class="legend-dot" style="background:#e8a020"></div>Juliol – bon mes</div>
-        <div class="item"><div class="legend-dot" style="background:#d63031"></div>Agost – caiguda estival</div>
-        <div class="item"><div class="legend-dot" style="background:#2d5fa0"></div>Octubre – millor mes</div>
+      <div class="st">Ingressos Mitjans per Mes (€) · 2021–2024</div>
+      <div class="cw" style="height:300px"><canvas id="cSeasonal"></canvas></div>
+      <div class="leg">
+        <div class="li"><div class="ld" style="background:#607080"></div>Temporada baixa</div>
+        <div class="li"><div class="ld" style="background:#4a83cc"></div>Temporada mitja</div>
+        <div class="li"><div class="ld" style="background:#1b8a52"></div>Temporada alta</div>
+        <div class="li"><div class="ld" style="background:#e8a020"></div>Juliol – bon mes</div>
+        <div class="li"><div class="ld" style="background:#cc2e2e"></div>Agost – caiguda (vacances)</div>
+        <div class="li"><div class="ld" style="background:#2a5a9f"></div>Octubre – millor mes</div>
       </div>
     </section>
 
-    <div class="two-col">
+    <div class="g2">
       <section class="card">
-        <div class="section-title">Distribució per Temporades</div>
-        <div class="chart-wrap" style="height:260px">
-          <canvas id="chartDonut"></canvas>
-        </div>
+        <div class="st">Distribució per Temporades (% ingressos)</div>
+        <div class="cw" style="height:240px"><canvas id="cDonut"></canvas></div>
       </section>
       <section class="card">
-        <div class="section-title">Observacions Clau</div>
-        <div class="insight-list">
-          <div class="insight">
-            <div class="icon gold">⭐</div>
-            <div>
-              <div class="it">Octubre: el millor mes de l'any</div>
-              <div class="ib">5.017€ de mitjana, superant fins i tot els mesos d'estiu. Potenciar la promoció en tardor.</div>
-            </div>
+        <div class="st">Claus Estacionals</div>
+        <div class="ilist">
+          <div class="ins">
+            <div class="ico blue">⭐</div>
+            <div><div class="it">Octubre: el millor mes (5.017€ de mitjana)</div>
+            <div class="ib">Tardor barcelonina, menys calor, turisme actiu. El mes més consistent de l'any sense pics ni caigudes brusques.</div></div>
           </div>
-          <div class="insight">
-            <div class="icon red">⬇️</div>
-            <div>
-              <div class="it">Agost: la gran caiguda (-45%)</div>
-              <div class="ib">Amb 2.728€ de mitjana, Agost és el 45% inferior a la resta de mesos. Considera vacances o ofertes especials.</div>
-            </div>
+          <div class="ins">
+            <div class="ico red">🏖️</div>
+            <div><div class="it">Agost: la gran caiguda (2.728€ de mitjana)</div>
+            <div class="ib">Combinació de vacances pròpies i menor activitat urbana. Probablement el mes idoni per descansar o fer manteniment del vehicle.</div></div>
           </div>
-          <div class="insight">
-            <div class="icon green">💡</div>
-            <div>
-              <div class="it">Hivern: marge de millora</div>
-              <div class="ib">Gener-Febrer representen els mesos més dèbils (3.000-3.500€). Campanyes de fidelització podrien incrementar-los.</div>
-            </div>
+          <div class="ins">
+            <div class="ico gold">💡</div>
+            <div><div class="it">Hivern: potencial de millora</div>
+            <div class="ib">Gener i Febrer (3.000–3.500€) solen ser mesos amb menys dies treballats. Si s'eviten vacances en aquests mesos, podrien apropar-se als 4.500€.</div></div>
           </div>
         </div>
       </section>
     </div>
   </div>
 
-  <div class="page-nav container">
-    <button class="page-btn" onclick="goTo(2)">← COVID & Recuperació</button>
-    <div class="page-dots" id="dots-4"></div>
-    <button class="page-btn" onclick="goTo(4)">Dies Setmana →</button>
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(2)">← COVID &amp; Recuperació</button>
+    <div class="pdots" id="d3"></div>
+    <button class="pbtn" onclick="goTo(4)">Aeroport vs Pista →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE 5 — DIES SETMANA
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     P5 · AEROPORT VS PISTA
+════════════════════════════════════════════════════════ -->
 <div class="page" id="p5">
-  <div class="page-header">
+  <div class="ph">
     <div class="inner">
-      <div class="section-num">04 · Rendiment per Dia de la Setmana</div>
-      <h1>Ingressos Mitjans per Dia Treballat</h1>
-      <p class="subtitle">Quins dies generen més ingressos? On cal concentrar esforços?</p>
+      <div class="snum">04 · Aeroport vs Pista</div>
+      <h1>Mesos Senars (Aerop.) vs Mesos Parells (Pista)</h1>
+      <p class="sub">Normativa: mesos senars permeten esperes a l'aeroport · Mesos parells: treball en pista exclusivament</p>
     </div>
-    <div class="gold-bar"></div>
-  </div>
+  </div><div class="goldbar"></div>
 
-  <div class="content-area">
-    <div class="day-grid" style="margin-bottom:1.5rem">
-      <div class="day-card"><div class="dname">Dilluns</div><div class="dval">224€</div><div class="dsub">n=296 dies</div></div>
-      <div class="day-card"><div class="dname">Dimarts</div><div class="dval">220€</div><div class="dsub">n=344 dies</div></div>
-      <div class="day-card"><div class="dname">Dimecres</div><div class="dval">223€</div><div class="dsub">n=343 dies</div></div>
-      <div class="day-card"><div class="dname">Dijous</div><div class="dval">234€</div><div class="dsub">n=283 dies</div></div>
-      <div class="day-card"><div class="dname">Divendres</div><div class="dval">249€</div><div class="dsub">n=73 dies</div></div>
-      <div class="day-card weekend"><div class="dname">Dissabte</div><div class="dval">274€</div><div class="dsub">n=159 dies</div></div>
-      <div class="day-card weekend"><div class="dname">Diumenge</div><div class="dval">261€</div><div class="dsub">n=177 dies</div></div>
+  <div class="content">
+
+    <!-- Photo of airport -->
+    <div style="border-radius:12px;overflow:hidden;height:180px;margin-bottom:1.4rem;position:relative">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/4/4d/Barcelona_El_Prat_Airport.jpg/1280px-Barcelona_El_Prat_Airport.jpg"
+           style="width:100%;height:100%;object-fit:cover" alt="Aeroport Barcelona"
+           onerror="this.parentElement.style.background:'#1a2b4a'">
+      <div style="position:absolute;inset:0;background:linear-gradient(to right,rgba(13,28,53,.7),rgba(13,28,53,.1))"></div>
+      <div style="position:absolute;top:1.2rem;left:1.5rem;color:#fff">
+        <div style="font-size:.7rem;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--gold);margin-bottom:.3rem">Aeroport el Prat · BCN</div>
+        <div style="font-family:'Playfair Display',serif;font-size:1.4rem;font-weight:700">Carreres Llargues = Preu Major</div>
+        <div style="font-size:.83rem;color:rgba(255,255,255,.65);margin-top:.25rem">Tarifa oficial: BCN centre → Aeroport ~28–32€</div>
+      </div>
+    </div>
+
+    <div class="airport-grid">
+      <div class="airport-card odd">
+        <div class="atitle">🛫 Mesos SENARS — Aeroport Permès</div>
+        <div class="asub">Gen, Mar, Mai, Jul, Set, Nov · Esperes a El Prat autoritzades</div>
+        <div class="anum">223€/dia</div>
+        <div class="albl">Ingrés diari mig (2021–2024)</div>
+        <div class="aside">
+          <strong>11,5 serveis/dia</strong> · Preu mig <strong>21,31€/servei</strong><br>
+          Menys serveis però de major import. La tarifa aeroport és superior.<br>
+          Ingrés mensual mig: <strong>4.493€</strong>
+        </div>
+      </div>
+      <div class="airport-card even">
+        <div class="atitle">🚗 Mesos PARELLS — Pista Exclusivament</div>
+        <div class="asub">Feb, Abr, Jun, Ago, Oct, Des · Treball per la pista de BCN</div>
+        <div class="anum">241€/dia</div>
+        <div class="albl">Ingrés diari mig (2021–2024)</div>
+        <div class="aside">
+          <strong>20,6 serveis/dia</strong> · Preu mig <strong>13,01€/servei</strong><br>
+          Molts més serveis de curta distància. La rotació és molt més alta.<br>
+          Ingrés mensual mig: <strong>4.487€</strong>
+        </div>
+      </div>
     </div>
 
     <section class="card">
-      <div class="section-title">Comparativa Ingressos per Dia (€/dia)</div>
-      <div class="chart-wrap" style="height:300px">
-        <canvas id="chartDays"></canvas>
-      </div>
+      <div class="st">Comparativa Detallada: Aeroport vs Pista (2021–2024)</div>
+      <div class="cw" style="height:280px"><canvas id="cAirport"></canvas></div>
     </section>
 
-    <div class="two-col">
-      <div class="insight-list">
-        <div class="insight">
-          <div class="icon orange">📅</div>
-          <div>
-            <div class="it">Dissabte lidera: 274€/dia</div>
-            <div class="ib">El 22% més que un dilluns (224€). El cap de setmana és clarament el moment de major valoració.</div>
-          </div>
+    <section class="card" style="background:var(--navy2);border-color:rgba(255,255,255,.08)">
+      <div class="st" style="color:var(--goldlt);border-color:rgba(255,255,255,.1)">🎯 Conclusió: Aeroport vs Pista — Empat tècnic</div>
+      <div class="ilist">
+        <div class="ins" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)">
+          <div class="ico gold">⚖️</div>
+          <div><div class="it" style="color:#fff">Ingrés mensual pràcticament idèntic: 4.493€ (aerop.) vs 4.487€ (pista)</div>
+          <div class="ib" style="color:rgba(255,255,255,.55)">La diferència és de només 6€/mes! L'aeroport compensa el menor volum de carreres amb tarifes superiors. La pista compensa amb alta rotació. Ambdues estratègies arriben al mateix resultat econòmic.</div></div>
         </div>
-        <div class="insight">
-          <div class="icon blue">📊</div>
-          <div>
-            <div class="it">Dies laborables: dispersió mínima</div>
-            <div class="ib">Dilluns-Dijous varien entre 220-234€ — molt poca diferència. La setmana és consistent.</div>
-          </div>
+        <div class="ins" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)">
+          <div class="ico blue">💭</div>
+          <div><div class="it" style="color:#fff">Variables a considerar per decidir: cansament i qualitat de vida</div>
+          <div class="ib" style="color:rgba(255,255,255,.55)">La pista implica 20 carreres/dia vs 11 a l'aeroport. Menys estrès a l'aeroport però temps d'espera. En termes econòmics purs, <strong style="color:var(--goldlt)">la pista és lleugerament superior per €/dia (241€ vs 223€)</strong>, però si comptem el desgast del vehicle i el temps d'espera a l'aeroport, l'equilibri real podria ser diferent.</div></div>
         </div>
-      </div>
-      <div class="insight-list">
-        <div class="insight">
-          <div class="icon green">💡</div>
-          <div>
-            <div class="it">Divendres: molt poca mostra</div>
-            <div class="ib">Amb 73 dies, Divendres té la mostra més petita. El seu 249€ podria ser superior si es treballés regularment.</div>
-          </div>
-        </div>
-        <div class="insight">
-          <div class="icon gold">🎯</div>
-          <div>
-            <div class="it">Estratègia: maximitzar cap de setmana</div>
-            <div class="ib">Si els 159 dissabtes de dades es dupliquessin, podrien suposar +6.500€ anuals addicionals.</div>
-          </div>
+        <div class="ins" style="background:rgba(255,255,255,.05);border-color:rgba(255,255,255,.08)">
+          <div class="ico green">📊</div>
+          <div><div class="it" style="color:#fff">Factor clau: el mes de Juliol (senar) és el millor mes de pista</div>
+          <div class="ib" style="color:rgba(255,255,255,.55)">Juliol és senar (aerop. permès) però històricament és molt fort: 267–305€/dia. Suggereix que en mesos d'alta demanda, treballar en pista pot ser més rendible que esperar a l'aeroport.</div></div>
         </div>
       </div>
-    </div>
+    </section>
   </div>
 
-  <div class="page-nav container">
-    <button class="page-btn" onclick="goTo(3)">← Estacionalitat</button>
-    <div class="page-dots" id="dots-5"></div>
-    <button class="page-btn" onclick="goTo(5)">Preus & Productivitat →</button>
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(3)">← Estacionalitat</button>
+    <div class="pdots" id="d4"></div>
+    <button class="pbtn" onclick="goTo(5)">Dies Setmana →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE 6 — PREUS & PRODUCTIVITAT
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     P6 · DIES DE LA SETMANA
+════════════════════════════════════════════════════════ -->
 <div class="page" id="p6">
-  <div class="page-header">
+  <div class="ph">
     <div class="inner">
-      <div class="section-num">05-06 · Preus i Productivitat</div>
-      <h1>Preu per Servei i Ingressos per Hora</h1>
-      <p class="subtitle">Evolució de l'eficiència econòmica 2018–2024</p>
+      <div class="snum">05 · Rendiment per Dia de la Setmana</div>
+      <h1>Divendres = Descans · Cap de Setmana = 1 Sol Dia</h1>
+      <p class="sub">Des del 2020: divendres és dia de festa fix · Normativa: màxim 1 dia de cap de setmana</p>
     </div>
-    <div class="gold-bar"></div>
-  </div>
+  </div><div class="goldbar"></div>
 
-  <div class="content-area">
-    <div class="two-col">
-      <section class="card">
-        <div class="section-title">Preu Mig per Servei (€) · 2021–2024</div>
-        <div class="chart-wrap" style="height:260px">
-          <canvas id="chartPrice"></canvas>
-        </div>
-        <div class="stat-grid" style="grid-template-columns:1fr 1fr; margin-top:1rem">
-          <div class="stat-card gold"><div class="sv">20,00€</div><div class="sl">Màxim 2024</div></div>
-          <div class="stat-card green"><div class="sv">+50,5%</div><div class="sl">Pujada 2021→2024</div></div>
-        </div>
-      </section>
-      <section class="card">
-        <div class="section-title">Ingressos per Hora (€/h) · 2018–2025</div>
-        <div class="chart-wrap" style="height:260px">
-          <canvas id="chartHour"></canvas>
-        </div>
-        <div class="stat-grid" style="grid-template-columns:1fr 1fr; margin-top:1rem">
-          <div class="stat-card green"><div class="sv">22,33€</div><div class="sl">Màxim 2024</div></div>
-          <div class="stat-card red"><div class="sv">12,35€</div><div class="sl">Mínim 2020</div></div>
-        </div>
-      </section>
+  <div class="content">
+    <div class="daygrid">
+      <div class="dc"><div class="dn">Dilluns</div><div class="dv">227€</div><div class="ds">n=267 dies</div></div>
+      <div class="dc"><div class="dn">Dimarts</div><div class="dv">217€</div><div class="ds">n=275 dies</div></div>
+      <div class="dc"><div class="dn">Dimecres</div><div class="dv">219€</div><div class="ds">n=274 dies</div></div>
+      <div class="dc"><div class="dn">Dijous</div><div class="dv">232€</div><div class="ds">n=236 dies</div></div>
+      <div class="dc rest"><div class="dn">Divendres</div><div class="dv">—</div><div class="ds">Descans fix</div></div>
+      <div class="dc wk"><div class="dn">Dissabte</div><div class="dv">263€</div><div class="ds">n=123 dies</div></div>
+      <div class="dc wk"><div class="dn">Diumenge</div><div class="dv">247€</div><div class="ds">n=139 dies</div></div>
     </div>
 
-    <section class="card">
-      <div class="section-title">Insights de Preus i Eficiència</div>
-      <div class="insight-list">
-        <div class="insight">
-          <div class="icon gold">📈</div>
-          <div>
-            <div class="it">CAGR del Preu per Servei 2021→2024: +14,7% anual</div>
-            <div class="ib">Cada any el preu puja de manera consistent i significativa. El salt de 13,29€ a 20,00€ en 3 anys és excel·lent i indica una percepció creixent de valor.</div>
+    <div class="g2">
+      <section class="card">
+        <div class="st">Ingressos Mig per Dia Treballat (€, des 2020)</div>
+        <div class="cw" style="height:280px"><canvas id="cDays"></canvas></div>
+      </section>
+      <section class="card">
+        <div class="st">Anàlisi del Cap de Setmana</div>
+        <div class="ilist">
+          <div class="ins">
+            <div class="ico orange">📅</div>
+            <div><div class="it">Dissabte lidera: 263€/dia (+16% vs dilluns)</div>
+            <div class="ib">El dia de cap de setmana sempre és el més rentable. La demanda és alta (oci, aeroport, esdeveniments) i la tarifa nocturna/festiva aplica.</div></div>
+          </div>
+          <div class="ins">
+            <div class="ico blue">📊</div>
+            <div><div class="it">Normativa 1 dia cap de setmana: quina triar?</div>
+            <div class="ib">Dissabte genera de mitjana 16€ més que diumenge. Sobre 50 caps de setmana treballats, això suposa ~800€/any addicionals si s'escull dissabte sistemàticament.</div></div>
+          </div>
+          <div class="ins">
+            <div class="ico gold">💡</div>
+            <div><div class="it">Impacte de tenir divendres de descans</div>
+            <div class="ib">Divendres tarda-nit és un moment de gran demanda (oci, sortides). El cost d'oportunitat és significatiu, però la normativa i preferència personal ho justifiquen. Els 5 divendres amb dades mostren 281€, el tercer millor dia.</div></div>
+          </div>
+          <div class="ins">
+            <div class="ico green">🗓️</div>
+            <div><div class="it">Estructura setmanal efectiva: 4 dies laborables + 1 cap de setmana</div>
+            <div class="ib">Dill+Dim+Dim+Dij + (Dis o Diu) = ~5 dies/setmana. Uns 250 dies/any treballats, que és una jornada completa de treballador per compte propi.</div></div>
           </div>
         </div>
-        <div class="insight">
-          <div class="icon green">💪</div>
-          <div>
-            <div class="it">Productivitat horària supera els nivells pre-COVID el 2022</div>
-            <div class="ib">22,33€/h el 2024 vs 22,49€/h el 2019. El negoci ha recuperat i pràcticament igualat la seva millor eficiència horària pre-pandèmia.</div>
-          </div>
-        </div>
-        <div class="insight">
-          <div class="icon blue">⏱️</div>
-          <div>
-            <div class="it">Jornada estable: ~12 hores/dia (2021–2025)</div>
-            <div class="ib">La durada de la jornada es manté constant. El creixement d'ingressos prové de preus majors i millor ocupació, no de treballar més hores.</div>
-          </div>
-        </div>
-      </div>
-    </section>
+      </section>
+    </div>
   </div>
 
-  <div class="page-nav container">
-    <button class="page-btn" onclick="goTo(4)">← Dies Setmana</button>
-    <div class="page-dots" id="dots-6"></div>
-    <button class="page-btn" onclick="goTo(6)">KPIs & Taula →</button>
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(4)">← Aeroport vs Pista</button>
+    <div class="pdots" id="d5"></div>
+    <button class="pbtn" onclick="goTo(6)">Ingressos &amp; Despeses →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE 7 — KPIs & TABLE
-════════════════════════════════════════ -->
+<!-- ═══════════════════════════════════════════════════════
+     P7 · INGRESSOS & DESPESES
+════════════════════════════════════════════════════════ -->
 <div class="page" id="p7">
-  <div class="page-header">
+  <div class="ph">
     <div class="inner">
-      <div class="section-num">07 · KPIs Clau i Benchmarks</div>
-      <h1>Indicadors Principals i Comparativa Anual</h1>
-      <p class="subtitle">Resum executiu de tots els indicadors de negoci any a any</p>
+      <div class="snum">06 · Ingressos, Despeses i Benefici Net</div>
+      <h1>Compte de Resultats del Negoci</h1>
+      <p class="sub">Despeses mensuals fixes vs ingressos · Benefici net real any a any</p>
     </div>
-    <div class="gold-bar"></div>
-  </div>
+  </div><div class="goldbar"></div>
 
-  <div class="content-area">
-    <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr)">
-      <div class="stat-card green"><div class="sv">65.362€</div><div class="sl">Rècord 2024</div><div class="sd">Millor any de la història</div></div>
-      <div class="stat-card gold"><div class="sv">20,00€</div><div class="sl">Preu Màxim/Servei</div><div class="sd">Aconseguit el 2024</div></div>
-      <div class="stat-card orange"><div class="sv">22,33€/h</div><div class="sl">Màx. Productivitat</div><div class="sd">Ingressos per hora 2024</div></div>
-      <div class="stat-card"><div class="sv">~12h/dia</div><div class="sl">Jornada Estable</div><div class="sd">Consistent 2021–2025</div></div>
+  <div class="content">
+    <div class="sgrid">
+      <div class="sc green"><div class="sv">29.872€</div><div class="sl">Benefici net 2024</div><div class="sd">Ingressos - totes les despeses</div></div>
+      <div class="sc gold"><div class="sv">45,7%</div><div class="sl">Marge net 2024</div><div class="sd">De cada 100€ facturats, 45,7€ són benefici</div></div>
+      <div class="sc orange"><div class="sv">2.959€</div><div class="sl">Despeses fixes/mes (2024)</div><div class="sd">Hipoteca, Toyota, autònoms, etc.</div></div>
+      <div class="sc red"><div class="sv">35.490€</div><div class="sl">Total despeses 2024</div><div class="sd">Inclou totes les categories</div></div>
     </div>
 
     <section class="card">
-      <div class="section-title">Comparativa Anual Completa</div>
-      <table class="data-table">
+      <div class="st">Ingressos vs Despeses Anuals (€)</div>
+      <div class="cw" style="height:300px"><canvas id="cIncExp"></canvas></div>
+    </section>
+
+    <div class="g2">
+      <section class="card">
+        <div class="st">Benefici Net per Any (€)</div>
+        <div class="cw" style="height:240px"><canvas id="cNet"></canvas></div>
+      </section>
+      <section class="card">
+        <div class="st">Desglossat Despeses Mensuals 2024</div>
+        <div class="cw" style="height:240px"><canvas id="cExpPie"></canvas></div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="st">Evolució de les Despeses Fixes (€/mes)</div>
+      <div class="cw" style="height:200px"><canvas id="cExpEvol"></canvas></div>
+      <p class="note">ℹ️ Les despeses han crescut un +119% des del 2020 (1.369€/mes) fins al 2025 (3.005€/mes), principalment per la hipoteca, el vehicle Toyota i els autònoms. Tot i això, el benefici net ha anat augmentant gràcies al creixement dels ingressos.</p>
+    </section>
+  </div>
+
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(5)">← Dies Setmana</button>
+    <div class="pdots" id="d6"></div>
+    <button class="pbtn" onclick="goTo(7)">Factures 24-25 →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     P8 · FACTURES 2024-2025
+════════════════════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="ph">
+    <div class="inner">
+      <div class="snum">07 · Factures Pagades 2024–2025</div>
+      <h1>Despeses Reals Documentades</h1>
+      <p class="sub">Anàlisi de les factures justificades · Categories: combustible, FreeNow, parking, vehicle, manteniment</p>
+    </div>
+  </div><div class="goldbar"></div>
+
+  <div class="content">
+    <div class="g2" style="margin-bottom:1.4rem">
+      <section class="card">
+        <div class="st">Factures Pagades per Categoria · 2024 (total 10.442€)</div>
+        <div class="cw" style="height:260px"><canvas id="cFact24"></canvas></div>
+        <div class="leg" style="margin-top:.8rem">
+          <div class="li"><div class="ld" style="background:#cc2e2e"></div>Solred/Combustible: 6.265€</div>
+          <div class="li"><div class="ld" style="background:#4a83cc"></div>FreeNow (comissions): 1.940€</div>
+          <div class="li"><div class="ld" style="background:#e8a020"></div>Parking: 1.734€</div>
+          <div class="li"><div class="ld" style="background:#1b8a52"></div>Manteniment/ITV: 465€</div>
+          <div class="li"><div class="ld" style="background:#7c5cbf"></div>Altres: 38€</div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="st">Factures Pagades per Categoria · 2025 (total 10.813€)</div>
+        <div class="cw" style="height:260px"><canvas id="cFact25"></canvas></div>
+        <div class="leg" style="margin-top:.8rem">
+          <div class="li"><div class="ld" style="background:#cc2e2e"></div>Combustible (Solred+Repsol): 4.382€</div>
+          <div class="li"><div class="ld" style="background:#2a5a9f"></div>Toyota (vehicle): 2.270€</div>
+          <div class="li"><div class="ld" style="background:#4a83cc"></div>FreeNow (comissions): 2.111€</div>
+          <div class="li"><div class="ld" style="background:#d96520"></div>Manteniment (Spauto): 816€</div>
+          <div class="li"><div class="ld" style="background:#e8a020"></div>Immobiliària: 754€</div>
+          <div class="li"><div class="ld" style="background:#1b8a52"></div>Parking+ITV+Altres: 480€</div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="st">Factures Mensuals 2024 vs 2025 (€)</div>
+      <div class="cw" style="height:260px"><canvas id="cFactMes"></canvas></div>
+      <p class="note">⚠️ Agost 2025 mostra un pic de 2.580€ en factures (vs 1.079€ el 2024) probablement per la compra/reparació major del Toyota. Solred baixa el 2025 perquè part del combustible va per Repsol.</p>
+    </section>
+
+    <section class="card">
+      <div class="st">Comparativa de Categories Principals 2024 vs 2025</div>
+      <table class="dt">
+        <thead>
+          <tr><th>Categoria</th><th>2024</th><th>2025</th><th>Variació</th><th>Observació</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>🔴 Combustible (Solred/Repsol)</td><td>6.265€</td><td>4.382€</td><td class="neg">-30%</td><td>Part cap a Repsol; possible menor ús</td></tr>
+          <tr><td>📱 FreeNow / mytaxi (comissions)</td><td>1.940€</td><td>2.111€</td><td class="pos">+9%</td><td>Més carreres via app el 2025</td></tr>
+          <tr><td>🅿️ Parking</td><td>1.734€</td><td>389€</td><td class="neg">-78%</td><td>Possible canvi de parking o menys ús</td></tr>
+          <tr><td>🚗 Vehicle Toyota</td><td>347€</td><td>2.270€</td><td class="neg">+555%</td><td>Renovació o reparació major el 2025</td></tr>
+          <tr><td>🔧 Manteniment taller</td><td>27€</td><td>816€</td><td class="neg">+2922%</td><td>Revisió important el 2025</td></tr>
+          <tr class="hl"><td><strong>TOTAL FACTURES</strong></td><td><strong>10.442€</strong></td><td><strong>10.813€</strong></td><td class="neg">+3,6%</td><td>Estable amb canvi de mix</td></tr>
+        </tbody>
+      </table>
+    </section>
+  </div>
+
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(6)">← Ingressos &amp; Despeses</button>
+    <div class="pdots" id="d7"></div>
+    <button class="pbtn" onclick="goTo(8)">KPIs &amp; Taula →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════
+     P9 · KPIs & TABLE
+════════════════════════════════════════════════════════ -->
+<div class="page" id="p9">
+  <div class="ph">
+    <div class="inner">
+      <div class="snum">08 · KPIs Clau i Comparativa Anual</div>
+      <h1>Indicadors Principals del Negoci</h1>
+      <p class="sub">Resum executiu · tots els indicadors any a any</p>
+    </div>
+  </div><div class="goldbar"></div>
+
+  <div class="content">
+
+    <!-- Photo band -->
+    <div class="photo-band p2" style="height:150px;margin-bottom:1.4rem">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Taxi_Barcelona_2019.jpg/800px-Taxi_Barcelona_2019.jpg"
+           alt="Taxi Barcelona" style="height:150px"
+           onerror="this.style.display='none'">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/8/8e/Taxi_a_Barcelona.jpg/800px-Taxi_a_Barcelona.jpg"
+           alt="Taxi BCN" style="height:150px"
+           onerror="this.parentElement.style.gridTemplateColumns='1fr'">
+    </div>
+
+    <div class="sgrid" style="grid-template-columns:repeat(4,1fr)">
+      <div class="sc green"><div class="sv">65.362€</div><div class="sl">Rècord ingressos</div><div class="sd">Any 2024</div></div>
+      <div class="sc gold"><div class="sv">29.872€</div><div class="sl">Rècord benefici net</div><div class="sd">Any 2024</div></div>
+      <div class="sc orange"><div class="sv">241€/dia</div><div class="sl">Màx €/dia (pista)</div><div class="sd">Mesos parells 2021-24</div></div>
+      <div class="sc"><div class="sv">+119%</div><div class="sl">Pujada despeses</div><div class="sd">2020 vs 2025</div></div>
+    </div>
+
+    <section class="card">
+      <div class="st">Taula Comparativa Anual Completa</div>
+      <table class="dt">
         <thead>
           <tr>
             <th>Any</th>
-            <th>Facturació Total</th>
-            <th>Creixement YoY</th>
-            <th>€/Hora</th>
-            <th>Preu/Servei</th>
-            <th>Dies Treballats</th>
-            <th>Hores Totals</th>
+            <th>Facturació</th>
+            <th>Creix. YoY</th>
+            <th>Despeses est.</th>
+            <th>Benefici Net</th>
+            <th>Marge %</th>
+            <th>Dies Treb.</th>
+            <th>€/dia mig</th>
           </tr>
         </thead>
         <tbody>
-          <tr><td>2018 *</td><td>25.703€</td><td class="neu">Parcial (ago–des)</td><td>19,80€</td><td>n/d</td><td>~125</td><td>n/d</td></tr>
-          <tr><td>2019</td><td>63.937€</td><td class="neu">Referència</td><td>22,49€</td><td>n/d</td><td>~270</td><td>n/d</td></tr>
-          <tr><td>2020</td><td>21.287€</td><td class="neg">−66,7%</td><td>12,35€</td><td>n/d</td><td>~180</td><td>n/d</td></tr>
-          <tr><td>2021</td><td>39.006€</td><td class="pos">+83,2%</td><td>14,80€</td><td>13,29€</td><td>217</td><td>2.653h</td></tr>
-          <tr><td>2022</td><td>49.935€</td><td class="pos">+28,0%</td><td>19,70€</td><td>16,86€</td><td>214</td><td>2.523h</td></tr>
-          <tr><td>2023</td><td>61.212€</td><td class="pos">+22,6%</td><td>21,70€</td><td>18,66€</td><td>236</td><td>2.831h</td></tr>
-          <tr class="highlight"><td><strong>2024</strong></td><td><strong>65.362€ ★</strong></td><td class="pos">+6,8%</td><td><strong>22,33€</strong></td><td><strong>20,00€</strong></td><td><strong>250</strong></td><td><strong>2.935h</strong></td></tr>
-          <tr><td>2025 **</td><td>64.467€</td><td class="neg">−1,4%</td><td>21,99€</td><td>12,63€***</td><td>248</td><td>2.939h</td></tr>
+          <tr><td>2018 *</td><td>25.703€</td><td class="neu">Parcial</td><td>~8.000€</td><td>~17.700€</td><td class="neu">69%</td><td>~125</td><td>~206€</td></tr>
+          <tr><td>2019</td><td>63.937€</td><td class="neu">Referència</td><td>~16.400€</td><td>~47.500€</td><td>74%</td><td>~270</td><td>~237€</td></tr>
+          <tr><td>2020</td><td>21.287€</td><td class="neg">-66,7%</td><td>~16.400€</td><td>~4.900€</td><td class="neg">23%</td><td>~140</td><td>~152€</td></tr>
+          <tr><td>2021</td><td>39.006€</td><td class="pos">+83,2%</td><td>~19.500€</td><td>~19.500€</td><td>50%</td><td>229</td><td>~170€</td></tr>
+          <tr><td>2022</td><td>49.935€</td><td class="pos">+28,0%</td><td>~28.800€</td><td>~21.100€</td><td>42%</td><td>214</td><td>~233€</td></tr>
+          <tr><td>2023</td><td>61.212€</td><td class="pos">+22,6%</td><td>~32.800€</td><td>~28.400€</td><td>46%</td><td>236</td><td>~259€</td></tr>
+          <tr class="hl"><td><strong>2024</strong></td><td><strong>65.362€ ★</strong></td><td class="pos">+6,8%</td><td><strong>35.490€</strong></td><td class="pos"><strong>29.872€</strong></td><td><strong>46%</strong></td><td><strong>250</strong></td><td><strong>261€</strong></td></tr>
+          <tr><td>2025</td><td>64.467€</td><td class="neg">-1,4%</td><td>~35.324€</td><td>~29.143€</td><td>45%</td><td>248</td><td>~260€</td></tr>
         </tbody>
       </table>
-      <p style="font-size:.75rem; color:var(--muted); margin-top:.8rem; padding: 0 .5rem">
-        * 2018: dades des d'agost (any parcial) · ** 2025: possible any parcial o dades discontinues · *** Preu 2025 basat en mostra reduïda
-      </p>
+      <p class="note">* 2018 parcial des d'agost. Despeses 2018-2022 estimades. 2025 pot tenir dades discontinues al JSON.</p>
     </section>
 
     <section class="card">
-      <div class="section-title">Evolució del Nº de Serveis Diaris</div>
-      <div class="chart-wrap" style="height:200px">
-        <canvas id="chartServices"></canvas>
-      </div>
+      <div class="st">Evolució del Benefici Net i Marge (%) · 2020–2025</div>
+      <div class="cw" style="height:220px"><canvas id="cKpiRadar"></canvas></div>
     </section>
   </div>
 
-  <div class="page-nav container">
-    <button class="page-btn" onclick="goTo(5)">← Preus & Productivitat</button>
-    <div class="page-dots" id="dots-7"></div>
-    <button class="page-btn" onclick="goTo(7)">Conclusions →</button>
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(7)">← Factures 24-25</button>
+    <div class="pdots" id="d8"></div>
+    <button class="pbtn" onclick="goTo(9)">Conclusions →</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     PAGE 8 — CONCLUSIONS
-════════════════════════════════════════ -->
-<div class="page" id="p8">
-  <div class="page-header" style="background: #0a1628">
+<!-- ═══════════════════════════════════════════════════════
+     P10 · CONCLUSIONS
+════════════════════════════════════════════════════════ -->
+<div class="page" id="p10">
+  <div class="ph" style="background:#0a1628">
     <div class="inner">
-      <div class="section-num">08 · Resum Final</div>
+      <div class="snum">09 · Resum Final</div>
       <h1>Conclusions i Recomanacions</h1>
-      <p class="subtitle">Punts clau extrets de 7,5 anys de dades reals de facturació</p>
+      <p class="sub">6 punts clau extrets de 7,5 anys de dades reals</p>
     </div>
-    <div class="gold-bar"></div>
+  </div><div class="goldbar"></div>
+
+  <div class="content">
+    <!-- Photo band at top -->
+    <div class="photo-band p3" style="height:140px;margin-bottom:1.4rem">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/f/f0/Taxis_Barcelona.jpg/800px-Taxis_Barcelona.jpg"
+           alt="Taxis Barcelona" style="height:140px" onerror="this.style.display='none'">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/54/Barcelona_-_Sagrada_Fam%C3%ADlia_-_180807134831.jpg/800px-Barcelona_-_Sagrada_Fam%C3%ADlia_-_180807134831.jpg"
+           alt="Barcelona" style="height:140px" onerror="this.style.display='none'">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/a/a0/Barceloneta_Beach_%282%29.jpg/800px-Barceloneta_Beach_%282%29.jpg"
+           alt="Barcelona beach" style="height:140px" onerror="this.style.display='none'">
+    </div>
+
+    <div class="cgrid">
+      <div class="cc c1">
+        <div class="cnum">1</div>
+        <div class="ctitle">Negoci Sòlid i en Creixement</div>
+        <div class="cbody">2024 és el millor any de la història amb 65.362€ i 29.872€ de benefici net (marge del 46%). Cinc anys consecutius de creixement post-COVID demostren una resiliència i capacitat de recuperació excepcionals.</div>
+      </div>
+      <div class="cc c2">
+        <div class="cnum">2</div>
+        <div class="ctitle">Aeroport vs Pista: Empat Econòmic</div>
+        <div class="cbody">La diferència de rendiment mensual és de només 6€ (4.493€ aerop. vs 4.487€ pista). La pista genera lleugerament més €/dia però amb el doble de serveis (20 vs 11). Considera el desgast físic i del vehicle en la decisió.</div>
+      </div>
+      <div class="cc c3">
+        <div class="cnum">3</div>
+        <div class="ctitle">Dissabte: El Millor Dia de la Setmana</div>
+        <div class="cbody">Dissabte genera 263€/dia vs 247€ del diumenge (+16€). Treballar dissabtes sistemàticament en comptes de diumenges pot suposar ~800€ addicionals anuals sense canviar res més.</div>
+      </div>
+      <div class="cc c4">
+        <div class="cnum">4</div>
+        <div class="ctitle">Octubre = Millor Mes, Agost = Descans</div>
+        <div class="cbody">Octubre lidera amb 5.017€ de mitjana (el millor mes). Agost és el punt feble (2.728€). Aprofita Agost per vacances sense perdre molts ingressos, i potencia Octubre amb màxima disponibilitat.</div>
+      </div>
+      <div class="cc c5">
+        <div class="cnum">5</div>
+        <div class="ctitle">Despeses Creixents: Controlar la Hipoteca</div>
+        <div class="cbody">Les despeses han crescut +119% des del 2020. La hipoteca (921-930€/mes) és la partida més gran, seguida del Toyota (248€) i autònoms (301€). El benefici net creix gràcies als ingressos però el marge es comprimeix amb les despeses.</div>
+      </div>
+      <div class="cc c6">
+        <div class="cnum">6</div>
+        <div class="ctitle">2025: Estabilitat però Atenció al Vehicle</div>
+        <div class="cbody">2025 presenta facturació similar a 2024 (-1,4%) però amb una despesa important en el Toyota (2.270€) i manteniment (816€). Preveure aquests costos evitarà sorpreses en anys propers.</div>
+      </div>
+    </div>
+
+    <div style="background:#0d1c35;border-radius:12px;padding:1.4rem;margin-top:1.3rem">
+      <div style="font-size:.78rem;font-weight:600;color:var(--gold);text-transform:uppercase;letter-spacing:.1em;margin-bottom:.5rem">📌 Nota Metodològica</div>
+      <p style="font-size:.8rem;color:rgba(255,255,255,.5);line-height:1.6">
+        Anàlisi basada en 1.702 registres de facturació diària (agost 2018 – febrer 2026), factures pagades 2024 i 2025 (client 764) i full de despeses mensuals. Les dades de serveis/dia estan disponibles des del 2021. Les despeses de 2020-2022 són estimades a partir de les taules de despeses mensuals. Les variacions mensuals poden reflectir dies de vacances o absència, no necessàriament canvis de demanda. Tarifa oficial de taxi Barcelona: no modificable pel conductor.
+      </p>
+    </div>
   </div>
 
-  <div class="content-area">
-    <div class="conclusion-grid" style="margin-bottom:1.5rem">
-      <div class="conclusion-card c1">
-        <div class="num">1</div>
-        <div class="ctitle">Negoci en Creixement Sòlid</div>
-        <div class="cbody">2024 ha sigut el millor any de la història amb 65.362€. Cinc anys consecutius de creixement positiu post-COVID demostren una resiliència i capacitat de recuperació excepcional. La tendència és clarament alcista.</div>
-      </div>
-      <div class="conclusion-card c2">
-        <div class="num">2</div>
-        <div class="ctitle">Política de Preus: Continuar Pujant</div>
-        <div class="cbody">De 13,29€ el 2021 a 20,00€ el 2024 (+50,5%). El mercat accepta les pujades. Recomanació: apuntar a 22-23€ per servei el 2025-2026 seguint el ritme del CAGR del +14,7%.</div>
-      </div>
-      <div class="conclusion-card c3">
-        <div class="num">3</div>
-        <div class="ctitle">Gestionar l'Estacionalitat</div>
-        <div class="cbody">Agost és el punt feble (-45%). Considera ofertes especials, paquets promocionals, o planifica les vacances aquest mes. Octubre és el millor mes (5.017€ de mitjana) — potenciar la visibilitat en tardor.</div>
-      </div>
-      <div class="conclusion-card c4">
-        <div class="num">4</div>
-        <div class="ctitle">Maximitzar el Cap de Setmana</div>
-        <div class="cbody">Dissabte (274€/dia) supera en un 22% els dies laborables. Augmentar la disponibilitat en cap de setmana podria suposar +6.000-8.000€ anuals addicionals sense treballar més dies totals.</div>
-      </div>
-    </div>
-
-    <section class="card">
-      <div class="section-title">Resum Visual de KPIs Clau</div>
-      <div class="chart-wrap" style="height:280px">
-        <canvas id="chartRadar"></canvas>
-      </div>
-    </section>
-
-    <div style="background: var(--navy); border-radius:12px; padding:1.5rem; color:rgba(255,255,255,.6); font-size:.82rem; margin-top:1.5rem">
-      <strong style="color:var(--gold)">📌 Nota metodològica:</strong> Anàlisi basada en 1.702 registres de facturació diària entre agost 2018 i febrer 2026. Les dades de serveis/dia i hores treballades estan disponibles des de 2021. Els anys 2018 i 2025 presenten dades parcials o discontinues i s'han exclòs de certes mitjanes estacionals. Anàlisi generada al febrer 2026.
-    </div>
-  </div>
-
-  <div class="page-nav container">
-    <button class="page-btn" onclick="goTo(6)">← KPIs & Taula</button>
-    <div class="page-dots" id="dots-8"></div>
-    <button class="page-btn" disabled>Fi del Informe ✓</button>
+  <div class="pnav">
+    <button class="pbtn" onclick="goTo(8)">← KPIs &amp; Taula</button>
+    <div class="pdots" id="d9"></div>
+    <button class="pbtn" disabled>Fi de l'Informe ✓</button>
   </div>
 </div>
 
+<!-- ═══════════════════════════════════════════════════════
+     JAVASCRIPT
+════════════════════════════════════════════════════════ -->
 <script>
-// ──────────────────────────────────────
-// NAVIGATION
-// ──────────────────────────────────────
-const TOTAL = 8;
-let current = 0;
-const chartsInit = new Set();
+const TOTAL = 10;
+let cur = 0;
+const inited = new Set();
 
-function goTo(idx) {
-  document.querySelectorAll('.page').forEach((p, i) => {
-    p.classList.toggle('active', i === idx);
-  });
-  document.querySelectorAll('.nav-pill').forEach((p, i) => {
-    p.classList.toggle('active', i === idx);
-  });
-  document.getElementById('page-counter').textContent = `${idx + 1} / ${TOTAL}`;
-  current = idx;
-
-  // Render dots in all dot containers
-  for (let i = 1; i <= TOTAL; i++) {
-    const el = document.getElementById(`dots-${i}`);
-    if (el) {
-      el.innerHTML = '';
-      for (let j = 0; j < TOTAL; j++) {
-        const d = document.createElement('div');
-        d.className = 'dot' + (j === idx ? ' active' : '');
-        d.onclick = () => goTo(j);
-        el.appendChild(d);
-      }
+function goTo(i) {
+  document.querySelectorAll('.page').forEach((p,j) => p.classList.toggle('active', j===i));
+  document.querySelectorAll('.np').forEach((p,j) => p.classList.toggle('active', j===i));
+  document.getElementById('pgcnt').textContent = `${i+1} / ${TOTAL}`;
+  cur = i;
+  for(let k=0;k<TOTAL;k++){
+    const el=document.getElementById(`d${k}`);
+    if(!el) continue;
+    el.innerHTML='';
+    for(let j=0;j<TOTAL;j++){
+      const d=document.createElement('div');
+      d.className='dot'+(j===i?' active':'');
+      d.onclick=()=>goTo(j);
+      el.appendChild(d);
     }
   }
-
-  window.scrollTo(0, 0);
-  initChartsForPage(idx);
+  window.scrollTo(0,0);
+  setTimeout(()=>initPage(i), 50);
 }
 
-// ──────────────────────────────────────
-// CHART DEFAULTS
-// ──────────────────────────────────────
-const DEF = {
-  responsive: true,
-  maintainAspectRatio: false,
-  plugins: {
-    legend: { display: false },
-    tooltip: {
-      backgroundColor: '#0f1e38',
-      titleColor: '#fff',
-      bodyColor: 'rgba(255,255,255,.7)',
-      padding: 10,
-      cornerRadius: 6,
-    }
-  },
-  scales: {
-    x: {
-      grid: { display: false },
-      ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } },
-      border: { display: false }
+// Chart defaults factory
+function opts(overrides={}) {
+  return {
+    responsive:true, maintainAspectRatio:false,
+    plugins:{
+      legend:{display:false},
+      tooltip:{backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}
     },
-    y: {
-      grid: { color: '#eaeef6', lineWidth: 1 },
-      ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } },
-      border: { display: false }
-    }
-  }
-};
-
-function merge(a, b) { return Object.assign({}, a, b); }
-
-// ──────────────────────────────────────
-// DATA
-// ──────────────────────────────────────
-const annualLabels = ['2018*','2019','2020','2021','2022','2023','2024','2025**'];
-const annualValues = [25703, 63937, 21287, 39006, 49935, 61212, 65362, 64467];
-const annualColors = ['#4a83cc','#2d5fa0','#d63031','#e8a020','#1e8c5a','#1a7a5e','#0d5c3a','#1a7a5e'];
-
-const yoyLabels = ['19→20','20→21','21→22','22→23','23→24'];
-const yoyValues = [-66.7, 83.2, 28.0, 22.6, 6.8];
-
-const monthlyLabels = [
-  'G-19','F','M','A','M','J','J','A','S','O','N','D',
-  'G-20','F','M','A','M','J','J','A','S','O','N','D',
-  'G-21','F','M','A','M','J','J','A','S','O','N','D',
-  'G-22','F','M','A','M','J','J','A','S','O','N','D',
-  'G-23','F','M','A','M','J','J','A','S','O','N','D',
-  'G-24','F','M','A','M','J','J','A','S','O','N','D',
-];
-const monthlyValues = [
-  3357,5043,5705,6064,6548,6028,6122,2733,5831,6196,5667,4643,
-  969,1574,1959,470,1586,1899,2286,2038,2536,1969,1782,2219,
-  1955,2186,2347,2326,2829,3704,3805,3191,4149,4546,4251,3717,
-  2891,1358,3441,5498,5387,5501,5629,3115,3181,5819,4592,3523,
-  4158,5268,5588,5572,5798,5725,4728,3933,5570,5583,5040,4249,
-  4625,5274,5324,6154,5790,6627,6139,3956,5936,5989,4681,4867,
-];
-
-const seasonalLabels = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
-const seasonalValues = [2992, 3450, 4061, 3757, 4656, 4914, 4785, 2728, 4534, 5017, 3747, 3340];
-const seasonalColors = ['#607080','#607080','#4a83cc','#4a83cc','#1e8c5a','#1e8c5a','#e8a020','#d63031','#4a83cc','#2d5fa0','#607080','#607080'];
-
-const dayLabels = ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
-const dayValues = [224.4, 219.5, 223.0, 233.9, 249.4, 274.1, 261.1];
-const dayColors = ['#4a83cc','#4a83cc','#4a83cc','#4a83cc','#2d5fa0','#e07020','#e07020'];
-
-const priceLabels = ['2021','2022','2023','2024'];
-const priceValues = [13.29, 16.86, 18.66, 20.00];
-
-const hourLabels = ['2018','2019','2020','2021','2022','2023','2024','2025'];
-const hourValues = [19.80, 22.49, 12.35, 14.80, 19.70, 21.70, 22.33, 21.99];
-const hourColors = ['#4a83cc','#2d5fa0','#d63031','#e8a020','#1e8c5a','#1a7a5e','#0d5c3a','#1a7a5e'];
-
-const svcLabels = ['2021','2022','2023','2024','2025'];
-const svcValues = [15.7, 16.2, 16.6, 14.9, 14.3];
-
-// ──────────────────────────────────────
-// CHART INIT
-// ──────────────────────────────────────
-function initChartsForPage(idx) {
-  if (chartsInit.has(idx)) return;
-  chartsInit.add(idx);
-
-  const cOpts = (overrides) => ({
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: { display: false },
-      tooltip: { backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10, cornerRadius: 6 }
-    },
-    scales: {
-      x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } }, border: { display: false } },
-      y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } }, border: { display: false } }
+    scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{family:'DM Sans',size:11}},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{family:'DM Sans',size:11}},border:{display:false}}
     },
     ...overrides
-  });
+  };
+}
+function mk(id) {
+  const el=document.getElementById(id);
+  if(!el||Chart.getChart(el)) return null;
+  return el;
+}
 
-  if (idx === 1) {
-    // Annual bar
-    const ctx1 = document.getElementById('chartAnual');
-    if (ctx1 && !Chart.getChart(ctx1)) {
-      new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: annualLabels,
-          datasets: [{ data: annualValues, backgroundColor: annualColors, borderRadius: 5, borderSkipped: false }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw.toLocaleString('ca')}€` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 },
-            datalabels: false
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v.toLocaleString('ca') + '€' }, border: { display: false } }
-          }
-        })
-      });
-    }
+function initPage(idx) {
+  if(inited.has(idx)) return;
+  inited.add(idx);
 
-    // YoY bar
-    const ctx2 = document.getElementById('chartYoY');
-    if (ctx2 && !Chart.getChart(ctx2)) {
-      new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: yoyLabels,
-          datasets: [{ data: yoyValues, backgroundColor: yoyValues.map(v => v >= 0 ? '#1e8c5a' : '#d63031'), borderRadius: 5, borderSkipped: false }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw > 0 ? '+' : ''}${c.raw}%` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '%' }, border: { display: false } }
-          }
-        })
-      });
-    }
+  // ─── P2: Ingressos Anuals ───
+  if(idx===1){
+    const el=mk('cAnual');
+    if(el) new Chart(el,{type:'bar',data:{
+      labels:['2018*','2019','2020','2021','2022','2023','2024','2025'],
+      datasets:[{data:[25703,63937,21287,39006,49935,61212,65362,64467],
+        backgroundColor:['#4a83cc','#2a5a9f','#cc2e2e','#e8a020','#1b8a52','#1a7a5e','#0d5c3a','#1a7a5e'],
+        borderRadius:5,borderSkipped:false}]
+    },options:{...opts(),scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v.toLocaleString('ca')+'€'},border:{display:false}}
+    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toLocaleString('ca')}€`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}}}});
+
+    const el2=mk('cYoY');
+    if(el2) new Chart(el2,{type:'bar',data:{
+      labels:['19→20','20→21','21→22','22→23','23→24','24→25'],
+      datasets:[{data:[-66.7,83.2,28.0,22.6,6.8,-1.4],
+        backgroundColor:[-66.7,83.2,28.0,22.6,6.8,-1.4].map(v=>v>=0?'#1b8a52':'#cc2e2e'),
+        borderRadius:5,borderSkipped:false}]
+    },options:{...opts(),scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v+'%'},border:{display:false}}
+    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw>0?'+':''}${c.raw}%`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}}}});
   }
 
-  if (idx === 2) {
-    const ctx = document.getElementById('chartMonthly');
-    if (ctx && !Chart.getChart(ctx)) {
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: monthlyLabels,
-          datasets: [{
-            data: monthlyValues,
-            borderColor: '#4a83cc',
-            backgroundColor: 'rgba(74,131,204,.08)',
-            borderWidth: 2.5,
-            pointRadius: 2,
-            pointHoverRadius: 5,
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw.toLocaleString('ca')}€` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 20 }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v.toLocaleString('ca') + '€' }, border: { display: false } }
-          }
-        })
-      });
-    }
+  // ─── P3: Monthly line ───
+  if(idx===2){
+    const labels=['G-19','F','M','A','M','J','J','A','S','O','N','D',
+      'G-20','F','M','A','M','J','J','A','S','O','N','D',
+      'G-21','F','M','A','M','J','J','A','S','O','N','D',
+      'G-22','F','M','A','M','J','J','A','S','O','N','D',
+      'G-23','F','M','A','M','J','J','A','S','O','N','D',
+      'G-24','F','M','A','M','J','J','A','S','O','N','D'];
+    const vals=[3357,5043,5705,6064,6548,6028,6122,2733,5831,6196,5667,4643,
+      969,1574,1959,470,1586,1899,2286,2038,2536,1969,1782,2219,
+      1955,2186,2347,2326,2829,3704,3805,3191,4149,4546,4251,3717,
+      2891,1358,3441,5498,5387,5501,5629,3115,3181,5819,4592,3523,
+      4158,5268,5588,5572,5798,5725,4728,3933,5570,5583,5040,4249,
+      4625,5274,5324,6154,5790,6627,6139,3956,5936,5989,4681,4867];
+    const el=mk('cMonthly');
+    if(el) new Chart(el,{type:'line',data:{labels,datasets:[{data:vals,
+      borderColor:'#4a83cc',backgroundColor:'rgba(74,131,204,.08)',
+      borderWidth:2.5,pointRadius:2,pointHoverRadius:5,fill:true,tension:0.3}]},
+    options:{...opts(),scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{size:9},maxRotation:0,autoSkip:true,maxTicksLimit:18},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v.toLocaleString('ca')+'€'},border:{display:false}}
+    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toLocaleString('ca')}€`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}}}});
   }
 
-  if (idx === 3) {
-    const ctx1 = document.getElementById('chartSeasonal');
-    if (ctx1 && !Chart.getChart(ctx1)) {
-      new Chart(ctx1, {
-        type: 'bar',
-        data: {
-          labels: seasonalLabels,
-          datasets: [{ data: seasonalValues, backgroundColor: seasonalColors, borderRadius: 5, borderSkipped: false }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw.toLocaleString('ca')}€` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v.toLocaleString('ca') + '€' }, border: { display: false } }
-          }
-        })
-      });
-    }
-    const ctx2 = document.getElementById('chartDonut');
-    if (ctx2 && !Chart.getChart(ctx2)) {
-      new Chart(ctx2, {
-        type: 'doughnut',
-        data: {
-          labels: ['Temporada Alta\n(Mai-Jun)', 'Motor del negoci\n(Mar,Jul,Set,Oct)', 'Hivern\n(Gen,Feb,Nov,Des)', 'Agost'],
-          datasets: [{ data: [9570, 18397, 13529, 2728], backgroundColor: ['#1e8c5a','#4a83cc','#607080','#d63031'], borderWidth: 2, borderColor: '#fff' }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          cutout: '60%',
-          plugins: {
-            legend: { display: true, position: 'bottom', labels: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 }, padding: 12, boxWidth: 14 } },
-            tooltip: { callbacks: { label: c => ` ${c.label}: ${((c.raw / 44224) * 100).toFixed(1)}%` }, backgroundColor: '#0f1e38', padding: 10 }
-          }
-        }
-      });
-    }
+  // ─── P4: Estacionalitat ───
+  if(idx===3){
+    const el=mk('cSeasonal');
+    if(el) new Chart(el,{type:'bar',data:{
+      labels:['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'],
+      datasets:[{data:[2992,3450,4061,3757,4656,4914,4785,2728,4534,5017,3747,3340],
+        backgroundColor:['#607080','#607080','#4a83cc','#4a83cc','#1b8a52','#1b8a52','#e8a020','#cc2e2e','#4a83cc','#2a5a9f','#607080','#607080'],
+        borderRadius:5,borderSkipped:false}]
+    },options:{...opts(),scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v.toLocaleString('ca')+'€'},border:{display:false}}
+    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw.toLocaleString('ca')}€`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}}}});
+
+    const el2=mk('cDonut');
+    if(el2) new Chart(el2,{type:'doughnut',data:{
+      labels:['T.Alta (Mai-Jun)','Motor (Mar,Jul,Set,Oct)','Hivern (Gen,Feb,Nov,Des)','Agost'],
+      datasets:[{data:[9570,18397,13529,2728],
+        backgroundColor:['#1b8a52','#4a83cc','#607080','#cc2e2e'],borderWidth:2,borderColor:'#fff'}]
+    },options:{responsive:true,maintainAspectRatio:false,cutout:'58%',
+      plugins:{legend:{display:true,position:'bottom',labels:{color:'#637090',font:{family:'DM Sans',size:10},padding:10,boxWidth:12}},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${((c.raw/44224)*100).toFixed(1)}%`},backgroundColor:'#0d1c35',padding:10,cornerRadius:6}}}});
   }
 
-  if (idx === 4) {
-    const ctx = document.getElementById('chartDays');
-    if (ctx && !Chart.getChart(ctx)) {
-      new Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: dayLabels,
-          datasets: [{ data: dayValues, backgroundColor: dayColors, borderRadius: 5, borderSkipped: false }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(1)}€/dia` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, min: 190, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '€' }, border: { display: false } }
-          }
-        })
-      });
-    }
+  // ─── P5: Airport ───
+  if(idx===4){
+    const el=mk('cAirport');
+    if(el) new Chart(el,{type:'bar',data:{
+      labels:['Serveis/dia','€/dia (x10)','Preu mig servei (x10)'],
+      datasets:[
+        {label:'Mesos senars (Aerop.)',data:[11.5,22.3,21.31],backgroundColor:'#2a5a9f',borderRadius:4,borderSkipped:false},
+        {label:'Mesos parells (Pista)',data:[20.6,24.1,13.01],backgroundColor:'#1b8a52',borderRadius:4,borderSkipped:false}
+      ]
+    },options:{...opts(),
+      plugins:{legend:{display:true,position:'top',labels:{color:'#637090',font:{family:'DM Sans',size:11},padding:14,boxWidth:14}},
+      tooltip:{callbacks:{label:c=>{
+        const labels=['serveis/dia','€/dia','€/servei'];
+        const mult=[1,10,10];
+        return ` ${c.dataset.label}: ${(c.raw*mult[c.dataIndex]).toFixed(1)} ${labels[c.dataIndex]}`;
+      }},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+        y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11}},border:{display:false}}
+      }}});
   }
 
-  if (idx === 5) {
-    const ctx1 = document.getElementById('chartPrice');
-    if (ctx1 && !Chart.getChart(ctx1)) {
-      new Chart(ctx1, {
-        type: 'line',
-        data: {
-          labels: priceLabels,
-          datasets: [{
-            data: priceValues,
-            borderColor: '#e8a020',
-            backgroundColor: 'rgba(232,160,32,.1)',
-            borderWidth: 3,
-            pointBackgroundColor: '#e8a020',
-            pointRadius: 6,
-            pointHoverRadius: 8,
-            fill: true,
-            tension: 0.2
-          }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(2)}€/servei` }, backgroundColor: '#0f1e38', padding: 10 }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 12 } }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, min: 10, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '€' }, border: { display: false } }
-          }
-        })
-      });
-    }
-    const ctx2 = document.getElementById('chartHour');
-    if (ctx2 && !Chart.getChart(ctx2)) {
-      new Chart(ctx2, {
-        type: 'bar',
-        data: {
-          labels: hourLabels,
-          datasets: [{ data: hourValues, backgroundColor: hourColors, borderRadius: 5, borderSkipped: false }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(2)}€/h` }, backgroundColor: '#0f1e38', padding: 10 }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '€' }, border: { display: false } }
-          }
-        })
-      });
-    }
+  // ─── P6: Days ───
+  if(idx===5){
+    const el=mk('cDays');
+    if(el) new Chart(el,{type:'bar',data:{
+      labels:['Dilluns','Dimarts','Dimecres','Dijous','Dissabte','Diumenge'],
+      datasets:[{data:[227,217,219,232,263,247],
+        backgroundColor:['#4a83cc','#4a83cc','#4a83cc','#4a83cc','#d96520','#e8a020'],
+        borderRadius:5,borderSkipped:false}]
+    },options:{...opts(),scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},min:200,ticks:{color:'#637090',font:{size:11},callback:v=>v+'€'},border:{display:false}}
+    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}€/dia`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}}}});
   }
 
-  if (idx === 6) {
-    const ctx = document.getElementById('chartServices');
-    if (ctx && !Chart.getChart(ctx)) {
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: svcLabels,
-          datasets: [{
-            data: svcValues,
-            borderColor: '#2d5fa0',
-            backgroundColor: 'rgba(45,95,160,.1)',
-            borderWidth: 2.5,
-            pointBackgroundColor: '#2d5fa0',
-            pointRadius: 6,
-            fill: true,
-            tension: 0.2
-          }]
-        },
-        options: cOpts({
-          plugins: {
-            legend: { display: false },
-            tooltip: { callbacks: { label: c => ` ${c.raw} serveis/dia` }, backgroundColor: '#0f1e38', padding: 10 }
-          },
-          scales: {
-            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 12 } }, border: { display: false } },
-            y: { grid: { color: '#eaeef6' }, min: 12, max: 18, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } }
-          }
-        })
-      });
-    }
+  // ─── P7: Inc vs Exp ───
+  if(idx===6){
+    const years=['2020','2021','2022','2023','2024','2025'];
+    const inc=[21287,39006,49935,61212,65362,64467];
+    const exp=[16428,19464,28800,32788,35490,35324];
+    const net=inc.map((v,i)=>v-exp[i]);
+
+    const el=mk('cIncExp');
+    if(el) new Chart(el,{type:'bar',data:{
+      labels:years,
+      datasets:[
+        {label:'Ingressos',data:inc,backgroundColor:'rgba(42,90,159,.8)',borderRadius:4,borderSkipped:false},
+        {label:'Despeses estimades',data:exp,backgroundColor:'rgba(204,46,46,.7)',borderRadius:4,borderSkipped:false}
+      ]
+    },options:{...opts(),
+      plugins:{legend:{display:true,position:'top',labels:{color:'#637090',font:{family:'DM Sans',size:11},padding:14,boxWidth:14}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw.toLocaleString('ca')}€`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+        y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v.toLocaleString('ca')+'€'},border:{display:false}}
+      }}});
+
+    const el2=mk('cNet');
+    if(el2) new Chart(el2,{type:'bar',data:{
+      labels:years,
+      datasets:[{data:net,backgroundColor:net.map(v=>v>0?'#1b8a52':'#cc2e2e'),borderRadius:5,borderSkipped:false}]
+    },options:{...opts(),scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v.toLocaleString('ca')+'€'},border:{display:false}}
+    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` Benefici: ${c.raw.toLocaleString('ca')}€`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}}}});
+
+    const el3=mk('cExpPie');
+    if(el3) new Chart(el3,{type:'pie',data:{
+      labels:['Hipoteca','Autònoms','Benzina','Toyota','FreeNow','Parking','Asseg. personal','Barcelona Activa','Dentista','Asseg. vehicle','Altres'],
+      datasets:[{data:[930,301,400,248,200,145,80,216,208,231,0],
+        backgroundColor:['#0d1c35','#2a5a9f','#cc2e2e','#e8a020','#4a83cc','#637090','#1b8a52','#7c5cbf','#d96520','#1a7a5e','#aab0c0'],
+        borderWidth:2,borderColor:'#fff'}]
+    },options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:true,position:'right',labels:{color:'#637090',font:{family:'DM Sans',size:9},padding:8,boxWidth:11}},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw}€/mes`},backgroundColor:'#0d1c35',padding:10,cornerRadius:6}}}});
+
+    const el4=mk('cExpEvol');
+    if(el4) new Chart(el4,{type:'line',data:{
+      labels:['2020','2021A','2021B','2022','2022+','2023','2023 oct','2024','2024 mar','2025 mar','2025 oct','2025 des'],
+      datasets:[{data:[1369,1369,1875,1821,2538,2549,2896,2950,2959,2922,3005,3005],
+        borderColor:'#cc2e2e',backgroundColor:'rgba(204,46,46,.08)',
+        borderWidth:2.5,pointRadius:4,pointBackgroundColor:'#cc2e2e',fill:true,tension:0.2}]
+    },options:{...opts(),scales:{
+      x:{grid:{display:false},ticks:{color:'#637090',font:{size:10},maxRotation:30},border:{display:false}},
+      y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v+'€'},border:{display:false}}
+    },plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw}€/mes`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}}}});
   }
 
-  if (idx === 7) {
-    const ctx = document.getElementById('chartRadar');
-    if (ctx && !Chart.getChart(ctx)) {
-      new Chart(ctx, {
-        type: 'radar',
-        data: {
-          labels: ['Facturació\nAnual', 'Preu per\nServei', 'Productivitat\n€/Hora', 'Serveis\nper Dia', 'Dies\nTreballats', 'Estabilitat\nJornada'],
-          datasets: [
-            {
-              label: '2021 (base)',
-              data: [60, 40, 55, 70, 85, 90],
-              borderColor: 'rgba(100,130,180,.6)',
-              backgroundColor: 'rgba(100,130,180,.08)',
-              pointBackgroundColor: 'rgba(100,130,180,.6)',
-              borderWidth: 1.5,
-              pointRadius: 3
-            },
-            {
-              label: '2024 (actual)',
-              data: [100, 100, 100, 80, 100, 95],
-              borderColor: '#e8a020',
-              backgroundColor: 'rgba(232,160,32,.12)',
-              pointBackgroundColor: '#e8a020',
-              borderWidth: 2.5,
-              pointRadius: 5
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { display: true, position: 'bottom', labels: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 }, padding: 16, boxWidth: 14 } },
-            tooltip: { backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
-          },
-          scales: {
-            r: {
-              min: 0, max: 100,
-              grid: { color: '#eaeef6' },
-              angleLines: { color: '#eaeef6' },
-              ticks: { display: false },
-              pointLabels: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } }
-            }
-          }
-        }
-      });
-    }
+  // ─── P8: Invoices ───
+  if(idx===7){
+    const el=mk('cFact24');
+    if(el) new Chart(el,{type:'pie',data:{
+      labels:['Combustible (Solred/Galp)','FreeNow (comissions)','Parking','Manteniment/ITV','Altres'],
+      datasets:[{data:[6265,1940,1734,465,38],
+        backgroundColor:['#cc2e2e','#4a83cc','#e8a020','#1b8a52','#7c5cbf'],borderWidth:2,borderColor:'#fff'}]
+    },options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw.toLocaleString('ca')}€ (${((c.raw/10442)*100).toFixed(1)}%)`},backgroundColor:'#0d1c35',padding:10,cornerRadius:6}}}});
+
+    const el2=mk('cFact25');
+    if(el2) new Chart(el2,{type:'pie',data:{
+      labels:['Combustible (Solred/Repsol)','Toyota (vehicle)','FreeNow (comissions)','Manteniment (Spauto)','Immobiliària','Parking+ITV+Altres'],
+      datasets:[{data:[4382,2270,2111,816,754,480],
+        backgroundColor:['#cc2e2e','#2a5a9f','#4a83cc','#d96520','#e8a020','#1b8a52'],borderWidth:2,borderColor:'#fff'}]
+    },options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},
+      tooltip:{callbacks:{label:c=>` ${c.label}: ${c.raw.toLocaleString('ca')}€ (${((c.raw/10813)*100).toFixed(1)}%)`},backgroundColor:'#0d1c35',padding:10,cornerRadius:6}}}});
+
+    const el3=mk('cFactMes');
+    if(el3) new Chart(el3,{type:'bar',data:{
+      labels:['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'],
+      datasets:[
+        {label:'2024',data:[578,683,711,660,1113,1212,1433,1079,812,663,662,836],backgroundColor:'rgba(42,90,159,.8)',borderRadius:3,borderSkipped:false},
+        {label:'2025',data:[212,483,473,1367,800,771,922,2580,959,711,899,635],backgroundColor:'rgba(204,46,46,.7)',borderRadius:3,borderSkipped:false}
+      ]
+    },options:{...opts(),
+      plugins:{legend:{display:true,position:'top',labels:{color:'#637090',font:{family:'DM Sans',size:11},padding:14,boxWidth:14}},
+      tooltip:{callbacks:{label:c=>` ${c.dataset.label}: ${c.raw.toLocaleString('ca')}€`},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+        y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11},callback:v=>v+'€'},border:{display:false}}
+      }}});
+  }
+
+  // ─── P9: KPI ───
+  if(idx===8){
+    const el=mk('cKpiRadar');
+    if(el) new Chart(el,{type:'line',data:{
+      labels:['2020','2021','2022','2023','2024','2025'],
+      datasets:[
+        {label:'Benefici Net (€/100)',data:[49,195,211,284,299,291],
+          borderColor:'#e8a020',backgroundColor:'rgba(232,160,32,.1)',
+          borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#e8a020',fill:true,tension:0.3},
+        {label:'Marge % (x100)',data:[23,50,42,46,46,45],
+          borderColor:'#4a83cc',backgroundColor:'rgba(74,131,204,.08)',
+          borderWidth:2,pointRadius:4,pointBackgroundColor:'#4a83cc',fill:true,tension:0.3}
+      ]
+    },options:{...opts(),
+      plugins:{legend:{display:true,position:'top',labels:{color:'#637090',font:{family:'DM Sans',size:11},padding:14,boxWidth:14}},
+      tooltip:{callbacks:{label:c=>{
+        if(c.datasetIndex===0) return ` Benefici: ${(c.raw*100).toLocaleString('ca')}€`;
+        return ` Marge: ${c.raw}%`;
+      }},backgroundColor:'#0d1c35',titleColor:'#fff',bodyColor:'rgba(255,255,255,.7)',padding:10,cornerRadius:6}},
+      scales:{
+        x:{grid:{display:false},ticks:{color:'#637090',font:{size:11}},border:{display:false}},
+        y:{grid:{color:'#eaeef6'},ticks:{color:'#637090',font:{size:11}},border:{display:false}}
+      }}});
   }
 }
 
-// ──────────────────────────────────────
-// INIT
-// ──────────────────────────────────────
 goTo(0);
 </script>
 </body>
