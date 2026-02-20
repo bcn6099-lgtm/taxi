@@ -1,0 +1,1451 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Anàlisi Financera del Negoci 2018–2026</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --navy: #0f1e38;
+    --navy-mid: #1a3058;
+    --blue: #2d5fa0;
+    --blue-light: #4a83cc;
+    --gold: #e8a020;
+    --gold-light: #f5c660;
+    --green: #1e8c5a;
+    --red: #d63031;
+    --orange: #e07020;
+    --bg: #f0f3f8;
+    --card: #ffffff;
+    --text: #0f1e38;
+    --muted: #6b7a9a;
+    --border: #dde3ef;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+  }
+
+  /* ──────────────────────────────────────
+     NAVIGATION
+  ────────────────────────────────────── */
+  #nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    background: var(--navy);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
+    height: 56px;
+    box-shadow: 0 2px 20px rgba(0,0,0,.3);
+  }
+
+  #nav .brand {
+    font-family: 'Playfair Display', serif;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #fff;
+    letter-spacing: .02em;
+  }
+  #nav .brand span { color: var(--gold); }
+
+  #nav-pills {
+    display: flex;
+    gap: .25rem;
+  }
+
+  .nav-pill {
+    background: none;
+    border: none;
+    color: rgba(255,255,255,.5);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .75rem;
+    font-weight: 500;
+    padding: .35rem .75rem;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: all .2s;
+    white-space: nowrap;
+  }
+  .nav-pill:hover { color: #fff; background: rgba(255,255,255,.1); }
+  .nav-pill.active { background: var(--gold); color: var(--navy); font-weight: 600; }
+
+  #page-counter {
+    font-size: .75rem;
+    color: rgba(255,255,255,.4);
+    min-width: 60px;
+    text-align: right;
+  }
+
+  /* ──────────────────────────────────────
+     PAGES
+  ────────────────────────────────────── */
+  .page {
+    display: none;
+    min-height: 100vh;
+    padding-top: 56px;
+    animation: fadeIn .4s ease;
+  }
+  .page.active { display: block; }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ──────────────────────────────────────
+     PAGE NAVIGATION ARROWS
+  ────────────────────────────────────── */
+  .page-nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.5rem 2.5rem 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .page-btn {
+    display: flex;
+    align-items: center;
+    gap: .5rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    color: var(--navy);
+    font-family: 'DM Sans', sans-serif;
+    font-size: .85rem;
+    font-weight: 500;
+    padding: .6rem 1.2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all .2s;
+    box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  }
+  .page-btn:hover { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .page-btn:disabled { opacity: .3; cursor: not-allowed; }
+  .page-btn:disabled:hover { background: var(--card); color: var(--navy); border-color: var(--border); }
+
+  .page-dots {
+    display: flex;
+    gap: .4rem;
+  }
+  .dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: all .2s;
+    cursor: pointer;
+  }
+  .dot.active { background: var(--gold); transform: scale(1.3); }
+
+  /* ──────────────────────────────────────
+     SHARED LAYOUT HELPERS
+  ────────────────────────────────────── */
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+  }
+
+  .page-header {
+    background: var(--navy);
+    padding: 2.5rem 2.5rem 2rem;
+  }
+  .page-header .inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+  .page-header .section-num {
+    font-size: .7rem;
+    font-weight: 600;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: .5rem;
+  }
+  .page-header h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.6rem, 3vw, 2.4rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.15;
+  }
+  .page-header .subtitle {
+    margin-top: .5rem;
+    font-size: .9rem;
+    color: rgba(255,255,255,.55);
+    font-weight: 300;
+  }
+  .gold-bar {
+    height: 3px;
+    background: var(--gold);
+    margin-top: 1.5rem;
+  }
+
+  .content-area {
+    padding: 2rem 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+  }
+
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,.05);
+  }
+
+  /* ──────────────────────────────────────
+     PAGE 1 – PORTADA
+  ────────────────────────────────────── */
+  #p1 {
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+  }
+  #p1.active { display: flex; }
+
+  .cover-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 3rem 2.5rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+  }
+
+  .cover-eyebrow {
+    font-size: .72rem;
+    font-weight: 600;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 1.2rem;
+  }
+
+  .cover-title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.05;
+  }
+  .cover-title .accent { color: var(--gold); display: block; }
+
+  .cover-divider {
+    width: 80px;
+    height: 3px;
+    background: var(--gold);
+    margin: 2rem 0;
+  }
+
+  .cover-date {
+    font-size: 1.05rem;
+    color: rgba(255,255,255,.5);
+    margin-bottom: 3rem;
+  }
+
+  .cover-stats {
+    display: flex;
+    gap: 3rem;
+    flex-wrap: wrap;
+  }
+
+  .cover-stat .val {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+  }
+  .cover-stat .lbl {
+    font-size: .78rem;
+    color: rgba(255,255,255,.4);
+    margin-top: .3rem;
+    text-transform: uppercase;
+    letter-spacing: .08em;
+  }
+
+  /* ──────────────────────────────────────
+     STAT CARDS
+  ────────────────────────────────────── */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .stat-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 1.2rem 1.4rem;
+    border-left: 4px solid var(--blue);
+    box-shadow: 0 2px 8px rgba(0,0,0,.04);
+  }
+  .stat-card.gold  { border-left-color: var(--gold); }
+  .stat-card.green { border-left-color: var(--green); }
+  .stat-card.red   { border-left-color: var(--red); }
+  .stat-card.orange { border-left-color: var(--orange); }
+
+  .stat-card .sv {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.9rem;
+    font-weight: 700;
+    color: var(--navy);
+    line-height: 1;
+  }
+  .stat-card .sl {
+    font-size: .78rem;
+    font-weight: 600;
+    color: var(--muted);
+    margin-top: .35rem;
+    text-transform: uppercase;
+    letter-spacing: .05em;
+  }
+  .stat-card .sd {
+    font-size: .8rem;
+    color: var(--muted);
+    margin-top: .2rem;
+  }
+
+  /* ──────────────────────────────────────
+     CHART WRAPPER
+  ────────────────────────────────────── */
+  .chart-wrap {
+    position: relative;
+    width: 100%;
+  }
+
+  /* ──────────────────────────────────────
+     GRID LAYOUTS
+  ────────────────────────────────────── */
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+  }
+  .three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+  }
+
+  @media (max-width: 768px) {
+    .two-col, .three-col { grid-template-columns: 1fr; }
+    .cover-stats { gap: 1.5rem; }
+    #nav-pills { display: none; }
+  }
+
+  /* ──────────────────────────────────────
+     TABLE
+  ────────────────────────────────────── */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: .88rem;
+  }
+  .data-table th {
+    background: var(--navy);
+    color: #fff;
+    font-weight: 600;
+    font-size: .75rem;
+    text-transform: uppercase;
+    letter-spacing: .06em;
+    padding: .75rem 1rem;
+    text-align: left;
+  }
+  .data-table td {
+    padding: .7rem 1rem;
+    border-bottom: 1px solid var(--border);
+  }
+  .data-table tr:last-child td { border-bottom: none; }
+  .data-table tr:nth-child(even) td { background: #f8fafc; }
+  .data-table .highlight td { background: #eef7f1 !important; font-weight: 600; }
+  .pos { color: var(--green); font-weight: 600; }
+  .neg { color: var(--red); font-weight: 600; }
+  .neu { color: var(--muted); }
+
+  /* ──────────────────────────────────────
+     INSIGHT BOXES
+  ────────────────────────────────────── */
+  .insight-list {
+    display: flex;
+    flex-direction: column;
+    gap: .75rem;
+  }
+  .insight {
+    display: flex;
+    gap: .9rem;
+    align-items: flex-start;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .9rem 1rem;
+  }
+  .insight .icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+  }
+  .insight .icon.blue   { background: #dbe8f8; }
+  .insight .icon.green  { background: #d4f0e3; }
+  .insight .icon.red    { background: #fde8e8; }
+  .insight .icon.gold   { background: #fef3d6; }
+  .insight .icon.orange { background: #fde8d0; }
+  .insight .it { font-size: .87rem; font-weight: 600; color: var(--navy); margin-bottom: .2rem; }
+  .insight .ib { font-size: .82rem; color: var(--muted); line-height: 1.45; }
+
+  /* ──────────────────────────────────────
+     SEASON LEGEND
+  ────────────────────────────────────── */
+  .season-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: .6rem 1.2rem;
+    margin-top: 1rem;
+  }
+  .season-legend .item {
+    display: flex;
+    align-items: center;
+    gap: .4rem;
+    font-size: .8rem;
+    color: var(--muted);
+  }
+  .legend-dot {
+    width: 12px; height: 12px;
+    border-radius: 3px;
+    flex-shrink: 0;
+  }
+
+  /* ──────────────────────────────────────
+     CONCLUSION CARDS
+  ────────────────────────────────────── */
+  .conclusion-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.2rem;
+  }
+  @media (max-width: 768px) { .conclusion-grid { grid-template-columns: 1fr; } }
+
+  .conclusion-card {
+    background: var(--navy);
+    border-radius: 12px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255,255,255,.08);
+    position: relative;
+    overflow: hidden;
+  }
+  .conclusion-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+  }
+  .conclusion-card.c1::before { background: var(--green); }
+  .conclusion-card.c2::before { background: var(--gold); }
+  .conclusion-card.c3::before { background: var(--blue-light); }
+  .conclusion-card.c4::before { background: var(--orange); }
+
+  .conclusion-card .num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2.5rem;
+    font-weight: 900;
+    opacity: .12;
+    position: absolute;
+    top: .5rem; right: 1rem;
+    color: #fff;
+    line-height: 1;
+  }
+  .conclusion-card .ctitle {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #fff;
+    margin-bottom: .7rem;
+  }
+  .conclusion-card.c1 .ctitle { color: #7ee8a2; }
+  .conclusion-card.c2 .ctitle { color: var(--gold-light); }
+  .conclusion-card.c3 .ctitle { color: #8ab8ee; }
+  .conclusion-card.c4 .ctitle { color: #f5a870; }
+  .conclusion-card .cbody {
+    font-size: .85rem;
+    color: rgba(255,255,255,.6);
+    line-height: 1.6;
+  }
+
+  /* ──────────────────────────────────────
+     DAY CARDS
+  ────────────────────────────────────── */
+  .day-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: .6rem;
+  }
+  @media (max-width: 900px) { .day-grid { grid-template-columns: repeat(4, 1fr); } }
+
+  .day-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: .8rem .6rem;
+    text-align: center;
+  }
+  .day-card.weekend { background: #fffbf0; border-color: #f5d8a0; }
+  .day-card .dname { font-size: .72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .06em; }
+  .day-card .dval  { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--navy); margin: .3rem 0 .1rem; }
+  .day-card.weekend .dval { color: var(--orange); }
+  .day-card .dsub  { font-size: .72rem; color: var(--muted); }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+  section.card { padding: 1.5rem; margin-bottom: 1.5rem; }
+  .section-title {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--navy);
+    margin-bottom: 1rem;
+    padding-bottom: .5rem;
+    border-bottom: 2px solid var(--border);
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="nav">
+  <div class="brand">Anàlisi <span>Financera</span></div>
+  <div id="nav-pills">
+    <button class="nav-pill active" onclick="goTo(0)">Portada</button>
+    <button class="nav-pill" onclick="goTo(1)">Evolució Anual</button>
+    <button class="nav-pill" onclick="goTo(2)">COVID & Recuperació</button>
+    <button class="nav-pill" onclick="goTo(3)">Estacionalitat</button>
+    <button class="nav-pill" onclick="goTo(4)">Dies Setmana</button>
+    <button class="nav-pill" onclick="goTo(5)">Preus & Productivitat</button>
+    <button class="nav-pill" onclick="goTo(6)">KPIs & Taula</button>
+    <button class="nav-pill" onclick="goTo(7)">Conclusions</button>
+  </div>
+  <div id="page-counter">1 / 8</div>
+</nav>
+
+<!-- ═══════════════════════════════════════
+     PAGE 1 — PORTADA
+════════════════════════════════════════ -->
+<div class="page active" id="p1">
+  <div class="cover-body">
+    <div class="cover-eyebrow">Anàlisi Financera · Dades reals de facturació diària</div>
+    <h1 class="cover-title">
+      Informe del
+      <span class="accent">Negoci</span>
+    </h1>
+    <div class="cover-divider"></div>
+    <p class="cover-date">Agost 2018 – Febrer 2026 · 7,5 anys de dades</p>
+    <div class="cover-stats">
+      <div class="cover-stat"><div class="val">~398.000€</div><div class="lbl">Total facturado</div></div>
+      <div class="cover-stat"><div class="val">1.702</div><div class="lbl">Dies analitzats</div></div>
+      <div class="cover-stat"><div class="val">65.362€</div><div class="lbl">Millor any (2024)</div></div>
+      <div class="cover-stat"><div class="val">22,33€/h</div><div class="lbl">Màx. productivitat</div></div>
+    </div>
+  </div>
+  <div class="page-nav">
+    <button class="page-btn" disabled>← Anterior</button>
+    <div class="page-dots" id="dots-1"></div>
+    <button class="page-btn" onclick="goTo(1)">Evolució Anual →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE 2 — EVOLUCIÓ ANUAL
+════════════════════════════════════════ -->
+<div class="page" id="p2">
+  <div class="page-header">
+    <div class="inner">
+      <div class="section-num">01 · Evolució Anual</div>
+      <h1>Facturació Total per Any</h1>
+      <p class="subtitle">Ingressos anuals 2018–2025 i taxes de creixement interanual</p>
+    </div>
+    <div class="gold-bar"></div>
+  </div>
+
+  <div class="content-area">
+    <div class="stat-grid">
+      <div class="stat-card green"><div class="sv">65.362€</div><div class="sl">Rècord 2024</div><div class="sd">Millor any de la història</div></div>
+      <div class="stat-card gold"><div class="sv">+7%</div><div class="sl">Creixement 23→24</div><div class="sd">Cinquè any positiu consecutiu</div></div>
+      <div class="stat-card red"><div class="sv">-67%</div><div class="sl">Caiguda 2020</div><div class="sd">Impacte màxim del COVID-19</div></div>
+      <div class="stat-card"><div class="sv">+0,4%</div><div class="sl">CAGR 2019–2024</div><div class="sd">Creixement anual compost</div></div>
+    </div>
+
+    <section class="card">
+      <div class="section-title">Facturació Anual (€)</div>
+      <div class="chart-wrap" style="height:340px">
+        <canvas id="chartAnual"></canvas>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-title">Creixement Any a Any (%)</div>
+      <div class="chart-wrap" style="height:220px">
+        <canvas id="chartYoY"></canvas>
+      </div>
+    </section>
+  </div>
+
+  <div class="page-nav container">
+    <button class="page-btn" onclick="goTo(0)">← Portada</button>
+    <div class="page-dots" id="dots-2"></div>
+    <button class="page-btn" onclick="goTo(2)">COVID & Recuperació →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE 3 — COVID & RECOVERY
+════════════════════════════════════════ -->
+<div class="page" id="p3">
+  <div class="page-header">
+    <div class="inner">
+      <div class="section-num">02 · COVID-19 i Recuperació</div>
+      <h1>De la Crisi al Màxim Històric</h1>
+      <p class="subtitle">Evolució mensual 2019–2024 · El col·lapse i la recuperació</p>
+    </div>
+    <div class="gold-bar"></div>
+  </div>
+
+  <div class="content-area">
+    <section class="card">
+      <div class="section-title">Ingressos Mensuals 2019–2024 (€)</div>
+      <div class="chart-wrap" style="height:350px">
+        <canvas id="chartMonthly"></canvas>
+      </div>
+    </section>
+
+    <div class="three-col" style="margin-bottom:1.5rem">
+      <div class="stat-card red">
+        <div class="sv">470€</div>
+        <div class="sl">Mínim Absolut</div>
+        <div class="sd">Abril 2020 — confinament total</div>
+      </div>
+      <div class="stat-card gold">
+        <div class="sv">+83%</div>
+        <div class="sl">Recuperació 2021</div>
+        <div class="sd">Primer any de repunt fort</div>
+      </div>
+      <div class="stat-card green">
+        <div class="sv">6.627€</div>
+        <div class="sl">Màxim Mensual</div>
+        <div class="sd">Juny 2024 — rècord total</div>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="section-title">Anàlisi de Fases</div>
+      <div class="insight-list">
+        <div class="insight">
+          <div class="icon red">⚠️</div>
+          <div>
+            <div class="it">Fase 1 · Col·lapse COVID (Mar–Abr 2020)</div>
+            <div class="ib">Caiguda del 67% anual. El mínim mensual de 470€ (Abril) representa només el 7% d'un bon mes de 2019. El negoci sobreviu però amb una facturació mínima de subsistència.</div>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="icon gold">📈</div>
+          <div>
+            <div class="it">Fase 2 · Recuperació Gradual (Jun 2020 – Des 2021)</div>
+            <div class="ib">Creixement sostingut des del mínim. L'any 2021 tanca a 39.006€ (+83% vs 2020), però encara lluny dels 63.937€ de 2019. La recuperació és sòlida però lenta.</div>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="icon green">🚀</div>
+          <div>
+            <div class="it">Fase 3 · Superació del Nivell Pre-COVID (2023–2024)</div>
+            <div class="ib">El 2023 supera finalment el 2019 amb 61.212€. El 2024 estableix el nou rècord de 65.362€, demostrant que el negoci no solament s'ha recuperat sinó que ha crescut.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page-nav container">
+    <button class="page-btn" onclick="goTo(1)">← Evolució Anual</button>
+    <div class="page-dots" id="dots-3"></div>
+    <button class="page-btn" onclick="goTo(3)">Estacionalitat →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE 4 — ESTACIONALITAT
+════════════════════════════════════════ -->
+<div class="page" id="p4">
+  <div class="page-header">
+    <div class="inner">
+      <div class="section-num">03 · Estacionalitat Mensual</div>
+      <h1>Patrons per Mes de l'Any</h1>
+      <p class="subtitle">Ingressos mitjans per mes (anys complets 2019–2024) i distribució estacional</p>
+    </div>
+    <div class="gold-bar"></div>
+  </div>
+
+  <div class="content-area">
+    <section class="card">
+      <div class="section-title">Ingressos Mitjans per Mes (€)</div>
+      <div class="chart-wrap" style="height:320px">
+        <canvas id="chartSeasonal"></canvas>
+      </div>
+      <div class="season-legend">
+        <div class="item"><div class="legend-dot" style="background:#607080"></div>Temporada baixa (Gen, Feb, Nov, Des)</div>
+        <div class="item"><div class="legend-dot" style="background:#4a83cc"></div>Temporada mitja (Mar, Abr, Set)</div>
+        <div class="item"><div class="legend-dot" style="background:#1e8c5a"></div>Temporada alta (Mai, Jun)</div>
+        <div class="item"><div class="legend-dot" style="background:#e8a020"></div>Juliol – bon mes</div>
+        <div class="item"><div class="legend-dot" style="background:#d63031"></div>Agost – caiguda estival</div>
+        <div class="item"><div class="legend-dot" style="background:#2d5fa0"></div>Octubre – millor mes</div>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section class="card">
+        <div class="section-title">Distribució per Temporades</div>
+        <div class="chart-wrap" style="height:260px">
+          <canvas id="chartDonut"></canvas>
+        </div>
+      </section>
+      <section class="card">
+        <div class="section-title">Observacions Clau</div>
+        <div class="insight-list">
+          <div class="insight">
+            <div class="icon gold">⭐</div>
+            <div>
+              <div class="it">Octubre: el millor mes de l'any</div>
+              <div class="ib">5.017€ de mitjana, superant fins i tot els mesos d'estiu. Potenciar la promoció en tardor.</div>
+            </div>
+          </div>
+          <div class="insight">
+            <div class="icon red">⬇️</div>
+            <div>
+              <div class="it">Agost: la gran caiguda (-45%)</div>
+              <div class="ib">Amb 2.728€ de mitjana, Agost és el 45% inferior a la resta de mesos. Considera vacances o ofertes especials.</div>
+            </div>
+          </div>
+          <div class="insight">
+            <div class="icon green">💡</div>
+            <div>
+              <div class="it">Hivern: marge de millora</div>
+              <div class="ib">Gener-Febrer representen els mesos més dèbils (3.000-3.500€). Campanyes de fidelització podrien incrementar-los.</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="page-nav container">
+    <button class="page-btn" onclick="goTo(2)">← COVID & Recuperació</button>
+    <div class="page-dots" id="dots-4"></div>
+    <button class="page-btn" onclick="goTo(4)">Dies Setmana →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE 5 — DIES SETMANA
+════════════════════════════════════════ -->
+<div class="page" id="p5">
+  <div class="page-header">
+    <div class="inner">
+      <div class="section-num">04 · Rendiment per Dia de la Setmana</div>
+      <h1>Ingressos Mitjans per Dia Treballat</h1>
+      <p class="subtitle">Quins dies generen més ingressos? On cal concentrar esforços?</p>
+    </div>
+    <div class="gold-bar"></div>
+  </div>
+
+  <div class="content-area">
+    <div class="day-grid" style="margin-bottom:1.5rem">
+      <div class="day-card"><div class="dname">Dilluns</div><div class="dval">224€</div><div class="dsub">n=296 dies</div></div>
+      <div class="day-card"><div class="dname">Dimarts</div><div class="dval">220€</div><div class="dsub">n=344 dies</div></div>
+      <div class="day-card"><div class="dname">Dimecres</div><div class="dval">223€</div><div class="dsub">n=343 dies</div></div>
+      <div class="day-card"><div class="dname">Dijous</div><div class="dval">234€</div><div class="dsub">n=283 dies</div></div>
+      <div class="day-card"><div class="dname">Divendres</div><div class="dval">249€</div><div class="dsub">n=73 dies</div></div>
+      <div class="day-card weekend"><div class="dname">Dissabte</div><div class="dval">274€</div><div class="dsub">n=159 dies</div></div>
+      <div class="day-card weekend"><div class="dname">Diumenge</div><div class="dval">261€</div><div class="dsub">n=177 dies</div></div>
+    </div>
+
+    <section class="card">
+      <div class="section-title">Comparativa Ingressos per Dia (€/dia)</div>
+      <div class="chart-wrap" style="height:300px">
+        <canvas id="chartDays"></canvas>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <div class="insight-list">
+        <div class="insight">
+          <div class="icon orange">📅</div>
+          <div>
+            <div class="it">Dissabte lidera: 274€/dia</div>
+            <div class="ib">El 22% més que un dilluns (224€). El cap de setmana és clarament el moment de major valoració.</div>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="icon blue">📊</div>
+          <div>
+            <div class="it">Dies laborables: dispersió mínima</div>
+            <div class="ib">Dilluns-Dijous varien entre 220-234€ — molt poca diferència. La setmana és consistent.</div>
+          </div>
+        </div>
+      </div>
+      <div class="insight-list">
+        <div class="insight">
+          <div class="icon green">💡</div>
+          <div>
+            <div class="it">Divendres: molt poca mostra</div>
+            <div class="ib">Amb 73 dies, Divendres té la mostra més petita. El seu 249€ podria ser superior si es treballés regularment.</div>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="icon gold">🎯</div>
+          <div>
+            <div class="it">Estratègia: maximitzar cap de setmana</div>
+            <div class="ib">Si els 159 dissabtes de dades es dupliquessin, podrien suposar +6.500€ anuals addicionals.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-nav container">
+    <button class="page-btn" onclick="goTo(3)">← Estacionalitat</button>
+    <div class="page-dots" id="dots-5"></div>
+    <button class="page-btn" onclick="goTo(5)">Preus & Productivitat →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE 6 — PREUS & PRODUCTIVITAT
+════════════════════════════════════════ -->
+<div class="page" id="p6">
+  <div class="page-header">
+    <div class="inner">
+      <div class="section-num">05-06 · Preus i Productivitat</div>
+      <h1>Preu per Servei i Ingressos per Hora</h1>
+      <p class="subtitle">Evolució de l'eficiència econòmica 2018–2024</p>
+    </div>
+    <div class="gold-bar"></div>
+  </div>
+
+  <div class="content-area">
+    <div class="two-col">
+      <section class="card">
+        <div class="section-title">Preu Mig per Servei (€) · 2021–2024</div>
+        <div class="chart-wrap" style="height:260px">
+          <canvas id="chartPrice"></canvas>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr; margin-top:1rem">
+          <div class="stat-card gold"><div class="sv">20,00€</div><div class="sl">Màxim 2024</div></div>
+          <div class="stat-card green"><div class="sv">+50,5%</div><div class="sl">Pujada 2021→2024</div></div>
+        </div>
+      </section>
+      <section class="card">
+        <div class="section-title">Ingressos per Hora (€/h) · 2018–2025</div>
+        <div class="chart-wrap" style="height:260px">
+          <canvas id="chartHour"></canvas>
+        </div>
+        <div class="stat-grid" style="grid-template-columns:1fr 1fr; margin-top:1rem">
+          <div class="stat-card green"><div class="sv">22,33€</div><div class="sl">Màxim 2024</div></div>
+          <div class="stat-card red"><div class="sv">12,35€</div><div class="sl">Mínim 2020</div></div>
+        </div>
+      </section>
+    </div>
+
+    <section class="card">
+      <div class="section-title">Insights de Preus i Eficiència</div>
+      <div class="insight-list">
+        <div class="insight">
+          <div class="icon gold">📈</div>
+          <div>
+            <div class="it">CAGR del Preu per Servei 2021→2024: +14,7% anual</div>
+            <div class="ib">Cada any el preu puja de manera consistent i significativa. El salt de 13,29€ a 20,00€ en 3 anys és excel·lent i indica una percepció creixent de valor.</div>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="icon green">💪</div>
+          <div>
+            <div class="it">Productivitat horària supera els nivells pre-COVID el 2022</div>
+            <div class="ib">22,33€/h el 2024 vs 22,49€/h el 2019. El negoci ha recuperat i pràcticament igualat la seva millor eficiència horària pre-pandèmia.</div>
+          </div>
+        </div>
+        <div class="insight">
+          <div class="icon blue">⏱️</div>
+          <div>
+            <div class="it">Jornada estable: ~12 hores/dia (2021–2025)</div>
+            <div class="ib">La durada de la jornada es manté constant. El creixement d'ingressos prové de preus majors i millor ocupació, no de treballar més hores.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <div class="page-nav container">
+    <button class="page-btn" onclick="goTo(4)">← Dies Setmana</button>
+    <div class="page-dots" id="dots-6"></div>
+    <button class="page-btn" onclick="goTo(6)">KPIs & Taula →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE 7 — KPIs & TABLE
+════════════════════════════════════════ -->
+<div class="page" id="p7">
+  <div class="page-header">
+    <div class="inner">
+      <div class="section-num">07 · KPIs Clau i Benchmarks</div>
+      <h1>Indicadors Principals i Comparativa Anual</h1>
+      <p class="subtitle">Resum executiu de tots els indicadors de negoci any a any</p>
+    </div>
+    <div class="gold-bar"></div>
+  </div>
+
+  <div class="content-area">
+    <div class="stat-grid" style="grid-template-columns: repeat(4, 1fr)">
+      <div class="stat-card green"><div class="sv">65.362€</div><div class="sl">Rècord 2024</div><div class="sd">Millor any de la història</div></div>
+      <div class="stat-card gold"><div class="sv">20,00€</div><div class="sl">Preu Màxim/Servei</div><div class="sd">Aconseguit el 2024</div></div>
+      <div class="stat-card orange"><div class="sv">22,33€/h</div><div class="sl">Màx. Productivitat</div><div class="sd">Ingressos per hora 2024</div></div>
+      <div class="stat-card"><div class="sv">~12h/dia</div><div class="sl">Jornada Estable</div><div class="sd">Consistent 2021–2025</div></div>
+    </div>
+
+    <section class="card">
+      <div class="section-title">Comparativa Anual Completa</div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Any</th>
+            <th>Facturació Total</th>
+            <th>Creixement YoY</th>
+            <th>€/Hora</th>
+            <th>Preu/Servei</th>
+            <th>Dies Treballats</th>
+            <th>Hores Totals</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr><td>2018 *</td><td>25.703€</td><td class="neu">Parcial (ago–des)</td><td>19,80€</td><td>n/d</td><td>~125</td><td>n/d</td></tr>
+          <tr><td>2019</td><td>63.937€</td><td class="neu">Referència</td><td>22,49€</td><td>n/d</td><td>~270</td><td>n/d</td></tr>
+          <tr><td>2020</td><td>21.287€</td><td class="neg">−66,7%</td><td>12,35€</td><td>n/d</td><td>~180</td><td>n/d</td></tr>
+          <tr><td>2021</td><td>39.006€</td><td class="pos">+83,2%</td><td>14,80€</td><td>13,29€</td><td>217</td><td>2.653h</td></tr>
+          <tr><td>2022</td><td>49.935€</td><td class="pos">+28,0%</td><td>19,70€</td><td>16,86€</td><td>214</td><td>2.523h</td></tr>
+          <tr><td>2023</td><td>61.212€</td><td class="pos">+22,6%</td><td>21,70€</td><td>18,66€</td><td>236</td><td>2.831h</td></tr>
+          <tr class="highlight"><td><strong>2024</strong></td><td><strong>65.362€ ★</strong></td><td class="pos">+6,8%</td><td><strong>22,33€</strong></td><td><strong>20,00€</strong></td><td><strong>250</strong></td><td><strong>2.935h</strong></td></tr>
+          <tr><td>2025 **</td><td>64.467€</td><td class="neg">−1,4%</td><td>21,99€</td><td>12,63€***</td><td>248</td><td>2.939h</td></tr>
+        </tbody>
+      </table>
+      <p style="font-size:.75rem; color:var(--muted); margin-top:.8rem; padding: 0 .5rem">
+        * 2018: dades des d'agost (any parcial) · ** 2025: possible any parcial o dades discontinues · *** Preu 2025 basat en mostra reduïda
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="section-title">Evolució del Nº de Serveis Diaris</div>
+      <div class="chart-wrap" style="height:200px">
+        <canvas id="chartServices"></canvas>
+      </div>
+    </section>
+  </div>
+
+  <div class="page-nav container">
+    <button class="page-btn" onclick="goTo(5)">← Preus & Productivitat</button>
+    <div class="page-dots" id="dots-7"></div>
+    <button class="page-btn" onclick="goTo(7)">Conclusions →</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     PAGE 8 — CONCLUSIONS
+════════════════════════════════════════ -->
+<div class="page" id="p8">
+  <div class="page-header" style="background: #0a1628">
+    <div class="inner">
+      <div class="section-num">08 · Resum Final</div>
+      <h1>Conclusions i Recomanacions</h1>
+      <p class="subtitle">Punts clau extrets de 7,5 anys de dades reals de facturació</p>
+    </div>
+    <div class="gold-bar"></div>
+  </div>
+
+  <div class="content-area">
+    <div class="conclusion-grid" style="margin-bottom:1.5rem">
+      <div class="conclusion-card c1">
+        <div class="num">1</div>
+        <div class="ctitle">Negoci en Creixement Sòlid</div>
+        <div class="cbody">2024 ha sigut el millor any de la història amb 65.362€. Cinc anys consecutius de creixement positiu post-COVID demostren una resiliència i capacitat de recuperació excepcional. La tendència és clarament alcista.</div>
+      </div>
+      <div class="conclusion-card c2">
+        <div class="num">2</div>
+        <div class="ctitle">Política de Preus: Continuar Pujant</div>
+        <div class="cbody">De 13,29€ el 2021 a 20,00€ el 2024 (+50,5%). El mercat accepta les pujades. Recomanació: apuntar a 22-23€ per servei el 2025-2026 seguint el ritme del CAGR del +14,7%.</div>
+      </div>
+      <div class="conclusion-card c3">
+        <div class="num">3</div>
+        <div class="ctitle">Gestionar l'Estacionalitat</div>
+        <div class="cbody">Agost és el punt feble (-45%). Considera ofertes especials, paquets promocionals, o planifica les vacances aquest mes. Octubre és el millor mes (5.017€ de mitjana) — potenciar la visibilitat en tardor.</div>
+      </div>
+      <div class="conclusion-card c4">
+        <div class="num">4</div>
+        <div class="ctitle">Maximitzar el Cap de Setmana</div>
+        <div class="cbody">Dissabte (274€/dia) supera en un 22% els dies laborables. Augmentar la disponibilitat en cap de setmana podria suposar +6.000-8.000€ anuals addicionals sense treballar més dies totals.</div>
+      </div>
+    </div>
+
+    <section class="card">
+      <div class="section-title">Resum Visual de KPIs Clau</div>
+      <div class="chart-wrap" style="height:280px">
+        <canvas id="chartRadar"></canvas>
+      </div>
+    </section>
+
+    <div style="background: var(--navy); border-radius:12px; padding:1.5rem; color:rgba(255,255,255,.6); font-size:.82rem; margin-top:1.5rem">
+      <strong style="color:var(--gold)">📌 Nota metodològica:</strong> Anàlisi basada en 1.702 registres de facturació diària entre agost 2018 i febrer 2026. Les dades de serveis/dia i hores treballades estan disponibles des de 2021. Els anys 2018 i 2025 presenten dades parcials o discontinues i s'han exclòs de certes mitjanes estacionals. Anàlisi generada al febrer 2026.
+    </div>
+  </div>
+
+  <div class="page-nav container">
+    <button class="page-btn" onclick="goTo(6)">← KPIs & Taula</button>
+    <div class="page-dots" id="dots-8"></div>
+    <button class="page-btn" disabled>Fi del Informe ✓</button>
+  </div>
+</div>
+
+<script>
+// ──────────────────────────────────────
+// NAVIGATION
+// ──────────────────────────────────────
+const TOTAL = 8;
+let current = 0;
+const chartsInit = new Set();
+
+function goTo(idx) {
+  document.querySelectorAll('.page').forEach((p, i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.querySelectorAll('.nav-pill').forEach((p, i) => {
+    p.classList.toggle('active', i === idx);
+  });
+  document.getElementById('page-counter').textContent = `${idx + 1} / ${TOTAL}`;
+  current = idx;
+
+  // Render dots in all dot containers
+  for (let i = 1; i <= TOTAL; i++) {
+    const el = document.getElementById(`dots-${i}`);
+    if (el) {
+      el.innerHTML = '';
+      for (let j = 0; j < TOTAL; j++) {
+        const d = document.createElement('div');
+        d.className = 'dot' + (j === idx ? ' active' : '');
+        d.onclick = () => goTo(j);
+        el.appendChild(d);
+      }
+    }
+  }
+
+  window.scrollTo(0, 0);
+  initChartsForPage(idx);
+}
+
+// ──────────────────────────────────────
+// CHART DEFAULTS
+// ──────────────────────────────────────
+const DEF = {
+  responsive: true,
+  maintainAspectRatio: false,
+  plugins: {
+    legend: { display: false },
+    tooltip: {
+      backgroundColor: '#0f1e38',
+      titleColor: '#fff',
+      bodyColor: 'rgba(255,255,255,.7)',
+      padding: 10,
+      cornerRadius: 6,
+    }
+  },
+  scales: {
+    x: {
+      grid: { display: false },
+      ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } },
+      border: { display: false }
+    },
+    y: {
+      grid: { color: '#eaeef6', lineWidth: 1 },
+      ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } },
+      border: { display: false }
+    }
+  }
+};
+
+function merge(a, b) { return Object.assign({}, a, b); }
+
+// ──────────────────────────────────────
+// DATA
+// ──────────────────────────────────────
+const annualLabels = ['2018*','2019','2020','2021','2022','2023','2024','2025**'];
+const annualValues = [25703, 63937, 21287, 39006, 49935, 61212, 65362, 64467];
+const annualColors = ['#4a83cc','#2d5fa0','#d63031','#e8a020','#1e8c5a','#1a7a5e','#0d5c3a','#1a7a5e'];
+
+const yoyLabels = ['19→20','20→21','21→22','22→23','23→24'];
+const yoyValues = [-66.7, 83.2, 28.0, 22.6, 6.8];
+
+const monthlyLabels = [
+  'G-19','F','M','A','M','J','J','A','S','O','N','D',
+  'G-20','F','M','A','M','J','J','A','S','O','N','D',
+  'G-21','F','M','A','M','J','J','A','S','O','N','D',
+  'G-22','F','M','A','M','J','J','A','S','O','N','D',
+  'G-23','F','M','A','M','J','J','A','S','O','N','D',
+  'G-24','F','M','A','M','J','J','A','S','O','N','D',
+];
+const monthlyValues = [
+  3357,5043,5705,6064,6548,6028,6122,2733,5831,6196,5667,4643,
+  969,1574,1959,470,1586,1899,2286,2038,2536,1969,1782,2219,
+  1955,2186,2347,2326,2829,3704,3805,3191,4149,4546,4251,3717,
+  2891,1358,3441,5498,5387,5501,5629,3115,3181,5819,4592,3523,
+  4158,5268,5588,5572,5798,5725,4728,3933,5570,5583,5040,4249,
+  4625,5274,5324,6154,5790,6627,6139,3956,5936,5989,4681,4867,
+];
+
+const seasonalLabels = ['Gen','Feb','Mar','Abr','Mai','Jun','Jul','Ago','Set','Oct','Nov','Des'];
+const seasonalValues = [2992, 3450, 4061, 3757, 4656, 4914, 4785, 2728, 4534, 5017, 3747, 3340];
+const seasonalColors = ['#607080','#607080','#4a83cc','#4a83cc','#1e8c5a','#1e8c5a','#e8a020','#d63031','#4a83cc','#2d5fa0','#607080','#607080'];
+
+const dayLabels = ['Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte','Diumenge'];
+const dayValues = [224.4, 219.5, 223.0, 233.9, 249.4, 274.1, 261.1];
+const dayColors = ['#4a83cc','#4a83cc','#4a83cc','#4a83cc','#2d5fa0','#e07020','#e07020'];
+
+const priceLabels = ['2021','2022','2023','2024'];
+const priceValues = [13.29, 16.86, 18.66, 20.00];
+
+const hourLabels = ['2018','2019','2020','2021','2022','2023','2024','2025'];
+const hourValues = [19.80, 22.49, 12.35, 14.80, 19.70, 21.70, 22.33, 21.99];
+const hourColors = ['#4a83cc','#2d5fa0','#d63031','#e8a020','#1e8c5a','#1a7a5e','#0d5c3a','#1a7a5e'];
+
+const svcLabels = ['2021','2022','2023','2024','2025'];
+const svcValues = [15.7, 16.2, 16.6, 14.9, 14.3];
+
+// ──────────────────────────────────────
+// CHART INIT
+// ──────────────────────────────────────
+function initChartsForPage(idx) {
+  if (chartsInit.has(idx)) return;
+  chartsInit.add(idx);
+
+  const cOpts = (overrides) => ({
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: { backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10, cornerRadius: 6 }
+    },
+    scales: {
+      x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } }, border: { display: false } },
+      y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } }, border: { display: false } }
+    },
+    ...overrides
+  });
+
+  if (idx === 1) {
+    // Annual bar
+    const ctx1 = document.getElementById('chartAnual');
+    if (ctx1 && !Chart.getChart(ctx1)) {
+      new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: annualLabels,
+          datasets: [{ data: annualValues, backgroundColor: annualColors, borderRadius: 5, borderSkipped: false }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw.toLocaleString('ca')}€` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 },
+            datalabels: false
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v.toLocaleString('ca') + '€' }, border: { display: false } }
+          }
+        })
+      });
+    }
+
+    // YoY bar
+    const ctx2 = document.getElementById('chartYoY');
+    if (ctx2 && !Chart.getChart(ctx2)) {
+      new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: yoyLabels,
+          datasets: [{ data: yoyValues, backgroundColor: yoyValues.map(v => v >= 0 ? '#1e8c5a' : '#d63031'), borderRadius: 5, borderSkipped: false }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw > 0 ? '+' : ''}${c.raw}%` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '%' }, border: { display: false } }
+          }
+        })
+      });
+    }
+  }
+
+  if (idx === 2) {
+    const ctx = document.getElementById('chartMonthly');
+    if (ctx && !Chart.getChart(ctx)) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: monthlyLabels,
+          datasets: [{
+            data: monthlyValues,
+            borderColor: '#4a83cc',
+            backgroundColor: 'rgba(74,131,204,.08)',
+            borderWidth: 2.5,
+            pointRadius: 2,
+            pointHoverRadius: 5,
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw.toLocaleString('ca')}€` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 20 }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v.toLocaleString('ca') + '€' }, border: { display: false } }
+          }
+        })
+      });
+    }
+  }
+
+  if (idx === 3) {
+    const ctx1 = document.getElementById('chartSeasonal');
+    if (ctx1 && !Chart.getChart(ctx1)) {
+      new Chart(ctx1, {
+        type: 'bar',
+        data: {
+          labels: seasonalLabels,
+          datasets: [{ data: seasonalValues, backgroundColor: seasonalColors, borderRadius: 5, borderSkipped: false }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw.toLocaleString('ca')}€` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v.toLocaleString('ca') + '€' }, border: { display: false } }
+          }
+        })
+      });
+    }
+    const ctx2 = document.getElementById('chartDonut');
+    if (ctx2 && !Chart.getChart(ctx2)) {
+      new Chart(ctx2, {
+        type: 'doughnut',
+        data: {
+          labels: ['Temporada Alta\n(Mai-Jun)', 'Motor del negoci\n(Mar,Jul,Set,Oct)', 'Hivern\n(Gen,Feb,Nov,Des)', 'Agost'],
+          datasets: [{ data: [9570, 18397, 13529, 2728], backgroundColor: ['#1e8c5a','#4a83cc','#607080','#d63031'], borderWidth: 2, borderColor: '#fff' }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          cutout: '60%',
+          plugins: {
+            legend: { display: true, position: 'bottom', labels: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 }, padding: 12, boxWidth: 14 } },
+            tooltip: { callbacks: { label: c => ` ${c.label}: ${((c.raw / 44224) * 100).toFixed(1)}%` }, backgroundColor: '#0f1e38', padding: 10 }
+          }
+        }
+      });
+    }
+  }
+
+  if (idx === 4) {
+    const ctx = document.getElementById('chartDays');
+    if (ctx && !Chart.getChart(ctx)) {
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: dayLabels,
+          datasets: [{ data: dayValues, backgroundColor: dayColors, borderRadius: 5, borderSkipped: false }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(1)}€/dia` }, backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, min: 190, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '€' }, border: { display: false } }
+          }
+        })
+      });
+    }
+  }
+
+  if (idx === 5) {
+    const ctx1 = document.getElementById('chartPrice');
+    if (ctx1 && !Chart.getChart(ctx1)) {
+      new Chart(ctx1, {
+        type: 'line',
+        data: {
+          labels: priceLabels,
+          datasets: [{
+            data: priceValues,
+            borderColor: '#e8a020',
+            backgroundColor: 'rgba(232,160,32,.1)',
+            borderWidth: 3,
+            pointBackgroundColor: '#e8a020',
+            pointRadius: 6,
+            pointHoverRadius: 8,
+            fill: true,
+            tension: 0.2
+          }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(2)}€/servei` }, backgroundColor: '#0f1e38', padding: 10 }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 12 } }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, min: 10, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '€' }, border: { display: false } }
+          }
+        })
+      });
+    }
+    const ctx2 = document.getElementById('chartHour');
+    if (ctx2 && !Chart.getChart(ctx2)) {
+      new Chart(ctx2, {
+        type: 'bar',
+        data: {
+          labels: hourLabels,
+          datasets: [{ data: hourValues, backgroundColor: hourColors, borderRadius: 5, borderSkipped: false }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw.toFixed(2)}€/h` }, backgroundColor: '#0f1e38', padding: 10 }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, ticks: { color: '#6b7a9a', font: { size: 11 }, callback: v => v + '€' }, border: { display: false } }
+          }
+        })
+      });
+    }
+  }
+
+  if (idx === 6) {
+    const ctx = document.getElementById('chartServices');
+    if (ctx && !Chart.getChart(ctx)) {
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: svcLabels,
+          datasets: [{
+            data: svcValues,
+            borderColor: '#2d5fa0',
+            backgroundColor: 'rgba(45,95,160,.1)',
+            borderWidth: 2.5,
+            pointBackgroundColor: '#2d5fa0',
+            pointRadius: 6,
+            fill: true,
+            tension: 0.2
+          }]
+        },
+        options: cOpts({
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: c => ` ${c.raw} serveis/dia` }, backgroundColor: '#0f1e38', padding: 10 }
+          },
+          scales: {
+            x: { grid: { display: false }, ticks: { color: '#6b7a9a', font: { size: 12 } }, border: { display: false } },
+            y: { grid: { color: '#eaeef6' }, min: 12, max: 18, ticks: { color: '#6b7a9a', font: { size: 11 } }, border: { display: false } }
+          }
+        })
+      });
+    }
+  }
+
+  if (idx === 7) {
+    const ctx = document.getElementById('chartRadar');
+    if (ctx && !Chart.getChart(ctx)) {
+      new Chart(ctx, {
+        type: 'radar',
+        data: {
+          labels: ['Facturació\nAnual', 'Preu per\nServei', 'Productivitat\n€/Hora', 'Serveis\nper Dia', 'Dies\nTreballats', 'Estabilitat\nJornada'],
+          datasets: [
+            {
+              label: '2021 (base)',
+              data: [60, 40, 55, 70, 85, 90],
+              borderColor: 'rgba(100,130,180,.6)',
+              backgroundColor: 'rgba(100,130,180,.08)',
+              pointBackgroundColor: 'rgba(100,130,180,.6)',
+              borderWidth: 1.5,
+              pointRadius: 3
+            },
+            {
+              label: '2024 (actual)',
+              data: [100, 100, 100, 80, 100, 95],
+              borderColor: '#e8a020',
+              backgroundColor: 'rgba(232,160,32,.12)',
+              pointBackgroundColor: '#e8a020',
+              borderWidth: 2.5,
+              pointRadius: 5
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: true, position: 'bottom', labels: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 }, padding: 16, boxWidth: 14 } },
+            tooltip: { backgroundColor: '#0f1e38', titleColor: '#fff', bodyColor: 'rgba(255,255,255,.7)', padding: 10 }
+          },
+          scales: {
+            r: {
+              min: 0, max: 100,
+              grid: { color: '#eaeef6' },
+              angleLines: { color: '#eaeef6' },
+              ticks: { display: false },
+              pointLabels: { color: '#6b7a9a', font: { family: 'DM Sans', size: 11 } }
+            }
+          }
+        }
+      });
+    }
+  }
+}
+
+// ──────────────────────────────────────
+// INIT
+// ──────────────────────────────────────
+goTo(0);
+</script>
+</body>
+</html>
