@@ -190,16 +190,16 @@ h1 {
 .terminal-header {
     display: grid;
     grid-template-columns: 1fr 1fr 1fr;
-    padding: 10px 0;
+    padding: 12px 0;
     border-bottom: 1px solid rgba(255,193,7,0.6);
     font-weight: 700;
-    font-size: 14px;
+    font-size: 22px;
     color: #ffc107;
-    letter-spacing: 3px;
+    letter-spacing: 4px;
     text-transform: uppercase;
     margin-top: 8px;
-    font-family: 'Orbitron', monospace;
-    text-shadow: 0 0 10px rgba(255,193,7,0.5);
+    font-family: 'Share Tech Mono', monospace;
+    text-shadow: 0 0 12px rgba(255,193,7,0.6);
 }
 
 .terminal-header div:first-child { text-align: left; }
