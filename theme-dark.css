@@ -1,0 +1,110 @@
+/* ═══════════════════════════════════════════════
+   TEMA 3 · DARK PREMIUM  (fosc / ambre)
+   Per activar: <link rel="stylesheet" href="theme-dark.css">
+═══════════════════════════════════════════════ */
+:root {
+  --nav-bg:      #111827;
+  --nav-active:  #f59e0b;
+  --nav-text:    rgba(255,255,255,.38);
+  --nav-hover:   rgba(255,255,255,.08);
+  --nav-active-text: #111827;
+  --ph-bg:       #111827;
+  --ph-text:     #f9fafb;
+  --ph-sub:      rgba(255,255,255,.42);
+  --ph-accent:   #f59e0b;
+  --goldbar:     #f59e0b;
+  --bg:          #1f2937;
+  --card:        #111827;
+  --border:      #374151;
+  --text:        #f9fafb;
+  --muted:       #9ca3af;
+  --navy:        #111827;
+  --navy2:       #0d1117;
+  --blue:        #3b82f6;
+  --bluelt:      #60a5fa;
+  --gold:        #f59e0b;
+  --goldlt:      #fcd34d;
+  --green:       #10b981;
+  --red:         #ef4444;
+  --orange:      #f97316;
+  --sc-default:  #3b82f6;
+  --sc-gold:     #f59e0b;
+  --sc-green:    #10b981;
+  --sc-red:      #ef4444;
+  --sc-orange:   #f97316;
+  --sc-purple:   #a78bfa;
+  --cc-bg:       #0d1117;
+  --cc-border:   rgba(255,255,255,.06);
+  --cc-text:     rgba(255,255,255,.55);
+  --ins-bg:      #1f2937;
+  --ins-border:  #374151;
+  --ins-title:   #f9fafb;
+  --ins-body:    #9ca3af;
+  --ins-dark-bg:     rgba(255,255,255,.04);
+  --ins-dark-border: rgba(255,255,255,.07);
+  --ins-dark-title:  #f9fafb;
+  --ins-dark-body:   rgba(255,255,255,.5);
+  --th-bg:       #0d1117;
+  --th-text:     #f9fafb;
+  --td-alt:      #1f2937;
+  --td-hl:       #052e16;
+  --btn-bg:      #1f2937;
+  --btn-border:  #374151;
+  --btn-text:    #f9fafb;
+  --btn-hover-bg:#f59e0b;
+  --btn-hover-text:#111827;
+  --abox-bg:     #1a2535;
+  --abox-border: #374151;
+  --abox-title:  #f9fafb;
+  --ap-odd:      linear-gradient(135deg,#1e3a5f,#2d5fa0);
+  --ap-even:     linear-gradient(135deg,#064e3b,#065f46);
+  --dark-section-bg:    #0d1117;
+  --dark-section-border:rgba(255,255,255,.07);
+  --dark-section-title: #fcd34d;
+  --dark-section-titleborder:rgba(255,255,255,.09);
+  --dot-inactive:#374151;
+  --dot-active:  #f59e0b;
+  --dc-bg:       #1f2937;
+  --dc-border:   #374151;
+  --dc-wk-bg:    #1c1a0a;
+  --dc-wk-border:#78350f;
+  --dc-wk-val:   #f59e0b;
+  --dc-rest-bg:  #111827;
+  --dc-dn:       #9ca3af;
+  --dc-val:      #f9fafb;
+  --tag-green-bg:#052e16; --tag-green-text:#34d399;
+  --tag-red-bg:  #450a0a; --tag-red-text:  #f87171;
+  --tag-blue-bg: #1e3a5f; --tag-blue-text: #93c5fd;
+  --tag-gold-bg: #451a03; --tag-gold-text: #fcd34d;
+  --pri-high-bg: #450a0a; --pri-high-text: #f87171;
+  --pri-med-bg:  #451a03; --pri-med-text:  #fcd34d;
+  --pri-low-bg:  #052e16; --pri-low-text:  #34d399;
+  --ico-blue:   #1e3a5f; --ico-green:  #052e16;
+  --ico-red:    #450a0a; --ico-gold:   #451a03;
+  --ico-orange: #431407; --ico-purple: #2e1065;
+  --tl-line:    #374151;
+  --tl-dot:     #3b82f6;
+  --tl-good:    #10b981;
+  --tl-bad:     #ef4444;
+  --tl-warn:    #f59e0b;
+  --note-color: #9ca3af;
+  --tariff-best-bg: #052e16;
+  --meta-bg:    #0d1117;
+  --meta-title: #fcd34d;
+  --meta-text:  rgba(255,255,255,.45);
+}
+
+/* Dark mode needs some extra overrides for readable text */
+body { color: var(--text); }
+.dt td { color: var(--text); }
+.sc .sv { color: var(--text); }
+.sc .sl, .sc .sd { color: var(--muted); }
+.st { color: var(--text); border-bottom-color: var(--border); }
+.ph h1 { color: var(--ph-text); }
+.tl-title { color: var(--text); }
+.tl-body { color: var(--muted); }
+.tl-date { color: var(--muted); }
+.analysis-box h4 { color: var(--abox-title); }
+.note { color: var(--note-color); }
+.cc .cbody { color: var(--cc-text); }
+.pbtn { color: var(--btn-text); }
