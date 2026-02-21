@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxi BCN 2026</title>
+    
+    <link rel="icon" type="image/png" href="taxiapp.png">
+    <link rel="apple-touch-icon" href="taxiapp.png">
+    
+    <style>
+        body {
+            font-family: system-ui, -apple-system, sans-serif;
+            background-color: #000000;
+            color: #e0e0e0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+        .card {
+            background: #1a1a1a;
+            padding: 2rem;
+            border-radius: 12px;
+            border: 1px solid #333;
+            box-shadow: 0 4px 20px rgba(255, 193, 7, 0.15);
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+        }
+        .app-icon {
+            width: 80px;
+            height: 80px;
+            margin-bottom: 1rem;
+            border-radius: 18px;
+            object-fit: cover;
+        }
+        h1 { font-size: 1.6rem; color: #ffffff; margin-bottom: 0.5rem; }
+        .section-label { color: #888; font-size: 0.85rem; margin-bottom: 5px; text-align: left; width: 85%; margin-left: auto; margin-right: auto; }
+        input {
+            width: 85%;
+            padding: 12px;
+            font-size: 1.1rem;
+            margin-bottom: 1.2rem;
+            border: 2px solid #444;
+            border-radius: 6px;
+            background-color: #2a2a2a;
+            color: #ffffff;
+            text-align: center;
+        }
+        input:focus { outline: none; border-color: #ffc107; }
+        button {
+            background-color: #ffc107;
+            color: #000000;
+            border: none;
+            padding: 14px 25px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: 0.3s;
+            width: 85%;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+        }
+        button:hover { background-color: #e0a800; transform: translateY(-2px); }
+        .result {
+            margin-top: 1.5rem;
+            padding: 1.2rem;
+            border-radius: 8px;
+            display: none;
+        }
+        .can-work { background-color: rgba(40, 167, 69, 0.1); color: #4dd565; border: 1px solid #28a745; }
+        .cannot-work { background-color: rgba(220, 53, 69, 0.1); color: #ff6b7b; border: 1px solid #dc3545; }
+        .airport-status { margin-top: 12px; font-size: 0.95rem; font-weight: normal; color: #cccccc; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 10px; }
+        .highlight-yellow { color: #ffc107; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <img src="taxiapp.png" alt="Taxi App" class="app-icon">
+    <h1>Taxi BCN 2026</h1>
+    
+    <div class="section-label">Llicència de taxi:</div>
+    <input type="number" id="licencia" placeholder="Ex: 1234">
+
+    <div class="section-label">Consulta per data i hora:</div>
+    <input type="datetime-local" id="fecha-consulta">
+
+    <button onclick="consultarLicencia()">Puc treballar?</button>
+
+    <div id="resultado" class="result">
+        <div id="estado-trabajo" style="font-size: 1.3rem; margin-bottom: 5px; font-weight: 800;"></div>
+        <div id="estado-aeropuerto" class="airport-status"></div>
+    </div>
+</div>
+
+<script>
+    // Inicialitzar amb data i hora actual
+    window.onload = function() {
+        const ara = new Date();
+        ara.setMinutes(ara.getMinutes() - ara.getTimezoneOffset());
+        document.getElementById('fecha-consulta').value = ara.toISOString().slice(0, 16);
+    };
+
+    // Festius intersetmanals del document (només treballa el 50%)
+    const festius50 = {
+        "2026-04-03": "senar", "2026-04-06": "parell", "2026-05-01": "senar",
+        "2026-05-25": "senar", "2026-06-24": "parell", "2026-09-11": "senar",
+        "2026-10-12": "parell", "2026-12-08": "parell"
+    };
+
+    function consultarLicencia() {
+        const licStr = document.getElementById('licencia').value;
+        const dataStr = document.getElementById('fecha-consulta').value;
+        
+        if (!licStr || !dataStr) { alert("Si us plau, introdueix la llicència i la data."); return; }
+
+        const licencia = parseInt(licStr, 10);
+        const ultim = licencia % 10;
+        const esParell = licencia % 2 === 0;
+        const consulta = new Date(dataStr);
+        const hora = consulta.getHours();
+        
+        // Càlcul del dia de torn (6:00 AM a 6:00 AM)
+        let dataTorn = new Date(consulta);
+        if (hora < 6) dataTorn.setDate(dataTorn.getDate() - 1);
+        
+        const ds = dataTorn.getDay(); 
+        const dm = dataTorn.getDate();
+        const ymd = dataTorn.toISOString().split('T')[0];
+
+        let baseOK = true;
+
+        // 1. FESTIUS INTERSETMANALS (50% Flota)
+        if (festius50[ymd]) {
+            baseOK = (festius50[ymd] === "parell" && esParell) || (festius50[ymd] === "senar" && !esParell);
+        } 
+        // 2. LABORABLES (Dilluns a Divendres)
+        else if (ds >= 1 && ds <= 5) {
+            const festa = { 1:[1,2], 2:[3,4], 3:[5,6], 4:[7,8], 5:[9,0] };
+            if (festa[ds].includes(ultim)) baseOK = false;
+        } 
+        // 3. CAPS DE SETMANA
+        else {
+            const diaMesParell = dm % 2 === 0;
+            if (esParell === diaMesParell) baseOK = false;
+            
+            // Excepció 31 de març / 1 d'abril (o qualsevol 31 a dia 1)
+            if (ds === 0 && dm === 1) {
+                let ahir = new Date(dataTorn); ahir.setDate(ahir.getDate()-1);
+                if (ahir.getDate() === 31) baseOK = !esParell; 
+            }
+        }
+
+        // 4. EXCEPCIONS NOCTURNES DE DESCANS
+        if (!baseOK) {
+            // Descans Dissabte: poden treballar diumenge de 4h a 6h
+            if (ds === 6 && consulta.getDay() === 0 && hora >= 4 && hora < 6) baseOK = true;
+            // Descans Diumenge: poden treballar dilluns de 5h a 6h
+            if (ds === 0 && consulta.getDay() === 1 && hora >= 5 && hora < 6) baseOK = true;
+        }
+
+        // 5. LIBERALITZACIONS (Congressos i Fires del document)
+        let libOK = false;
+        const ms = consulta.getTime();
+        function check(inici, fi) { return ms >= new Date(inici).getTime() && ms < new Date(fi).getTime(); }
+
+        // MWC 2026
+        if (check("2026-03-02T18:00", "2026-03-03T06:00")) libOK = true;
+        if (check("2026-03-03T18:00", "2026-03-04T06:00")) libOK = true;
+        if (check("2026-03-04T18:00", "2026-03-05T06:00")) libOK = true;
+        // ISE, Sant Joan, Nit Bona, Cap d'Any...
+        if (check("2026-06-23T18:00", "2026-06-24T06:00")) libOK = true;
+        if (check("2026-12-31T18:00", "2027-01-01T08:00")) libOK = true;
+
+        const potTreballar = baseOK || libOK;
+        const potAeroport = baseOK; 
+
+        mostrarResultat(potTreballar, potAeroport);
+    }
+
+    function mostrarResultat(pot, aero) {
+        const r = document.getElementById('resultado');
+        r.style.display = 'block';
+        r.className = `result ${pot ? 'can-work' : 'cannot-work'}`;
+        
+        document.getElementById('estado-trabajo').innerHTML = pot ? "✅ SÍ, POTS TREBALLAR" : "❌ NO, ÉS DESCANS";
+        
+        if (pot) {
+            document.getElementById('estado-aeropuerto').innerHTML = aero 
+                ? "✈️ <span class='highlight-yellow'>SÍ</span> pots encotxar a l'Aeroport i al Port." 
+                : "⚠️ <span class='highlight-yellow'>NO</span> pots encotxar a l'Aeroport ni al Port (estàs treballant per liberalització).";
+        } else {
+            document.getElementById('estado-aeropuerto').innerHTML = "";
+        }
+    }
+</script>
+</body>
+</html>
