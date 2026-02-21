@@ -3,263 +3,16 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BCN TERMINAL SPLIT</title>
+    <title>BCN ARRIBADES</title>
     
     <!-- Iconos y theme color -->
     <link rel="icon" type="image/png" href="avions.png">
     <link rel="apple-touch-icon" href="avions.png">
     <meta name="theme-color" content="#ffc107">
     
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: #000000;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-            min-height: 100vh;
-        }
-        
-        .container {
-            max-width: 600px;
-            width: 100%;
-            background: #000000;
-            padding: 24px;
-        }
-        
-        /* Barra superior solo con configuración */
-        .top-bar {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            margin-bottom: 20px;
-        }
-        
-        /* Botón de configuración (solo icono) */
-        .config-icon {
-            width: 32px;
-            height: 32px;
-            background: transparent;
-            border: 1px solid #ffc107;
-            color: #ffc107;
-            font-size: 20px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border-radius: 0;
-            transition: all 0.2s;
-        }
-        
-        .config-icon:hover {
-            background: #ffc107;
-            color: #000000;
-        }
-        
-        h1 {
-            font-size: 28px;
-            font-weight: 600;
-            color: #ffffff;
-            margin-bottom: 8px;
-            letter-spacing: -0.5px;
-        }
-        
-        .current-time {
-            font-size: 48px;
-            font-weight: 500;
-            color: #ffffff;
-            margin-bottom: 24px;
-            font-family: monospace;
-        }
-        
-        /* Panel de configuración oculto */
-        .config-panel {
-            display: none;
-            margin-bottom: 24px;
-            padding: 20px;
-            background: #111111;
-            border: 1px solid #333333;
-        }
-        
-        .config-panel.visible {
-            display: block;
-        }
-        
-        .config-panel input {
-            width: 100%;
-            padding: 12px;
-            background: #000000;
-            border: 1px solid #333333;
-            color: #ffffff;
-            font-size: 14px;
-            font-family: monospace;
-            margin-bottom: 12px;
-        }
-        
-        .config-panel input:focus {
-            outline: none;
-            border-color: #ffc107;
-        }
-        
-        .config-buttons {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
-        }
-        
-        .primary-button {
-            background: #ffc107;
-            color: #000000;
-            border: none;
-            padding: 10px 20px;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 0;
-            font-weight: 500;
-        }
-        
-        .primary-button:hover {
-            background: #ffd54f;
-        }
-        
-        .secondary-button {
-            background: transparent;
-            color: #ffffff;
-            border: 1px solid #333333;
-            padding: 10px 20px;
-            font-size: 14px;
-            cursor: pointer;
-            border-radius: 0;
-        }
-        
-        .secondary-button:hover {
-            border-color: #ffc107;
-            color: #ffc107;
-        }
-        
-        .status-message {
-            margin-top: 12px;
-            padding: 10px;
-            font-size: 13px;
-            background: #111111;
-            border: 1px solid #333333;
-            color: #cccccc;
-        }
-        
-        .terminal-header {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            padding: 12px 0;
-            border-bottom: 2px solid #ffc107;
-            font-weight: 600;
-            font-size: 16px;
-            color: #ffffff;
-        }
-        
-        .terminal-header div:first-child {
-            text-align: left;
-        }
-        
-        .terminal-header div:not(:first-child) {
-            text-align: right;
-        }
-        
-        .table-row {
-            display: grid;
-            grid-template-columns: 1fr 1fr 1fr;
-            padding: 8px 0;
-            border-bottom: 1px solid #333333;
-            font-size: 16px;
-            color: #ffffff;
-        }
-        
-        .table-row div:first-child {
-            text-align: left;
-            color: #cccccc;
-        }
-        
-        .table-row div:not(:first-child) {
-            text-align: right;
-            color: #ffc107;
-            font-weight: 500;
-        }
-        
-        .stats-bar {
-            margin: 20px 0;
-            font-size: 13px;
-            color: #cccccc;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .cache-badge, .dedup-badge {
-            display: inline-block;
-            padding: 2px 8px;
-            background: #333333;
-            color: #ffffff;
-            font-size: 11px;
-        }
-        
-        .footer-note {
-            margin-top: 24px;
-            font-size: 12px;
-            color: #666666;
-            text-align: left;
-            border-top: 1px solid #333333;
-            padding-top: 16px;
-        }
-        
-        .debug-info {
-            background: #111111;
-            border: 1px solid #333333;
-            padding: 10px;
-            margin: 10px 0;
-            font-family: monospace;
-            font-size: 11px;
-            max-height: 200px;
-            overflow: auto;
-            white-space: pre-wrap;
-            color: #cccccc;
-        }
-        
-        .loading, .error, .empty-state {
-            text-align: center;
-            padding: 40px;
-            background: #000000;
-            color: #ffffff;
-        }
-        
-        .empty-state p:first-child {
-            color: #ffffff;
-        }
-        
-        .empty-state p:last-child {
-            color: #666666;
-        }
-        
-        .footer {
-            margin-top: 24px;
-            font-size: 11px;
-            color: #444444;
-            text-align: center;
-        }
-        
-        .footer a {
-            color: #ffc107;
-            text-decoration: none;
-        }
-        
-        .footer a:hover {
-            text-decoration: underline;
-        }
-    </style>
+    <!-- 🎨 CAMBIA EL CSS AQUÍ: style1.css / style2.css / style3.css / style4.css / style5.css -->
+    <link rel="stylesheet" href="style2.css">
+    
 </head>
 <body>
     <div class="container">
@@ -268,7 +21,7 @@
             <div class="config-icon" id="configBtn" title="Configuración">⚙️</div>
         </div>
         
-        <h1>BCN TERMINAL SPLIT</h1>
+        <h1>✈ BCN ARRIBADES</h1>
         <div class="current-time" id="currentTime">20:13</div>
         
         <!-- Panel de configuración (oculto por defecto) -->
@@ -287,14 +40,13 @@
         </div>
         
         <div class="stats-bar" id="statsBar" style="display: none;">
-            <span id="flightCount">0 vuelos</span>
-            <span class="cache-badge" id="cacheBadge" style="display: none;">CACHÉ</span>
+            <span class="cache-badge" id="cacheBadge" style="display: none;">📦 CACHÉ</span>
             <span class="dedup-badge" id="dedupBadge" style="display: none;">0 DUPLICADOS</span>
         </div>
         
         <div id="flightsContainer">
             <div class="empty-state" id="emptyState">
-                <p>Carga los datos para ver el split de terminales</p>
+                <p>✈ Carga los datos para ver el split de terminales</p>
                 <p style="font-size: 12px; margin-top: 10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
             </div>
         </div>
@@ -317,7 +69,6 @@
             const debugBtn = document.getElementById('debugBtn');
             const apiStatus = document.getElementById('apiStatus');
             const statsBar = document.getElementById('statsBar');
-            const flightCountSpan = document.getElementById('flightCount');
             const flightsContainer = document.getElementById('flightsContainer');
             const emptyState = document.getElementById('emptyState');
             const cacheBadge = document.getElementById('cacheBadge');
@@ -354,14 +105,14 @@
             updateCurrentTime();
             setInterval(updateCurrentTime, 60000);
             
-            // Generar franjas horarias desde la hora actual hasta 12 horas después
+            // Generar franjas horarias desde la hora actual hasta 10 horas después
             function generateTimeSlotsFromNow() {
                 const ahora = new Date();
                 const horaActual = ahora.getHours();
                 const slots = [];
                 
-                // Generar 13 franjas (hora actual + 12 horas)
-                for (let i = 0; i <= 12; i++) {
+                // Generar 11 franjas (hora actual + 10 horas)
+                for (let i = 0; i <= 10; i++) {
                     let hora = (horaActual + i) % 24;
                     slots.push(`${hora.toString().padStart(2, '0')}:00`);
                 }
@@ -428,7 +179,7 @@
                 const cacheData = {
                     timestamp: Date.now(),
                     flights: data,
-                    timeSlots: currentTimeSlots // Guardar también las franjas horarias
+                    timeSlots: currentTimeSlots
                 };
                 localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
                 updateCacheInfo();
@@ -444,7 +195,6 @@
                     const now = Date.now();
                     
                     if (now - cacheData.timestamp < CACHE_DURATION) {
-                        // Si hay franjas guardadas en caché, restaurarlas
                         if (cacheData.timeSlots) {
                             currentTimeSlots = cacheData.timeSlots;
                         }
@@ -504,7 +254,6 @@
                     
                     if (isNaN(timeDate.getTime())) return;
                     
-                    // Redondear al minuto
                     const roundedTime = new Date(timeDate);
                     roundedTime.setSeconds(0, 0);
                     
@@ -563,7 +312,6 @@
                             <p style="font-size: 12px; margin-top: 10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
                         </div>
                     `;
-                    flightCountSpan.textContent = '0 vuelos';
                     statsBar.style.display = 'flex';
                     return;
                 }
@@ -574,7 +322,6 @@
                 
                 const slots = groupFlightsByTimeSlots(uniqueFlights);
                 
-                flightCountSpan.textContent = `${uniqueFlights.length} VUELOS`;
                 statsBar.style.display = 'flex';
                 
                 if (fromCache) {
@@ -593,9 +340,9 @@
                 // Construir tabla
                 let tableHTML = `
                     <div class="terminal-header">
-                        <div></div>
-                        <div>TERMINAL 1</div>
-                        <div>TERMINAL 2</div>
+                        <div>🕐 HORA</div>
+                        <div>🅃1</div>
+                        <div>🅃2</div>
                     </div>
                 `;
                 
@@ -612,7 +359,7 @@
                 
                 tableHTML += `
                     <div class="footer-note">
-                        FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API
+                        ✔ FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API
                     </div>
                 `;
                 
@@ -695,7 +442,7 @@
                 }
             }
             
-            // Cargar vuelos
+            // Cargar vuelos (10 horas)
             async function loadFlights() {
                 const apiKey = apiKeyInput.value.trim();
                 
@@ -706,10 +453,10 @@
                 
                 try {
                     const ahora = new Date();
-                    const dentro12h = new Date(ahora.getTime() + 12 * 60 * 60 * 1000);
+                    const dentro10h = new Date(ahora.getTime() + 10 * 60 * 60 * 1000);
                     
                     const fromLocal = `${formatDateForAPI(ahora)}T${formatTimeForAPI(ahora)}`;
-                    const toLocal = `${formatDateForAPI(dentro12h)}T${formatTimeForAPI(dentro12h)}`;
+                    const toLocal = `${formatDateForAPI(dentro10h)}T${formatTimeForAPI(dentro10h)}`;
                     
                     const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${fromLocal}/${toLocal}`;
                     
@@ -744,19 +491,18 @@
                                 <p style="font-size: 12px; margin-top: 10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
                             </div>
                         `;
-                        flightCountSpan.textContent = '0 vuelos';
                         statsBar.style.display = 'flex';
                         return;
                     }
                     
-                    // Actualizar franjas horarias antes de guardar
                     updateTimeSlots();
-                    
-                    // Guardar en caché y mostrar
                     saveToCache(arrivals);
                     displayTimeSlots(arrivals, false, arrivals.length);
                     
                     apiStatus.textContent = '✅ Datos cargados';
+                    
+                    // Ocultar panel de configuración automáticamente
+                    configPanel.classList.remove('visible');
                     
                 } catch (error) {
                     apiStatus.textContent = `❌ ${error.message}`;
@@ -771,10 +517,9 @@
                 cacheInfo.textContent = '';
                 apiStatus.textContent = '🗑️ Caché limpiado';
                 
-                // Volver a mostrar estado vacío
                 flightsContainer.innerHTML = `
                     <div class="empty-state">
-                        <p>Carga los datos para ver el split de terminales</p>
+                        <p>✈ Carga los datos para ver el split de terminales</p>
                         <p style="font-size: 12px; margin-top: 10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
                     </div>
                 `;
@@ -789,13 +534,11 @@
                     displayTimeSlots(cachedFlights, true, cachedFlights.length);
                     apiStatus.textContent = '📦 Datos cargados de caché';
                     
-                    // También cargar la API key guardada si existe
                     const savedKey = localStorage.getItem('aerodatabox_key');
                     if (savedKey) {
                         apiKeyInput.value = savedKey;
                     }
                 } else {
-                    // Si no hay caché, solo cargar la API key
                     const savedKey = localStorage.getItem('aerodatabox_key');
                     if (savedKey) {
                         apiKeyInput.value = savedKey;
@@ -810,7 +553,6 @@
             clearCacheBtn.addEventListener('click', clearCache);
             debugBtn.addEventListener('click', showDebugInfo);
             
-            // Cargar datos de caché al iniciar
             loadCachedDataOnStart();
             
             setInterval(updateCacheInfo, 60000);
