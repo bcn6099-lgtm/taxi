@@ -336,6 +336,9 @@
             let lastRawData = null;
             let lastProcessedData = null;
             
+            // Variable para almacenar las franjas horarias actuales
+            let currentTimeSlots = [];
+            
             // Toggle panel de configuración
             configBtn.addEventListener('click', () => {
                 configPanel.classList.toggle('visible');
@@ -351,19 +354,28 @@
             updateCurrentTime();
             setInterval(updateCurrentTime, 60000);
             
-            // Generar franjas horarias desde 20:00 hasta 07:00
-            function generateTimeSlots() {
+            // Generar franjas horarias desde la hora actual hasta 12 horas después
+            function generateTimeSlotsFromNow() {
+                const ahora = new Date();
+                const horaActual = ahora.getHours();
                 const slots = [];
-                for (let i = 20; i <= 23; i++) {
-                    slots.push(`${i.toString().padStart(2, '0')}:00`);
+                
+                // Generar 13 franjas (hora actual + 12 horas)
+                for (let i = 0; i <= 12; i++) {
+                    let hora = (horaActual + i) % 24;
+                    slots.push(`${hora.toString().padStart(2, '0')}:00`);
                 }
-                for (let i = 0; i <= 7; i++) {
-                    slots.push(`${i.toString().padStart(2, '0')}:00`);
-                }
+                
                 return slots;
             }
             
-            const TIME_SLOTS = generateTimeSlots();
+            // Actualizar franjas horarias
+            function updateTimeSlots() {
+                currentTimeSlots = generateTimeSlotsFromNow();
+            }
+            
+            // Inicializar franjas
+            updateTimeSlots();
             
             // Utilidades
             function formatDateForAPI(date) {
@@ -415,7 +427,8 @@
             function saveToCache(data) {
                 const cacheData = {
                     timestamp: Date.now(),
-                    flights: data
+                    flights: data,
+                    timeSlots: currentTimeSlots // Guardar también las franjas horarias
                 };
                 localStorage.setItem(CACHE_KEY, JSON.stringify(cacheData));
                 updateCacheInfo();
@@ -431,6 +444,10 @@
                     const now = Date.now();
                     
                     if (now - cacheData.timestamp < CACHE_DURATION) {
+                        // Si hay franjas guardadas en caché, restaurarlas
+                        if (cacheData.timeSlots) {
+                            currentTimeSlots = cacheData.timeSlots;
+                        }
                         return cacheData.flights;
                     } else {
                         localStorage.removeItem(CACHE_KEY);
@@ -509,7 +526,7 @@
             // Agrupar vuelos por hora y terminal
             function groupFlightsByTimeSlots(flights) {
                 const slots = {};
-                TIME_SLOTS.forEach(slot => {
+                currentTimeSlots.forEach(slot => {
                     slots[slot] = { t1: 0, t2: 0 };
                 });
                 
@@ -582,7 +599,7 @@
                     </div>
                 `;
                 
-                TIME_SLOTS.forEach(slot => {
+                currentTimeSlots.forEach(slot => {
                     const counts = slots[slot] || { t1: 0, t2: 0 };
                     tableHTML += `
                         <div class="table-row">
@@ -625,6 +642,9 @@
                     if (lastProcessedData) {
                         debugText += `\n\nÚNICOS: ${lastProcessedData.length}`;
                     }
+                    
+                    debugText += `\n\nFRANJAS HORARIAS ACTUALES:\n`;
+                    debugText += currentTimeSlots.join(', ');
                 } else {
                     debugText = 'Sin datos cargados';
                 }
@@ -728,6 +748,9 @@
                         statsBar.style.display = 'flex';
                         return;
                     }
+                    
+                    // Actualizar franjas horarias antes de guardar
+                    updateTimeSlots();
                     
                     // Guardar en caché y mostrar
                     saveToCache(arrivals);
