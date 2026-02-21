@@ -109,5 +109,5 @@ body { color: var(--text); }
 .cc .cbody { color: var(--cc-text); }
 .pbtn { color: var(--btn-text); }
 
-/* ── Strong highlight ── */
-strong { color: #ffc107; }
+/* ── Strong highlight — !important per guanyar la cascada de base-styles.css ── */
+strong { color: #ffc107 !important; }
