@@ -16,6 +16,7 @@
 </head>
 <body>
     <div class="container">
+        <div class="header-block">
         <!-- Barra superior solo con configuración -->
         <div class="top-bar">
             <div class="config-icon" id="configBtn" title="Configuración">⚙️</div>
@@ -23,6 +24,7 @@
         
         <h1>✈ BCN ARRIBADES</h1>
         <div class="current-time" id="currentTime">20:13</div>
+        </div>
         
         <!-- Panel de configuración (oculto por defecto) -->
         <div class="config-panel" id="configPanel">
@@ -41,7 +43,6 @@
         
         <div class="stats-bar" id="statsBar" style="display: none;">
             <span class="cache-badge" id="cacheBadge" style="display: none;">📦 CACHÉ</span>
-            <span class="dedup-badge" id="dedupBadge" style="display: none;">0 DUPLICADOS</span>
         </div>
         
         <div id="flightsContainer">
@@ -72,7 +73,6 @@
             const flightsContainer = document.getElementById('flightsContainer');
             const emptyState = document.getElementById('emptyState');
             const cacheBadge = document.getElementById('cacheBadge');
-            const dedupBadge = document.getElementById('dedupBadge');
             const cacheInfo = document.getElementById('cacheInfo');
             const debugPanel = document.getElementById('debugPanel');
             const currentTimeEl = document.getElementById('currentTime');
@@ -330,12 +330,6 @@
                     cacheBadge.style.display = 'none';
                 }
                 
-                if (duplicateCount > 0) {
-                    dedupBadge.style.display = 'inline-block';
-                    dedupBadge.textContent = `${duplicateCount} DUPLICADOS`;
-                } else {
-                    dedupBadge.style.display = 'none';
-                }
                 
                 // Construir tabla
                 let tableHTML = `
@@ -513,7 +507,6 @@
             function clearCache() {
                 localStorage.removeItem(CACHE_KEY);
                 cacheBadge.style.display = 'none';
-                dedupBadge.style.display = 'none';
                 cacheInfo.textContent = '';
                 apiStatus.textContent = '🗑️ Caché limpiado';
                 
