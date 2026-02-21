@@ -108,3 +108,6 @@ body { color: var(--text); }
 .note { color: var(--note-color); }
 .cc .cbody { color: var(--cc-text); }
 .pbtn { color: var(--btn-text); }
+
+/* ── Strong highlight ── */
+strong { color: #ffc107; }
