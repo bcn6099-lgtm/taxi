@@ -313,6 +313,9 @@ function closeMobileMenu() {
   <a class="mn-btn" href="https://bcn6099-lgtm.github.io/taxi/" target="_blank">
     <span>📊</span><span class="mn-lbl">Dashboard</span>
   </a>
+  <button class="mn-btn" onclick="toggleVersion()" title="Canvia de versió">
+    <span>🖥️</span><span class="mn-lbl">Ordinador</span>
+  </button>
 </nav>
 
 <!-- ════ MOBILE MENU DRAWER ════ -->
@@ -338,6 +341,11 @@ function closeMobileMenu() {
       <button onclick="goTo(12);closeMobileMenu()"><span class="dl-num">13</span>FreeNow · Visió General</button>
       <button onclick="goTo(13);closeMobileMenu()"><span class="dl-num">14</span>FreeNow · Economia</button>
       <button onclick="goTo(14);closeMobileMenu()"><span class="dl-num">15</span>Conclusions</button>
+    </div>
+    <div style="margin-top:1.2rem; padding-top:.9rem; border-top:1px solid rgba(255,255,255,.08);">
+      <button onclick="toggleVersion();closeMobileMenu()" style="width:100%;display:flex;align-items:center;gap:.7rem;padding:.75rem .8rem;border-radius:8px;background:rgba(232,160,32,.08);border:1px solid rgba(232,160,32,.25);cursor:pointer;color:var(--ph-accent,#e8a020);font-family:'DM Sans',sans-serif;font-size:.88rem;font-weight:600;">
+        <span>🖥️</span> Canvia a versió Ordinador
+      </button>
     </div>
   </div>
 </div>
