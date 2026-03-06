@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FACTURES // GESTOR</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+<style>
+/* ============================================================
+   ESTILS INTEGRATS (STYLE-1.CSS) + CORRECCIONS
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=DM+Sans:wght@300;400;500&family=DM+Mono&display=swap');
+
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --accent:#111;--accent2:#333;
+  --bg:#fafafa;--bg2:#fff;--bg3:#f4f4f4;
+  --border:#e0e0e0;--border2:#bbb;
+  --text:#111;--muted:#888;--dim:#bbb;
+  --danger:#c62828;--ok:#2e7d32;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+
+.sidebar{position:fixed;top:0;left:-280px;width:280px;height:100vh;background:var(--bg2);border-right:1px solid var(--border);z-index:1000;transition:left .3s cubic-bezier(.4,0,.2,1);display:flex;flex-direction:column;box-shadow:4px 0 24px rgba(0,0,0,0.06)}
+.sidebar::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--accent)}
+.sidebar.open{left:0}
+.sidebar-header{padding:28px 24px 18px;border-bottom:1px solid var(--border)}
+.sidebar-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent);letter-spacing:1px}
+.sidebar-sub{font-size:10px;color:var(--dim);letter-spacing:3px;text-transform:uppercase;margin-top:4px}
+nav{flex:1;padding:16px 0}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 24px;cursor:pointer;border-left:2px solid transparent;transition:all .2s;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-weight:500}
+.nav-item:hover{color:var(--accent);background:#f5f5f5;border-left-color:var(--border2)}
+.nav-item.active{color:var(--accent);background:#f0f0f0;border-left-color:var(--accent);font-weight:700}
+.nav-icon{font-size:14px;width:18px;text-align:center}
+.sidebar-footer{padding:14px 24px;border-top:1px solid var(--border);font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.3);z-index:999;display:none}
+.overlay.show{display:block}
+
+.topbar{position:fixed;top:0;left:0;right:0;height:52px;background:var(--bg2);border-bottom:1px solid var(--border);z-index:500;display:flex;align-items:center;padding:0 18px;gap:14px}
+.hamburger{width:32px;height:32px;border:1px solid var(--border);background:transparent;color:var(--accent);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;transition:all .2s}
+.hamburger span{display:block;width:14px;height:1.5px;background:var(--accent)}
+.topbar-title{font-family:'Playfair Display',serif;font-size:18px;color:var(--accent);letter-spacing:2px}
+
+.main{margin-top:52px;padding:32px 24px;max-width:960px;margin-left:auto;margin-right:auto}
+.page{display:none}.page.active{display:block}
+.page-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--accent)}
+.page-title{font-family:'Playfair Display',serif;font-size:22px;color:var(--accent)}
+.page-count{font-size:11px;color:var(--dim);letter-spacing:2px;text-transform:uppercase}
+
+.inv-table{width:100%;border-collapse:collapse}
+.inv-table th{font-size:10px;letter-spacing:3px;color:var(--muted);text-transform:uppercase;padding:10px 14px;border-bottom:1px solid var(--border);text-align:left;font-weight:500}
+.inv-table th:last-child{text-align:right}
+.inv-row{cursor:pointer;transition:background .15s}
+.inv-row:hover td{background:#f7f7f7}
+.inv-row td{padding:14px;border-bottom:1px solid var(--border);font-size:14px}
+.td-date{font-family:'DM Mono',monospace;font-size:12px;color:var(--muted)}
+.td-total{text-align:right;font-family:'DM Mono',monospace;font-weight:700;color:var(--accent)}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:2000;display:none;align-items:center;justify-content:center}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border);width:90%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,0.15)}
+.modal::before{content:'';display:block;height:3px;background:var(--accent)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:18px 20px;border-bottom:1px solid var(--border)}
+.modal-title{font-family:'Playfair Display',serif;font-size:16px;color:var(--accent)}
+.modal-body{padding:20px}
+.modal-footer{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:10px;justify-content:flex-end}
+
+.detail-grid{display:flex;flex-direction:column}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--border)}
+.detail-label{font-size:10px;letter-spacing:2px;color:var(--muted);text-transform:uppercase}
+.detail-value{font-size:14px;color:var(--text)}
+.detail-value.num{font-family:'DM Mono',monospace;color:var(--accent)}
+.detail-value.big{font-size:24px;font-weight:700}
+.detail-value.mono{font-family:'DM Mono',monospace;font-size:12px}
+
+/* ===== CORRECCIÓ FACTURA ESTIMADA ===== */
+.estimated {
+  font-style: italic !important;
+  color: #ff9800 !important; /* Taronja per diferenciar-ho */
+}
+
+.toast{position:fixed;bottom:20px;right:20px;background:var(--bg2);border:1px solid var(--border);border-left:3px solid var(--accent);padding:12px 18px;font-size:12px;z-index:9999;transform:translateY(60px);opacity:0;transition:all .3s}
+.toast.show{transform:translateY(0);opacity:1}
+.btn{padding:10px 22px;font-size:12px;cursor:pointer;font-weight:700;letter-spacing:2px;text-transform:uppercase;border:none}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-danger{background:var(--danger);color:#fff}
+.btn-outline{background:transparent;color:var(--muted);border:1px solid var(--border)}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">⬡ Gestor</div>
+    <div class="sidebar-sub">FACTURES // v3.0</div>
+  </div>
+  <nav>
+    <div class="nav-item active" onclick="showPage('home')" data-page="home"><span class="nav-icon">◈</span> Inici</div>
+    <div class="nav-item" onclick="showPage('upload')" data-page="upload"><span class="nav-icon">⬆</span> Pujar Factura</div>
+    <div class="nav-item" onclick="showPage('manual')" data-page="manual"><span class="nav-icon">✎</span> Afegir Manual</div>
+    <div class="nav-item" onclick="showPage('providers')" data-page="providers"><span class="nav-icon">◉</span> Proveïdors</div>
+    <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">⬡</span> Exportar Excel</div>
+  </nav>
+  <div class="sidebar-footer">CLIENT NÚM. 764 // JORDI CABREJAS</div>
+</aside>
+
+<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+  <div class="topbar-title">FACTURES</div>
+</header>
+
+<main class="main">
+  <div class="page active" id="page-home">
+    <div class="page-header">
+      <div class="page-title">◈ Factures</div>
+      <div class="page-count" id="invoiceCount">—</div>
+    </div>
+    <div class="table-wrap">
+      <table class="inv-table">
+        <thead><tr><th>Data</th><th>Proveïdor</th><th>Total</th></tr></thead>
+        <tbody id="invoiceTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="modalOverlay" onclick="closeDetail()">
+    <div class="modal" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <div class="modal-title">DETALL FACTURA</div>
+        <button class="modal-close" onclick="closeDetail()">✕</button>
+      </div>
+      <div class="modal-body" id="modalBody"></div>
+      <div class="modal-footer">
+        <button class="btn btn-danger" id="modalDeleteBtn">ELIMINAR</button>
+        <button class="btn btn-outline" onclick="closeDetail()">TANCAR</button>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== DB LOGIC (Indexat) =====
+const DB_NAME='FacturesDB3', DB_VER=1; let db;
+function initDB(){return new Promise((res,rej)=>{const req=indexedDB.open(DB_NAME,DB_VER);req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('invoices'))d.createObjectStore('invoices',{keyPath:'id',autoIncrement:true})};req.onsuccess=e=>{db=e.target.result;res(db)};req.onerror=rej})}
+function dbAll(s){return new Promise((res,rej)=>{const tx=db.transaction(s,'readonly');const r=tx.objectStore(s).getAll();r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
+function dbAdd(s,d){return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');const r=tx.objectStore(s).add(d);r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
+
+const SEED_INV=[
+  {invoiceNum:'INT-2025-001',estimated:true,date:'2025-01-12',provider:'Interfacom SAU',total:51.00,base:42.15,iva:8.85},
+  {invoiceNum:'CIF-2026-002',estimated:true,date:'2026-02-01',provider:'INMOBILIARIA CIENFUEGOS, S.L.',total:124.00,base:102.48,iva:21.52}
+];
+
+// ===== RENDER TABLE =====
+async function renderInvoices(){
+  const data = await dbAll('invoices');
+  const tbody = document.getElementById('invoiceTableBody');
+  document.getElementById('invoiceCount').textContent = data.length + ' factures';
+  tbody.innerHTML = data.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r=>`
+    <tr class="inv-row" onclick="openDetail(${r.id})">
+      <td class="td-date">${fmtDate(r.date)}</td>
+      <td class="td-prov">${r.provider}</td>
+      <td class="td-total">${r.total.toFixed(2)} €</td>
+    </tr>
+  `).join('');
+}
+
+// ===== OPEN DETAIL (CORREGIT) =====
+async function openDetail(id){
+  const data = await dbAll('invoices');
+  const r = data.find(x=>x.id===id);
+  if(!r) return;
+
+  // Afegim la classe 'estimated' si la factura és estimada
+  const estClass = r.estimated ? 'estimated' : '';
+
+  document.getElementById('modalBody').innerHTML = `
+    <div class="detail-grid">
+      <div class="detail-row">
+        <span class="detail-label">Núm. Factura</span>
+        <span class="detail-value mono ${estClass}">${r.invoiceNum || '—'}${r.estimated?' **':''}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Data</span>
+        <span class="detail-value">${fmtDate(r.date)}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Proveïdor</span>
+        <span class="detail-value">${r.provider}</span>
+      </div>
+      <div class="detail-row">
+        <span class="detail-label">Total Factura</span>
+        <span class="detail-value num big">${r.total.toFixed(2)} €</span>
+      </div>
+    </div>
+  `;
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+function fmtDate(d){return new Date(d).toLocaleDateString('ca-ES')}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+function closeDetail(){document.getElementById('modalOverlay').classList.remove('show')}
+function showPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+p).classList.add('active');closeSidebar()}
+
+async function init(){
+  await initDB();
+  const ex = await dbAll('invoices');
+  if(!ex.length) for(const i of SEED_INV) await dbAdd('invoices', i);
+  renderInvoices();
+}
+init();
+</script>
+</body>
+</html>
