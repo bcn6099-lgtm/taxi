@@ -619,6 +619,91 @@
             border-color: var(--accent);
         }
         
+        /* DRUM ROLLER SPINNER */
+        .drum-roller-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .drum-roller {
+            position: relative;
+            width: 70px;
+            height: 44px;
+            background: var(--bg-secondary);
+            border: 2px solid var(--accent);
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: ns-resize;
+            user-select: none;
+            touch-action: none;
+        }
+        .drum-roller::before,
+        .drum-roller::after {
+            content: '';
+            position: absolute;
+            left: 0;
+            right: 0;
+            height: 14px;
+            z-index: 2;
+            pointer-events: none;
+        }
+        .drum-roller::before {
+            top: 0;
+            background: linear-gradient(to bottom, var(--bg-secondary), transparent);
+        }
+        .drum-roller::after {
+            bottom: 0;
+            background: linear-gradient(to top, var(--bg-secondary), transparent);
+        }
+        .drum-roller-track {
+            position: absolute;
+            width: 100%;
+            transition: transform 0.1s ease-out;
+        }
+        .drum-roller-item {
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: var(--text-secondary);
+            transition: color 0.15s, font-size 0.15s;
+        }
+        .drum-roller-item.selected {
+            color: var(--accent);
+            font-size: 1.6rem;
+        }
+        .drum-roller-arrows {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+        .drum-arrow {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            width: 22px;
+            height: 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.65rem;
+            transition: all 0.15s;
+            padding: 0;
+        }
+        .drum-arrow:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+        .drum-roller-label {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            white-space: nowrap;
+        }
+
         .range-slider-container {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -946,49 +1031,17 @@
                     <select id="monthFilter" onchange="updateDashboard()">
                         <option value="all">Tots els mesos</option>
                     </select>
-                    <label for="projectionDays" style="margin-left: 2rem;">Dies per a la projecció:</label>
-                    <select id="projectionDays" onchange="updateDashboard()" style="width: auto; min-width: 80px;">
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        <option value="3">3</option>
-                        <option value="4">4</option>
-                        <option value="5">5</option>
-                        <option value="6">6</option>
-                        <option value="7">7</option>
-                        <option value="8">8</option>
-                        <option value="9">9</option>
-                        <option value="10">10</option>
-                        <option value="11">11</option>
-                        <option value="12">12</option>
-                        <option value="13">13</option>
-                        <option value="14">14</option>
-                        <option value="15">15</option>
-                        <option value="16">16</option>
-                        <option value="17">17</option>
-                        <option value="18">18</option>
-                        <option value="19">19</option>
-                        <option value="20">20</option>
-                        <option value="21" selected>21</option>
-                        <option value="22">22</option>
-                        <option value="23">23</option>
-                        <option value="24">24</option>
-                        <option value="25">25</option>
-                        <option value="26">26</option>
-                        <option value="27">27</option>
-                        <option value="28">28</option>
-                        <option value="29">29</option>
-                        <option value="30">30</option>
-                        <option value="31">31</option>
-                        <option value="32">32</option>
-                        <option value="33">33</option>
-                        <option value="34">34</option>
-                        <option value="35">35</option>
-                        <option value="36">36</option>
-                        <option value="37">37</option>
-                        <option value="38">38</option>
-                        <option value="39">39</option>
-                        <option value="40">40</option>
-                    </select>
+                    <label style="margin-left: 2rem;">Dies per a la projecció:</label>
+                    <div class="drum-roller-wrapper">
+                        <div class="drum-roller-arrows">
+                            <button class="drum-arrow" onclick="changeDrumValue(1)">▲</button>
+                            <button class="drum-arrow" onclick="changeDrumValue(-1)">▼</button>
+                        </div>
+                        <div class="drum-roller" id="drumRoller">
+                            <div class="drum-roller-track" id="drumTrack"></div>
+                        </div>
+                        <span class="drum-roller-label" id="drumDiesLabel">dies</span>
+                    </div>
                 </div>
 
                 <div id="statsGrid" class="stats-grid"></div>
@@ -1585,9 +1638,10 @@
         }
 
         function formatCurrency(value) {
-            if (value >= 1000) {
-                return Math.round(value) + '€';
-            }
+            return Math.round(value) + '€';
+        }
+
+        function formatCurrencyDecimal(value) {
             return value.toFixed(2) + '€';
         }
 
@@ -1615,9 +1669,33 @@
         }
 
         function getDailyRevenueColor(value) {
-            if (value > 300) return 'var(--color-magenta)';
-            if (value >= 150) return 'var(--color-green)';
-            return 'var(--color-red)';
+            const MIN = 150;
+            const MAX = 300;
+            if (value <= MIN) return '#ff1a1a';
+            if (value >= MAX) return '#00ff44';
+            const ratio = (value - MIN) / (MAX - MIN);
+            // Red -> Orange -> Yellow -> Green gradient
+            let r, g, b;
+            if (ratio < 0.33) {
+                // red -> orange
+                const t = ratio / 0.33;
+                r = 255;
+                g = Math.round(26 + t * (165 - 26));
+                b = Math.round(26 * (1 - t));
+            } else if (ratio < 0.66) {
+                // orange -> yellow
+                const t = (ratio - 0.33) / 0.33;
+                r = 255;
+                g = Math.round(165 + t * (220 - 165));
+                b = 0;
+            } else {
+                // yellow -> bright green
+                const t = (ratio - 0.66) / 0.34;
+                r = Math.round(255 * (1 - t));
+                g = Math.round(220 + t * (255 - 220));
+                b = Math.round(t * 68);
+            }
+            return `rgb(${r},${g},${b})`;
         }
 
         function getPositiveColor(percentage) {
@@ -1800,7 +1878,7 @@
         // ==========================================
         function updateDashboard() {
             const monthFilter = document.getElementById('monthFilter').value;
-            const projectionDays = parseInt(document.getElementById('projectionDays').value);
+            const projectionDays = getDrumProjectionDays();
             let targetMonth = monthFilter;
             if (monthFilter === 'all') {
                 const now = new Date();
@@ -1874,7 +1952,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Mitjana per hora</div>
-                    <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(roundTo5Cents(currentStats.mediaHora))}</div>
+                    <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrencyDecimal(roundTo5Cents(currentStats.mediaHora))}</div>
                     ${generateComparisonHTML(currentStats.mediaHora, prevYearStats.mediaHora, prevMonthStats.mediaHora, year2019Stats.mediaHora)}
                 </div>
                 <div class="stat-card">
@@ -2058,7 +2136,7 @@
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">€/Hora</div>
-                    <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrency(stats.mediaHora)}</div>
+                    <div class="stat-value" style="color: ${mediaHoraColor}">${formatCurrencyDecimal(stats.mediaHora)}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Dies treballats</div>
@@ -2101,7 +2179,7 @@
                     dayCell.innerHTML = `
                         <div class="calendar-day-number">${day}</div>
                         <div class="calendar-day-amount" style="color: ${revenueColor}">
-                            ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(dayData.ingresos_dia)}
+                            ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${Math.round(dayData.ingresos_dia || 0)}€
                         </div>
                     `;
                 } else {
@@ -2261,7 +2339,7 @@
                             <div class="month-card-left">
                                 <div class="month-card-title">${monthName} ${year}</div>
                                 <div class="month-card-subtitle">
-                                    Ingressos: ${formatCurrency(ingresos)} · Gastos: ${formatCurrency(gastos)}
+                                    Ingressos: ${Math.round(ingresos)}€ · Gastos: ${Math.round(gastos)}€
                                 </div>
                             </div>
                             <div style="text-align: right;">
@@ -2692,7 +2770,7 @@
                             <span class="revenue-amount" style="color: ${revenueColor}">${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(row.ingresos_dia || 0))}</span>
                         </td>
                         <td style="font-size: 0.75rem; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${row.observacions || ''}">${row.observacions || '-'}</td>
-                        <td>${row.horas_trabajadas ? formatCurrency(mediaHora) : '-'}</td>
+                        <td>${row.horas_trabajadas ? formatCurrencyDecimal(mediaHora) : '-'}</td>
                         <td>${row.servicios_dia || 0}</td>
                         <td>${formatCurrency(mediaPrecio)}</td>
                         <td>${row.horas_trabajadas ? row.horas_trabajadas.toFixed(1) : '-'}</td>
@@ -2766,7 +2844,7 @@
                             <strong style="color: ${monthRevenueColor}">${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(mData.ingresos))}</strong>
                         </td>
                         <td style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</td>
-                        <td style="color: ${mediaHoraColor}">${mData.horas > 0 ? formatCurrency(roundTo5Cents(mediaHora)) : '-'}</td>
+                        <td style="color: ${mediaHoraColor}">${mData.horas > 0 ? formatCurrencyDecimal(roundTo5Cents(mediaHora)) : '-'}</td>
                         <td>${formatCurrency(roundTo5Cents(mediaServicio))}</td>
                         <td>${mData.servicios}</td>
                         <td>${mData.dias}</td>
@@ -2839,7 +2917,7 @@
                             <strong style="color: ${weekRevenueColor}">${Math.round(wData.ingresos)}€</strong>
                         </td>
                         <td style="color: ${mediaDiaColor}">${formatCurrency(roundTo5Cents(mediaDia))}</td>
-                        <td style="color: ${mediaHoraColor}">${wData.horas > 0 ? formatCurrency(roundTo5Cents(mediaHora)) : '-'}</td>
+                        <td style="color: ${mediaHoraColor}">${wData.horas > 0 ? formatCurrencyDecimal(roundTo5Cents(mediaHora)) : '-'}</td>
                         <td>${formatCurrency(roundTo5Cents(mediaServicio))}</td>
                         <td>${wData.servicios}</td>
                         <td>${wData.dias}</td>
@@ -3309,6 +3387,7 @@
             }
             
             populateYearFilters();
+            initDrumRoller();
             updateDashboard();
             updateDiesView();
             updateMesosView();
@@ -3322,9 +3401,97 @@
             }, 500);
         }
 
+        // ==========================================
+        // DRUM ROLLER
+        // ==========================================
+        let drumValue = 21;
+        const DRUM_MIN = 1;
+        const DRUM_MAX = 40;
+
+        function initDrumRoller() {
+            // Load persisted value
+            const saved = localStorage.getItem('projectionDays');
+            if (saved) drumValue = parseInt(saved);
+
+            renderDrum();
+
+            const roller = document.getElementById('drumRoller');
+            let startY = 0;
+            let dragging = false;
+            let accDelta = 0;
+
+            roller.addEventListener('mousedown', (e) => {
+                startY = e.clientY;
+                dragging = true;
+                accDelta = 0;
+                e.preventDefault();
+            });
+            document.addEventListener('mousemove', (e) => {
+                if (!dragging) return;
+                const delta = startY - e.clientY;
+                accDelta += delta;
+                startY = e.clientY;
+                if (Math.abs(accDelta) >= 22) {
+                    const steps = Math.round(accDelta / 22);
+                    changeDrumValue(steps);
+                    accDelta = 0;
+                }
+            });
+            document.addEventListener('mouseup', () => { dragging = false; });
+
+            roller.addEventListener('touchstart', (e) => {
+                startY = e.touches[0].clientY;
+                dragging = true;
+                accDelta = 0;
+            }, { passive: true });
+            roller.addEventListener('touchmove', (e) => {
+                if (!dragging) return;
+                const delta = startY - e.touches[0].clientY;
+                accDelta += delta;
+                startY = e.touches[0].clientY;
+                if (Math.abs(accDelta) >= 20) {
+                    const steps = Math.round(accDelta / 20);
+                    changeDrumValue(steps);
+                    accDelta = 0;
+                }
+            }, { passive: true });
+            roller.addEventListener('touchend', () => { dragging = false; });
+
+            roller.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                changeDrumValue(e.deltaY > 0 ? -1 : 1);
+            }, { passive: false });
+        }
+
+        function changeDrumValue(delta) {
+            drumValue = Math.max(DRUM_MIN, Math.min(DRUM_MAX, drumValue + delta));
+            localStorage.setItem('projectionDays', drumValue);
+            renderDrum();
+            updateDashboard();
+        }
+
+        function renderDrum() {
+            const track = document.getElementById('drumTrack');
+            const itemH = 44;
+            const visibleItems = [-1, 0, 1];
+            track.innerHTML = visibleItems.map(offset => {
+                const val = drumValue + offset;
+                const isValid = val >= DRUM_MIN && val <= DRUM_MAX;
+                const isSelected = offset === 0;
+                return `<div class="drum-roller-item ${isSelected ? 'selected' : ''}">${isValid ? val : ''}</div>`;
+            }).join('');
+            // Center the middle item
+            track.style.transform = `translateY(0px)`;
+        }
+
+        function getDrumProjectionDays() {
+            return drumValue;
+        }
+
         initApp();
     </script>
 </body>
 </html>
+
 
 
