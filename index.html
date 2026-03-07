@@ -573,6 +573,7 @@
             gap: 1rem;
             flex-wrap: wrap;
             align-items: center;
+            justify-content: center;
         }
         
         .filters label {
@@ -619,89 +620,108 @@
             border-color: var(--accent);
         }
         
-        /* DRUM ROLLER SPINNER */
-        .drum-roller-wrapper {
+        /* ── Dashboard filters row ── */
+        .filters-row {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
+            justify-content: center;
+            gap: 1.5rem;
+            flex-wrap: wrap;
+            width: 100%;
         }
-        .drum-roller {
+
+        /* ── Month drum spinner ── */
+        .month-spinner {
             position: relative;
-            width: 70px;
-            height: 44px;
-            background: var(--bg-secondary);
-            border: 2px solid var(--accent);
-            border-radius: 10px;
+            height: 72px;
             overflow: hidden;
             cursor: ns-resize;
             user-select: none;
             touch-action: none;
+            min-width: 180px;
+            max-width: 260px;
         }
-        .drum-roller::before,
-        .drum-roller::after {
+        .month-spinner::before,
+        .month-spinner::after {
             content: '';
             position: absolute;
-            left: 0;
-            right: 0;
-            height: 14px;
+            left: 0; right: 0;
+            height: 22px;
             z-index: 2;
             pointer-events: none;
         }
-        .drum-roller::before {
+        .month-spinner::before {
             top: 0;
-            background: linear-gradient(to bottom, var(--bg-secondary), transparent);
+            background: linear-gradient(to bottom, var(--bg-card), transparent);
         }
-        .drum-roller::after {
+        .month-spinner::after {
             bottom: 0;
-            background: linear-gradient(to top, var(--bg-secondary), transparent);
+            background: linear-gradient(to top, var(--bg-card), transparent);
         }
-        .drum-roller-track {
+        .month-spinner-track {
             position: absolute;
             width: 100%;
-            transition: transform 0.1s ease-out;
+            transition: transform 0.15s ease-out;
         }
-        .drum-roller-item {
-            height: 44px;
+        .month-spinner-item {
+            height: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-size: 0.85rem;
+            font-weight: 500;
             color: var(--text-secondary);
             transition: color 0.15s, font-size 0.15s;
-        }
-        .drum-roller-item.selected {
-            color: var(--accent);
-            font-size: 1.6rem;
-        }
-        .drum-roller-arrows {
-            display: flex;
-            flex-direction: column;
-            gap: 2px;
-        }
-        .drum-arrow {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-secondary);
-            width: 22px;
-            height: 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.65rem;
-            transition: all 0.15s;
-            padding: 0;
-        }
-        .drum-arrow:hover {
-            border-color: var(--accent);
-            color: var(--accent);
-        }
-        .drum-roller-label {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
             white-space: nowrap;
+        }
+        .month-spinner-item.selected {
+            color: var(--accent);
+            font-size: 1.25rem;
+            font-weight: 700;
+        }
+        .month-spinner-item.adj {
+            color: var(--text-secondary);
+            font-size: 0.9rem;
+        }
+
+        /* ── Days number display ── */
+        .days-display {
+            display: flex;
+            align-items: baseline;
+            gap: 0.3rem;
+            flex-shrink: 0;
+        }
+        .days-display-label {
+            font-size: 0.85rem;
+            color: var(--accent);
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            line-height: 1;
+        }
+        .days-number {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            cursor: pointer;
+            line-height: 1;
+            transition: color 0.15s;
+            min-width: 2.5ch;
+            text-align: center;
+        }
+        .days-number:hover { color: var(--text-primary); }
+        .days-edit-input {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--accent);
+            background: transparent;
+            border: none;
+            border-bottom: 2px solid var(--accent);
+            outline: none;
+            width: 3ch;
+            text-align: center;
+            font-family: inherit;
+            line-height: 1;
+            padding: 0;
         }
 
         .range-slider-container {
@@ -1027,20 +1047,15 @@
                 <h1 class="page-title">📈 Resum General</h1>
                 
                 <div class="filters">
-                    <label for="monthFilter">Selecciona mes:</label>
-                    <select id="monthFilter" onchange="updateDashboard()">
-                        <option value="all">Tots els mesos</option>
-                    </select>
-                    <label style="margin-left: 2rem;">Dies per a la projecció:</label>
-                    <div class="drum-roller-wrapper">
-                        <div class="drum-roller-arrows">
-                            <button class="drum-arrow" onclick="changeDrumValue(1)">▲</button>
-                            <button class="drum-arrow" onclick="changeDrumValue(-1)">▼</button>
+                    <div class="filters-row">
+                        <!-- Month drum spinner -->
+                        <div class="month-spinner" id="monthSpinner" title="Arrossega per canviar el mes"></div>
+
+                        <!-- Days editable number -->
+                        <div class="days-display">
+                            <span class="days-number" id="daysNumber" onclick="startEditDays()" title="Clica per editar">21</span>
+                            <span class="days-display-label">dies</span>
                         </div>
-                        <div class="drum-roller" id="drumRoller">
-                            <div class="drum-roller-track" id="drumTrack"></div>
-                        </div>
-                        <span class="drum-roller-label" id="drumDiesLabel">dies</span>
                     </div>
                 </div>
 
@@ -1796,20 +1811,23 @@
                 yearFilterBeneficis.innerHTML += `<option value="${year}">${year}</option>`;
             });
 
-            const monthFilter = document.getElementById('monthFilter');
+            // Build month spinner data
             const allMonths = [...new Set(allData.map(d => d.mes_anio || d.fecha.substring(0, 7)))].sort().reverse();
-            monthFilter.innerHTML = '<option value="all">Tots els mesos</option>';
-            allMonths.forEach(mesAnio => {
-                const [year, monthNum] = mesAnio.split('-');
-                const monthName = monthNames[monthNum];
-                monthFilter.innerHTML += `<option value="${mesAnio}">${monthName} ${year}</option>`;
-            });
-            
+            // Default to current month
             const now = new Date();
             const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`;
-            if (allMonths.includes(currentMonth)) {
-                monthFilter.value = currentMonth;
-            }
+            const currentMonthLabel = `${monthNames[String(now.getMonth() + 1).padStart(2, '0')]} ${now.getFullYear()}`;
+            // Remove current month from list (it's already the first entry as 'all')
+            const otherMonths = allMonths.filter(m => m !== currentMonth);
+            spinnerMonths = ['all', ...otherMonths];
+            spinnerLabels = [currentMonthLabel, ...otherMonths.map(m => {
+                const [year, monthNum] = m.split('-');
+                return `${monthNames[monthNum]} ${year}`;
+            })];
+
+            spinnerIndex = 0;
+
+            renderMonthSpinner();
 
             // Populate all range selectors
             populateMonthRangeSelectors('historic');
@@ -1877,7 +1895,7 @@
         // DASHBOARD
         // ==========================================
         function updateDashboard() {
-            const monthFilter = document.getElementById('monthFilter').value;
+            const monthFilter = spinnerMonths[spinnerIndex] || 'all';
             const projectionDays = getDrumProjectionDays();
             let targetMonth = monthFilter;
             if (monthFilter === 'all') {
@@ -3388,6 +3406,7 @@
             
             populateYearFilters();
             initDrumRoller();
+            initMonthSpinner();
             updateDashboard();
             updateDiesView();
             updateMesosView();
@@ -3402,25 +3421,86 @@
         }
 
         // ==========================================
-        // DRUM ROLLER
+        // DAYS PROJECTION DISPLAY (click to edit)
         // ==========================================
         let drumValue = 21;
         const DRUM_MIN = 1;
         const DRUM_MAX = 40;
 
         function initDrumRoller() {
-            // Load persisted value
             const saved = localStorage.getItem('projectionDays');
             if (saved) drumValue = parseInt(saved);
-
             renderDrum();
+        }
 
-            const roller = document.getElementById('drumRoller');
+        function renderDrum() {
+            const el = document.getElementById('daysNumber');
+            if (el && el.tagName === 'SPAN') el.textContent = drumValue;
+        }
+
+        function startEditDays() {
+            const span = document.getElementById('daysNumber');
+            if (!span) return;
+            const input = document.createElement('input');
+            input.type = 'number';
+            input.className = 'days-edit-input';
+            input.value = drumValue;
+            input.min = DRUM_MIN;
+            input.max = DRUM_MAX;
+            input.id = 'daysNumber';
+            span.replaceWith(input);
+            input.focus();
+            input.select();
+
+            function commitEdit() {
+                let val = parseInt(input.value);
+                if (isNaN(val)) val = drumValue;
+                drumValue = Math.max(DRUM_MIN, Math.min(DRUM_MAX, val));
+                localStorage.setItem('projectionDays', drumValue);
+                const newSpan = document.createElement('span');
+                newSpan.className = 'days-number';
+                newSpan.id = 'daysNumber';
+                newSpan.title = 'Clica per editar';
+                newSpan.textContent = drumValue;
+                newSpan.onclick = startEditDays;
+                input.replaceWith(newSpan);
+                updateDashboard();
+            }
+
+            input.addEventListener('blur', commitEdit);
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') { input.blur(); }
+                if (e.key === 'Escape') { input.value = drumValue; input.blur(); }
+            });
+        }
+
+        function changeDrumValue(delta) {
+            drumValue = Math.max(DRUM_MIN, Math.min(DRUM_MAX, drumValue + delta));
+            localStorage.setItem('projectionDays', drumValue);
+            renderDrum();
+            updateDashboard();
+        }
+
+        function getDrumProjectionDays() {
+            return drumValue;
+        }
+
+        // ==========================================
+        // MONTH SPINNER
+        // ==========================================
+        let spinnerMonths = ['all'];
+        let spinnerLabels = ['Tots els mesos'];
+        let spinnerIndex = 0;
+
+        function initMonthSpinner() {
+            const spinner = document.getElementById('monthSpinner');
+            if (!spinner) return;
+
             let startY = 0;
             let dragging = false;
             let accDelta = 0;
 
-            roller.addEventListener('mousedown', (e) => {
+            spinner.addEventListener('mousedown', (e) => {
                 startY = e.clientY;
                 dragging = true;
                 accDelta = 0;
@@ -3431,61 +3511,69 @@
                 const delta = startY - e.clientY;
                 accDelta += delta;
                 startY = e.clientY;
-                if (Math.abs(accDelta) >= 22) {
-                    const steps = Math.round(accDelta / 22);
-                    changeDrumValue(steps);
-                    accDelta = 0;
+                if (Math.abs(accDelta) >= 24) {
+                    const steps = Math.trunc(accDelta / 24);
+                    moveSpinner(steps);
+                    accDelta -= steps * 24;
                 }
             });
             document.addEventListener('mouseup', () => { dragging = false; });
 
-            roller.addEventListener('touchstart', (e) => {
+            spinner.addEventListener('touchstart', (e) => {
                 startY = e.touches[0].clientY;
                 dragging = true;
                 accDelta = 0;
+                e.stopPropagation();
             }, { passive: true });
-            roller.addEventListener('touchmove', (e) => {
+            spinner.addEventListener('touchmove', (e) => {
                 if (!dragging) return;
                 const delta = startY - e.touches[0].clientY;
                 accDelta += delta;
                 startY = e.touches[0].clientY;
-                if (Math.abs(accDelta) >= 20) {
-                    const steps = Math.round(accDelta / 20);
-                    changeDrumValue(steps);
-                    accDelta = 0;
+                if (Math.abs(accDelta) >= 24) {
+                    const steps = Math.trunc(accDelta / 24);
+                    moveSpinner(steps);
+                    accDelta -= steps * 24;
                 }
             }, { passive: true });
-            roller.addEventListener('touchend', () => { dragging = false; });
+            document.addEventListener('touchend', () => { dragging = false; accDelta = 0; });
+            document.addEventListener('touchcancel', () => { dragging = false; accDelta = 0; });
 
-            roller.addEventListener('wheel', (e) => {
+            spinner.addEventListener('wheel', (e) => {
                 e.preventDefault();
-                changeDrumValue(e.deltaY > 0 ? -1 : 1);
+                moveSpinner(e.deltaY > 0 ? 1 : -1);
             }, { passive: false });
         }
 
-        function changeDrumValue(delta) {
-            drumValue = Math.max(DRUM_MIN, Math.min(DRUM_MAX, drumValue + delta));
-            localStorage.setItem('projectionDays', drumValue);
-            renderDrum();
+        function moveSpinner(steps) {
+            spinnerIndex = Math.max(0, Math.min(spinnerMonths.length - 1, spinnerIndex + steps));
+            renderMonthSpinner();
             updateDashboard();
         }
 
-        function renderDrum() {
-            const track = document.getElementById('drumTrack');
-            const itemH = 44;
-            const visibleItems = [-1, 0, 1];
-            track.innerHTML = visibleItems.map(offset => {
-                const val = drumValue + offset;
-                const isValid = val >= DRUM_MIN && val <= DRUM_MAX;
-                const isSelected = offset === 0;
-                return `<div class="drum-roller-item ${isSelected ? 'selected' : ''}">${isValid ? val : ''}</div>`;
-            }).join('');
-            // Center the middle item
-            track.style.transform = `translateY(0px)`;
-        }
-
-        function getDrumProjectionDays() {
-            return drumValue;
+        function renderMonthSpinner() {
+            const spinner = document.getElementById('monthSpinner');
+            if (!spinner) return;
+            // Show: index-2, index-1, index (selected, center), index+1, index+2
+            // Each item 24px tall, spinner 72px = 3 items visible, center at 24px
+            const offsets = [-1, 0, 1];
+            let html = '<div class="month-spinner-track" style="top:' + (72/2 - 12) + 'px; transform:translateY(-24px)">';
+            // We show 5 items but only 3 fit — use CSS overflow:hidden
+            const showOffsets = [-2, -1, 0, 1, 2];
+            html = '<div class="month-spinner-track">';
+            for (const off of showOffsets) {
+                const idx = spinnerIndex + off;
+                const label = (idx >= 0 && idx < spinnerLabels.length) ? spinnerLabels[idx] : '';
+                const cls = off === 0 ? 'selected' : (Math.abs(off) === 1 ? 'adj' : '');
+                html += `<div class="month-spinner-item ${cls}">${label}</div>`;
+            }
+            html += '</div>';
+            spinner.innerHTML = html;
+            // Position track so selected item is centered (each item 24px, center at 36px from top, selected is 3rd item offset=2*24=48 from top of track)
+            const track = spinner.querySelector('.month-spinner-track');
+            // Center of spinner = 36px. Center of selected (3rd item) = 2*24 + 12 = 60px from track top
+            // So track top = 36 - 60 = -24px
+            track.style.top = '-24px';
         }
 
         initApp();
