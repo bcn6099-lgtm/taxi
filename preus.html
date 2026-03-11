@@ -427,19 +427,14 @@
 
   .price-min, .price-max {
     font-family: 'DM Serif Display', serif;
-    font-size: 1.6rem;
+    font-size: 1.8rem;
     color: var(--dark);
   }
 
-  .price-mid {
-    font-family: 'DM Serif Display', serif;
-    font-size: 2rem;
-    color: var(--rust);
-  }
-
   .price-sep {
-    font-size: 11px;
-    color: var(--border);
+    font-size: 1.4rem;
+    color: var(--muted);
+    padding: 0 4px;
   }
 
   .price-unit {
@@ -567,9 +562,7 @@
           <div class="price-label">Horquilla estimada</div>
           <div class="price-values">
             <span class="price-min" id="pc-min">—</span>
-            <span class="price-sep">·</span>
-            <span class="price-mid" id="pc-mid">—</span>
-            <span class="price-sep">·</span>
+            <span class="price-sep">–</span>
             <span class="price-max" id="pc-max">—</span>
             <span class="price-unit">€</span>
           </div>
@@ -594,15 +587,13 @@
         </div>
         <div class="stat-row">
           <span class="stat-label">Suplement aeroport</span>
-          <span class="stat-value">+ 4,60 €</span>
+          <span class="stat-value" style="color:var(--rust)">+ 4,60 €</span>
         </div>
         <div class="price-range">
-          <div class="price-label">Horquilla estimada</div>
+          <div class="price-label">Horquilla estimada <span style="font-size:9px;color:var(--rust)">(suplement inclòs)</span></div>
           <div class="price-values">
             <span class="price-min" id="ap-min">—</span>
-            <span class="price-sep">·</span>
-            <span class="price-mid" id="ap-mid">—</span>
-            <span class="price-sep">·</span>
+            <span class="price-sep">–</span>
             <span class="price-max" id="ap-max">—</span>
             <span class="price-unit">€</span>
           </div>
@@ -1181,30 +1172,51 @@ function selectTariff(tariff, btn) {
   if (selectedTown) calculate();
 }
 
+// ─── AUTO-DETECT TARIFF BY CURRENT TIME ──────────────────────────────────────
+function detectTariff() {
+  const now = new Date();
+  const hour = now.getHours();
+  const day  = now.getDay(); // 0=diumenge, 6=dissabte
+  const isWeekend = (day === 0 || day === 6);
+  const isNight   = (hour < 8 || hour >= 20);
+  return (isNight || isWeekend) ? 'night' : 'day';
+}
+
+// Aplica la tarifa detectada en carregar
+window.addEventListener('DOMContentLoaded', () => {
+  const auto = detectTariff();
+  currentTariff = auto;
+  document.querySelectorAll('.tariff-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.tariff === auto);
+  });
+});
+
 // ─── CALCULATE ───────────────────────────────────────────────────────────────
 function calculate() {
   const town = selectedTown;
 
   const AIRPORT_SUPPLEMENT = 4.60;
 
-  let calcPrice, displayFlag, displayRate;
+  let calcPricePC, calcPriceAP, displayFlag, displayRate;
 
   if (town.metro) {
     const t = tariffs.metro[currentTariff];
-    calcPrice   = (dist) => t.flag + dist * t.rate;
+    calcPricePC = (dist) => t.flag + dist * t.rate;
+    calcPriceAP = (dist) => t.flag + dist * t.rate + AIRPORT_SUPPLEMENT;
     displayFlag = fmt(t.flag) + ' €';
     displayRate = fmt(t.rate) + ' €/km';
   } else {
     const t = tariffs.outer[currentTariff];
-    calcPrice   = (dist) => dist * t.multiplier;
+    calcPricePC = (dist) => dist * t.multiplier;
+    calcPriceAP = (dist) => dist * t.multiplier + AIRPORT_SUPPLEMENT;
     displayFlag = '—';
     displayRate = '× ' + t.multiplier.toFixed(2).replace('.', ',');
   }
 
-  const pcBase = calcPrice(town.distPC);
-  const apBase = calcPrice(town.distAP) + AIRPORT_SUPPLEMENT;
+  const pcBase = calcPricePC(town.distPC);
+  const apBase = calcPriceAP(town.distAP);
 
-  const margin = 10;
+  const margin = 5;
 
   // Update badge
   const badge = document.getElementById('result-tariff-badge');
@@ -1220,7 +1232,6 @@ function calculate() {
   document.getElementById('pc-flag').textContent = displayFlag;
   document.getElementById('pc-rate').textContent = displayRate;
   document.getElementById('pc-min').textContent = fmt(Math.max(0, pcBase - margin));
-  document.getElementById('pc-mid').textContent = fmt(pcBase);
   document.getElementById('pc-max').textContent = fmt(pcBase + margin);
 
   // Aeroport
@@ -1228,7 +1239,6 @@ function calculate() {
   document.getElementById('ap-flag').textContent = displayFlag;
   document.getElementById('ap-rate').textContent = displayRate;
   document.getElementById('ap-min').textContent = fmt(Math.max(0, apBase - margin));
-  document.getElementById('ap-mid').textContent = fmt(apBase);
   document.getElementById('ap-max').textContent = fmt(apBase + margin);
 
   // Note for outer
