@@ -1093,12 +1093,12 @@ townsDeduped.forEach(t => towns.push(t));
 // ─── TARIFFS ─────────────────────────────────────────────────────────────────
 const tariffs = {
   metro: {
-    day:   { flag: 2.80, rate: 1.35, multiplier: 1 },
-    night: { flag: 2.80, rate: 1.66, multiplier: 1 },
+    day:   { flag: 2.80, rate: 1.35 },
+    night: { flag: 2.80, rate: 1.66 },
   },
   outer: {
-    day:   { flag: 7.25, rate: 0.82, multiplier: 1.64 },
-    night: { flag: 7.90, rate: 0.89, multiplier: 1.78 },
+    day:   { multiplier: 1.64 },
+    night: { multiplier: 1.78 },
   }
 };
 
@@ -1184,19 +1184,27 @@ function selectTariff(tariff, btn) {
 // ─── CALCULATE ───────────────────────────────────────────────────────────────
 function calculate() {
   const town = selectedTown;
-  const type = town.metro ? 'metro' : 'outer';
-  const t = tariffs[type][currentTariff];
 
   const AIRPORT_SUPPLEMENT = 4.60;
 
-  // T6/T7: el multiplicador (1,64 / 1,78) s'aplica NOMÉS sobre el preu/km, no sobre la bajada de bandera
-  const effectiveRate = t.rate * t.multiplier;
-  const calcPrice = (dist) => t.flag + dist * effectiveRate;
+  let calcPrice, displayFlag, displayRate;
+
+  if (town.metro) {
+    const t = tariffs.metro[currentTariff];
+    calcPrice   = (dist) => t.flag + dist * t.rate;
+    displayFlag = fmt(t.flag) + ' €';
+    displayRate = fmt(t.rate) + ' €/km';
+  } else {
+    const t = tariffs.outer[currentTariff];
+    calcPrice   = (dist) => dist * t.multiplier;
+    displayFlag = '—';
+    displayRate = '× ' + t.multiplier.toFixed(2).replace('.', ',');
+  }
 
   const pcBase = calcPrice(town.distPC);
   const apBase = calcPrice(town.distAP) + AIRPORT_SUPPLEMENT;
 
-  const margin = 10; // ±10€ each side → horquilla de 20€
+  const margin = 10;
 
   // Update badge
   const badge = document.getElementById('result-tariff-badge');
@@ -1209,16 +1217,16 @@ function calculate() {
 
   // Plaça Catalunya
   document.getElementById('pc-dist').textContent = town.distPC + ' km';
-  document.getElementById('pc-flag').textContent = fmt(t.flag) + ' €';
-  document.getElementById('pc-rate').textContent = fmt(effectiveRate) + ' €/km';
+  document.getElementById('pc-flag').textContent = displayFlag;
+  document.getElementById('pc-rate').textContent = displayRate;
   document.getElementById('pc-min').textContent = fmt(Math.max(0, pcBase - margin));
   document.getElementById('pc-mid').textContent = fmt(pcBase);
   document.getElementById('pc-max').textContent = fmt(pcBase + margin);
 
   // Aeroport
   document.getElementById('ap-dist').textContent = town.distAP + ' km';
-  document.getElementById('ap-flag').textContent = fmt(t.flag) + ' €';
-  document.getElementById('ap-rate').textContent = fmt(effectiveRate) + ' €/km';
+  document.getElementById('ap-flag').textContent = displayFlag;
+  document.getElementById('ap-rate').textContent = displayRate;
   document.getElementById('ap-min').textContent = fmt(Math.max(0, apBase - margin));
   document.getElementById('ap-mid').textContent = fmt(apBase);
   document.getElementById('ap-max').textContent = fmt(apBase + margin);
