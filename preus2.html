@@ -1,0 +1,4839 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BCN PREUS · Taxi Calculator</title>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --yellow:     #F5C800;
+  --yellow-dim: #C9A200;
+  --black:      #0A0A0A;
+  --dark:       #111111;
+  --panel:      #181818;
+  --border:     #2A2A2A;
+  --text:       #E8E8E8;
+  --muted:      #666666;
+  --red:        #E03A2F;
+  --green:      #39D353;
+  --digit-glow: 0 0 12px rgba(245,200,0,0.6);
+}
+
+html { font-size: 16px; }
+
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────────────────── */
+.app-header {
+  background: var(--yellow);
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
+
+.header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.header-title .plane { font-size: 20px; }
+
+.header-title .dot {
+  width: 6px; height: 6px;
+  background: var(--black);
+  border-radius: 50%;
+}
+
+.hamburger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.hamburger-btn span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--black);
+  border-radius: 2px;
+  transition: all 0.3s;
+}
+
+/* ── MAIN ────────────────────────────────────────────────────────────────── */
+.main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+}
+
+/* ── ORIGIN BUTTONS ─────────────────────────────────────────────────────── */
+.origin-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.origin-btn {
+  background: var(--panel);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 8px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--muted);
+  transition: all 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.origin-btn .icon  { font-size: 22px; }
+.origin-btn .label {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  line-height: 1.2;
+}
+.origin-btn .sub   { font-size: 9px; color: var(--muted); }
+
+.origin-btn.active {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--black);
+}
+.origin-btn.active .sub { color: rgba(0,0,0,0.5); }
+
+/* ── SEARCH ─────────────────────────────────────────────────────────────── */
+.search-box {
+  background: var(--panel);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.field-label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+  display: block;
+}
+
+.search-wrapper { position: relative; }
+
+.search-input {
+  width: 100%;
+  background: var(--black);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 12px 12px 40px;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.search-input:focus { border-color: var(--yellow); }
+.search-input::placeholder { color: var(--muted); }
+
+.search-icon {
+  position: absolute;
+  left: 12px; top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+/* ── DROPDOWN ───────────────────────────────────────────────────────────── */
+.dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0; right: 0;
+  background: var(--panel);
+  border: 1.5px solid var(--yellow);
+  border-radius: 4px;
+  max-height: 260px;
+  overflow-y: auto;
+  z-index: 100;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+}
+
+.dropdown.visible { display: block; animation: dropIn 0.15s ease; }
+
+.dropdown-item {
+  padding: 10px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.1s;
+  gap: 8px;
+}
+
+.dropdown-item:last-child { border-bottom: none; }
+.dropdown-item:hover { background: rgba(245,200,0,0.1); }
+.dropdown-item strong { color: var(--yellow); }
+
+.tag {
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  padding: 2px 6px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+.tag-amb    { background: var(--yellow);   color: var(--black); }
+.tag-cat    { background: #2a2a2a;          color: var(--muted); }
+.tag-esp    { background: #3a1a1a;          color: #e03a2f; }
+
+/* ── TARIFF SELECTOR ────────────────────────────────────────────────────── */
+.tariff-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+}
+
+.tariff-btn {
+  background: var(--black);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  padding: 10px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 11px;
+  text-align: left;
+  transition: all 0.2s;
+}
+
+.tariff-btn .t-name { display: block; font-weight: 600; font-size: 12px; margin-bottom: 2px; color: var(--text); }
+.tariff-btn .t-desc { display: block; color: var(--muted); font-size: 10px; }
+
+.tariff-btn.active {
+  border-color: var(--yellow);
+  background: rgba(245,200,0,0.06);
+}
+.tariff-btn.active .t-name { color: var(--yellow); }
+
+/* ── RESULT CARD ────────────────────────────────────────────────────────── */
+#results { display: none; }
+#results.visible { display: block; animation: fadeUp 0.4s ease; }
+
+.result-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin: 24px 0 12px;
+}
+
+.result-town {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2.4rem;
+  letter-spacing: 0.04em;
+  line-height: 1;
+  color: var(--yellow);
+}
+
+.comarca-badge {
+  display: inline-block;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--yellow);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 10px;
+  border-radius: 20px;
+  margin-top: 5px;
+}
+
+.tariff-badge {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 13px;
+  letter-spacing: 0.1em;
+  padding: 4px 10px;
+  border-radius: 3px;
+}
+.tariff-badge.day   { background: var(--yellow); color: var(--black); }
+.tariff-badge.night { background: #1a1a2e; color: #8888ff; border: 1px solid #8888ff; }
+
+.result-card {
+  background: var(--panel);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 12px;
+  position: relative;
+  overflow: hidden;
+}
+
+.result-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 3px;
+  background: var(--yellow);
+  transition: background 0.3s;
+}
+.result-card.airport::before { background: var(--red); }
+
+.stat-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 7px 0;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.stat-row:last-of-type { border-bottom: none; }
+
+.stat-label { color: var(--muted); }
+.stat-value { font-weight: 600; color: var(--text); }
+.stat-value.red { color: var(--red); }
+
+.gmaps-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  color: var(--muted);
+  text-decoration: none;
+  border: 1px solid var(--border);
+  padding: 6px 12px;
+  border-radius: 3px;
+  margin-top: 14px;
+  transition: all 0.2s;
+  letter-spacing: 0.05em;
+}
+.gmaps-link:hover { border-color: var(--yellow); color: var(--yellow); }
+
+.loading-row {
+  text-align: center;
+  font-size: 11px;
+  color: var(--muted);
+  padding: 8px 0;
+  display: none;
+}
+
+/* ── TAXIMETER ──────────────────────────────────────────────────────────── */
+.taximeter {
+  background: #0d0d0d;
+  border: 2px solid #333;
+  border-radius: 10px;
+  padding: 20px 16px 16px;
+  margin-top: 16px;
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 0 0 1px #444;
+  display: none;
+}
+
+.taximeter.visible { display: block; animation: fadeUp 0.4s ease; }
+
+.taxi-screen {
+  background: #0a1a0a;
+  border-radius: 6px;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 1px solid #1a3a1a;
+  position: relative;
+}
+
+.taxi-screen-label {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: #2a6a2a;
+  margin-bottom: 4px;
+}
+
+.taxi-digits {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 3.2rem;
+  color: #39D353;
+  text-shadow: var(--digit-glow);
+  letter-spacing: 0.05em;
+  line-height: 1;
+}
+
+.taxi-digits.supplement {
+  font-size: 2rem;
+  color: #f5c800;
+  text-shadow: 0 0 12px rgba(245,200,0,0.6);
+}
+
+.taxi-footer {
+  display: flex;
+  justify-content: space-between;
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  color: #2a6a2a;
+  text-transform: uppercase;
+  padding-top: 6px;
+  border-top: 1px solid #1a3a1a;
+}
+
+.taxi-brand {
+  text-align: center;
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: #333;
+  text-transform: uppercase;
+  margin-top: 8px;
+}
+
+/* ── INFO NOTES ─────────────────────────────────────────────────────────── */
+.info-note {
+  background: rgba(245,200,0,0.05);
+  border: 1px solid rgba(245,200,0,0.15);
+  border-radius: 4px;
+  padding: 12px 14px;
+  font-size: 11px;
+  color: var(--muted);
+  line-height: 1.6;
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.info-note.warning { background: rgba(224,58,47,0.05); border-color: rgba(224,58,47,0.2); }
+
+/* ── HAMBURGER MENU ─────────────────────────────────────────────────────── */
+.menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 300;
+  display: none;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+.menu-overlay.open { display: block; opacity: 1; }
+
+.menu-panel {
+  position: fixed;
+  top: 0; right: -320px;
+  width: 300px;
+  height: 100%;
+  background: var(--panel);
+  border-left: 1px solid var(--border);
+  z-index: 301;
+  transition: right 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+.menu-panel.open { right: 0; }
+
+.menu-header {
+  background: var(--yellow);
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.menu-header h2 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 22px;
+  letter-spacing: 0.06em;
+  color: var(--black);
+}
+
+.menu-close {
+  background: none;
+  border: none;
+  font-size: 22px;
+  cursor: pointer;
+  color: var(--black);
+  line-height: 1;
+}
+
+.menu-items { padding: 12px 0; flex: 1; }
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 16px 20px;
+  cursor: pointer;
+  border-bottom: 1px solid var(--border);
+  transition: background 0.15s;
+  color: var(--text);
+  font-size: 14px;
+}
+.menu-item:hover { background: rgba(245,200,0,0.07); }
+.menu-item .menu-icon { font-size: 20px; width: 28px; text-align: center; }
+.menu-item .menu-label { font-weight: 500; }
+.menu-item .menu-sub { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
+
+/* ── MODAL ──────────────────────────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.85);
+  z-index: 400;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.modal-overlay.open { display: flex; animation: fadeIn 0.2s ease; }
+
+.modal {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  width: 100%;
+  max-width: 440px;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  background: var(--yellow);
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: 8px 8px 0 0;
+}
+
+.modal-header h3 {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 20px;
+  letter-spacing: 0.06em;
+  color: var(--black);
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  color: var(--black);
+}
+
+.modal-body { padding: 24px 20px; }
+
+.form-group { margin-bottom: 20px; }
+
+.form-label {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.form-input {
+  width: 100%;
+  background: var(--black);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  padding: 10px 12px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color 0.2s;
+}
+.form-input:focus { border-color: var(--yellow); }
+
+.api-status {
+  font-size: 11px;
+  padding: 8px 12px;
+  border-radius: 3px;
+  margin-top: 8px;
+}
+.api-status.ok  { background: rgba(57,211,83,0.1);  color: var(--green); border: 1px solid rgba(57,211,83,0.2); }
+.api-status.err { background: rgba(224,58,47,0.1);  color: var(--red);   border: 1px solid rgba(224,58,47,0.2); }
+
+.btn {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  border: none;
+  transition: all 0.2s;
+}
+.btn-yellow { background: var(--yellow); color: var(--black); }
+.btn-yellow:hover { background: var(--yellow-dim); }
+.btn-outline { background: none; border: 1.5px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--yellow); color: var(--yellow); }
+.btn-red    { background: var(--red); color: white; }
+
+.btn-row { display: flex; gap: 10px; flex-wrap: wrap; }
+
+.separator {
+  height: 1px;
+  background: var(--border);
+  margin: 20px 0;
+}
+
+/* ── ANIMATIONS ─────────────────────────────────────────────────────────── */
+@keyframes fadeUp   { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeIn   { from { opacity:0; } to { opacity:1; } }
+@keyframes dropIn   { from { opacity:0; transform:translateY(-8px); } to { opacity:1; transform:translateY(0); } }
+@keyframes countUp  {
+  from { opacity: 0.3; }
+  to   { opacity: 1; }
+}
+
+/* ── SCROLLBAR ──────────────────────────────────────────────────────────── */
+::-webkit-scrollbar       { width: 4px; }
+::-webkit-scrollbar-track { background: var(--black); }
+::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+</style>
+</head>
+<body>
+
+<!-- ── HEADER ──────────────────────────────────────────────────────────── -->
+<header class="app-header">
+  <div class="header-title">
+    <span class="plane">✈</span>
+    <span class="dot"></span>
+    BCN PREUS
+  </div>
+  <button class="hamburger-btn" onclick="openMenu()" aria-label="Menú">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<!-- ── MAIN ────────────────────────────────────────────────────────────── -->
+<main class="main">
+
+  <!-- Origin selector -->
+  <div class="origin-selector">
+    <button class="origin-btn active" data-origin="pc" onclick="selectOrigin('pc')">
+      <span class="icon">📍</span>
+      <span class="label">Pl. Cat</span>
+      <span class="sub">Catalunya</span>
+    </button>
+    <button class="origin-btn" data-origin="ap" onclick="selectOrigin('ap')">
+      <span class="icon">✈️</span>
+      <span class="label">Aeroport</span>
+      <span class="sub">+4,60 € supl.</span>
+    </button>
+    <button class="origin-btn" id="btn-gps" data-origin="gps" onclick="selectOrigin('gps')">
+      <span class="icon">🎯</span>
+      <span class="label">Ubicació</span>
+      <span class="sub">GPS actual</span>
+    </button>
+  </div>
+
+  <!-- Search -->
+  <div class="search-box">
+    <label class="field-label" for="search-input">Destí</label>
+    <div class="search-wrapper">
+      <span class="search-icon">🔍</span>
+      <input class="search-input" id="search-input"
+        type="text" placeholder="Escriu una població..." autocomplete="off">
+      <div class="dropdown" id="dropdown"></div>
+    </div>
+
+    <!-- Tariff -->
+    <div class="tariff-row">
+      <button class="tariff-btn" data-tariff="day" onclick="selectTariff('day')">
+        <span class="t-name">☀ Diürna</span>
+        <span class="t-desc">Feiners 08:00–20:00</span>
+      </button>
+      <button class="tariff-btn" data-tariff="night" onclick="selectTariff('night')">
+        <span class="t-name">🌙 Nocturna</span>
+        <span class="t-desc">Nit, cap de setmana</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <div class="result-header">
+      <div>
+        <div class="result-town" id="res-town">—</div>
+        <span class="comarca-badge" id="res-comarca"></span>
+      </div>
+      <span class="tariff-badge day" id="res-tariff-badge">DIÜRNA</span>
+    </div>
+
+    <div class="result-card" id="result-card">
+      <div class="stat-row">
+        <span class="stat-label">Origen</span>
+        <span class="stat-value" id="res-origin">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Distància</span>
+        <span class="stat-value" id="res-dist">—</span>
+      </div>
+      <div class="stat-row" id="res-flag-row">
+        <span class="stat-label">Bajada bandera</span>
+        <span class="stat-value" id="res-flag">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Tarifa</span>
+        <span class="stat-value" id="res-rate">—</span>
+      </div>
+      <div class="stat-row" id="res-supp-row" style="display:none">
+        <span class="stat-label">Suplement aeroport</span>
+        <span class="stat-value red">+ 4,60 €</span>
+      </div>
+      <div class="stat-row" style="border-bottom:none; padding-top:12px">
+        <span class="stat-label" style="font-size:9px;letter-spacing:0.1em;text-transform:uppercase">Horquilla estimada</span>
+        <span class="stat-value" style="font-size:18px">
+          <span id="res-min">—</span>
+          <span style="color:var(--muted);margin:0 4px">–</span>
+          <span id="res-max">—</span>
+          <span style="color:var(--muted);font-size:12px;margin-left:3px">€</span>
+        </span>
+      </div>
+      <div class="loading-row" id="loading-dist">⏳ Calculant distància real...</div>
+      <a class="gmaps-link" id="gmaps-link" href="#" target="_blank" style="display:none">
+        🗺 Veure ruta a Google Maps
+      </a>
+    </div>
+
+    <!-- Taximeter -->
+    <div class="taximeter" id="taximeter">
+      <div class="taxi-screen">
+        <div class="taxi-screen-label">IMPORTE €  A PAGAR</div>
+        <div class="taxi-digits" id="taxi-main-digits">0,00</div>
+        <div class="taxi-footer">
+          <span>TARIFA <span id="taxi-tariff">T1</span></span>
+          <span id="taxi-supp-label" style="display:none">CARRERA</span>
+        </div>
+      </div>
+      <div id="taxi-supp-row" style="display:none">
+        <div class="taxi-screen">
+          <div class="taxi-screen-label">SUPL. €</div>
+          <div class="taxi-digits supplement" id="taxi-supp-digits">0,00</div>
+        </div>
+      </div>
+      <div class="taxi-brand">TAXITRONIC</div>
+    </div>
+
+    <div class="info-note" id="outer-note" style="display:none">
+      <span>ℹ️</span>
+      <span>Tarifa intermunicipal: distància × 1,64 (diürna) o × 1,78 (nocturna). El preu inclou el retorn del vehicle.</span>
+    </div>
+    <div class="info-note warning">
+      <span>⚠️</span>
+      <span>Preus orientatius. El preu final pot variar per trànsit, peatges o recàrrecs. Consulta el taxímetre oficial.</span>
+    </div>
+
+  </div><!-- /results -->
+
+</main>
+
+<!-- ── HAMBURGER MENU ───────────────────────────────────────────────────── -->
+<div class="menu-overlay" id="menu-overlay" onclick="closeMenu()"></div>
+<div class="menu-panel" id="menu-panel">
+  <div class="menu-header">
+    <h2>✈ BCN PREUS</h2>
+    <button class="menu-close" onclick="closeMenu()">✕</button>
+  </div>
+  <div class="menu-items">
+    <div class="menu-item" onclick="openApiModal()">
+      <span class="menu-icon">🔑</span>
+      <div>
+        <span class="menu-label">Gestió API</span>
+        <span class="menu-sub">Google Maps Distance Matrix</span>
+      </div>
+    </div>
+    <div class="menu-item" onclick="exportData()">
+      <span class="menu-icon">📤</span>
+      <div>
+        <span class="menu-label">Exportar dades</span>
+        <span class="menu-sub">Descarrega towns.json</span>
+      </div>
+    </div>
+    <div class="menu-item" onclick="importData()">
+      <span class="menu-icon">📥</span>
+      <div>
+        <span class="menu-label">Importar dades</span>
+        <span class="menu-sub">Carrega un JSON de poblacions</span>
+      </div>
+    </div>
+    <div class="menu-item" onclick="clearCache()">
+      <span class="menu-icon">🗑</span>
+      <div>
+        <span class="menu-label">Buidar cache</span>
+        <span class="menu-sub">Elimina distàncies guardades</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── API MODAL ────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="api-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3>🔑 Gestió API</h3>
+      <button class="modal-close" onclick="closeApiModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label class="form-label">Google Maps API Key</label>
+        <input class="form-input" id="api-key-input" type="password"
+          placeholder="AIzaSy..." autocomplete="off">
+        <div class="api-status err" id="api-status">✗ Sense clau configurada.</div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-yellow" onclick="saveApiKey()">Guardar</button>
+        <button class="btn btn-outline" onclick="closeApiModal()">Cancel·lar</button>
+      </div>
+      <div class="separator"></div>
+      <p style="font-size:12px;color:var(--muted);line-height:1.7">
+        La clau s'emmagatzema localment al teu dispositiu (IndexedDB).<br>
+        Activa <strong style="color:var(--text)">Distance Matrix API</strong> a Google Cloud Console.<br>
+        Gratuït fins a 40.000 consultes/mes.
+      </p>
+    </div>
+  </div>
+</div>
+
+<script>
+const TOWNS_DATA = [
+  {
+    "name": "Barcelona",
+    "comarca": "Barcelonès",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 2,
+    "distAP": 17
+  },
+  {
+    "name": "Badalona",
+    "comarca": "Barcelonès",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 8,
+    "distAP": 23
+  },
+  {
+    "name": "Badia del Vallès",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 22,
+    "distAP": 30
+  },
+  {
+    "name": "Barberà del Vallès",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 18,
+    "distAP": 25
+  },
+  {
+    "name": "Begues",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 28,
+    "distAP": 18
+  },
+  {
+    "name": "Botiges de Sitges",
+    "comarca": "Garraf",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 38,
+    "distAP": 28
+  },
+  {
+    "name": "Castellbisbal",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 28,
+    "distAP": 32
+  },
+  {
+    "name": "Castelldefels",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 25,
+    "distAP": 11
+  },
+  {
+    "name": "Cerdanyola del Vallès",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 20,
+    "distAP": 28
+  },
+  {
+    "name": "Cervelló",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 27,
+    "distAP": 20
+  },
+  {
+    "name": "Corbera de Llobregat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 30,
+    "distAP": 22
+  },
+  {
+    "name": "Cornellà de Llobregat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 10,
+    "distAP": 10
+  },
+  {
+    "name": "Esplugues de Llobregat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 8,
+    "distAP": 12
+  },
+  {
+    "name": "Gavà",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 20,
+    "distAP": 10
+  },
+  {
+    "name": "L'Hospitalet de Llobregat",
+    "comarca": "Barcelonès",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 6,
+    "distAP": 12
+  },
+  {
+    "name": "La Palma de Cervelló",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 30,
+    "distAP": 22
+  },
+  {
+    "name": "Molins de Rei",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 22,
+    "distAP": 18
+  },
+  {
+    "name": "Montcada i Reixac",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 12,
+    "distAP": 26
+  },
+  {
+    "name": "Montgat",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 14,
+    "distAP": 29
+  },
+  {
+    "name": "Pallejà",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 24,
+    "distAP": 18
+  },
+  {
+    "name": "El Papiol",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 20,
+    "distAP": 20
+  },
+  {
+    "name": "Ripollet",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 16,
+    "distAP": 26
+  },
+  {
+    "name": "Sant Adrià de Besòs",
+    "comarca": "Barcelonès",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 6,
+    "distAP": 20
+  },
+  {
+    "name": "Sant Andreu de la Barca",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 30,
+    "distAP": 26
+  },
+  {
+    "name": "Sant Boi de Llobregat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 16,
+    "distAP": 10
+  },
+  {
+    "name": "Sant Climent de Llobregat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 22,
+    "distAP": 14
+  },
+  {
+    "name": "Sant Cugat del Vallès",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 20,
+    "distAP": 22
+  },
+  {
+    "name": "Sant Feliu de Llobregat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 14,
+    "distAP": 14
+  },
+  {
+    "name": "Sant Joan Despí",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 12,
+    "distAP": 12
+  },
+  {
+    "name": "Sant Just Desvern",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 10,
+    "distAP": 14
+  },
+  {
+    "name": "Sant Vicenç dels Horts",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 24,
+    "distAP": 18
+  },
+  {
+    "name": "Santa Coloma de Cervelló",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 22,
+    "distAP": 16
+  },
+  {
+    "name": "Santa Coloma de Gramenet",
+    "comarca": "Barcelonès",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 8,
+    "distAP": 22
+  },
+  {
+    "name": "Tiana",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 16,
+    "distAP": 30
+  },
+  {
+    "name": "Torrelles de Llobregat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 28,
+    "distAP": 20
+  },
+  {
+    "name": "Viladecans",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": true,
+    "distPC": 18,
+    "distAP": 8
+  },
+  {
+    "name": "Mataró",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 30,
+    "distAP": 47
+  },
+  {
+    "name": "Arenys de Mar",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 42,
+    "distAP": 59
+  },
+  {
+    "name": "Arenys de Munt",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 44,
+    "distAP": 61
+  },
+  {
+    "name": "Canet de Mar",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 50,
+    "distAP": 67
+  },
+  {
+    "name": "Calella",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 58,
+    "distAP": 75
+  },
+  {
+    "name": "Pineda de Mar",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 62,
+    "distAP": 79
+  },
+  {
+    "name": "Santa Susanna",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 86
+  },
+  {
+    "name": "Malgrat de Mar",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 74,
+    "distAP": 91
+  },
+  {
+    "name": "Blanes",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 70,
+    "distAP": 82
+  },
+  {
+    "name": "Premià de Mar",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 20,
+    "distAP": 34
+  },
+  {
+    "name": "Premià de Dalt",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 22,
+    "distAP": 36
+  },
+  {
+    "name": "El Masnou",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 16,
+    "distAP": 30
+  },
+  {
+    "name": "Alella",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 18,
+    "distAP": 32
+  },
+  {
+    "name": "Teià",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 19,
+    "distAP": 33
+  },
+  {
+    "name": "Vilassar de Mar",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 22,
+    "distAP": 36
+  },
+  {
+    "name": "Vilassar de Dalt",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 24,
+    "distAP": 38
+  },
+  {
+    "name": "Argentona",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 28,
+    "distAP": 42
+  },
+  {
+    "name": "Cabrera de Mar",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 30,
+    "distAP": 44
+  },
+  {
+    "name": "Dosrius",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 32,
+    "distAP": 46
+  },
+  {
+    "name": "Sant Iscle de Vallalta",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 48,
+    "distAP": 61
+  },
+  {
+    "name": "Sant Cebrià de Vallalta",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 52,
+    "distAP": 65
+  },
+  {
+    "name": "Granollers",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 35,
+    "distAP": 48
+  },
+  {
+    "name": "Mollet del Vallès",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 22,
+    "distAP": 35
+  },
+  {
+    "name": "Parets del Vallès",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 24,
+    "distAP": 37
+  },
+  {
+    "name": "La Llagosta",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 20,
+    "distAP": 33
+  },
+  {
+    "name": "Martorelles",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 22,
+    "distAP": 35
+  },
+  {
+    "name": "Montornès del Vallès",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 26,
+    "distAP": 39
+  },
+  {
+    "name": "Montmeló",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 28,
+    "distAP": 41
+  },
+  {
+    "name": "Les Franqueses del Vallès",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 32,
+    "distAP": 45
+  },
+  {
+    "name": "La Roca del Vallès",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 30,
+    "distAP": 43
+  },
+  {
+    "name": "Cardedeu",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 38,
+    "distAP": 51
+  },
+  {
+    "name": "Llinars del Vallès",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 42,
+    "distAP": 55
+  },
+  {
+    "name": "Sant Celoni",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 52,
+    "distAP": 65
+  },
+  {
+    "name": "Fogars de la Selva",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 60,
+    "distAP": 73
+  },
+  {
+    "name": "Hostalric",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 65,
+    "distAP": 78
+  },
+  {
+    "name": "Caldes de Montbui",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 35,
+    "distAP": 48
+  },
+  {
+    "name": "Bigues i Riells",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 42,
+    "distAP": 55
+  },
+  {
+    "name": "Sant Antoni de Vilamajor",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 40,
+    "distAP": 53
+  },
+  {
+    "name": "Sant Pere de Vilamajor",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 42,
+    "distAP": 55
+  },
+  {
+    "name": "Vallgorguina",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 48,
+    "distAP": 61
+  },
+  {
+    "name": "Campins",
+    "comarca": "Vallès Oriental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 45,
+    "distAP": 58
+  },
+  {
+    "name": "Sabadell",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 28,
+    "distAP": 35
+  },
+  {
+    "name": "Terrassa",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 35,
+    "distAP": 38
+  },
+  {
+    "name": "Rubí",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 26,
+    "distAP": 28
+  },
+  {
+    "name": "Castellar del Vallès",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 35,
+    "distAP": 42
+  },
+  {
+    "name": "Sentmenat",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 30,
+    "distAP": 38
+  },
+  {
+    "name": "Polinyà",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 25,
+    "distAP": 33
+  },
+  {
+    "name": "Palau-solità i Plegamans",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 27,
+    "distAP": 35
+  },
+  {
+    "name": "Santa Perpètua de Mogoda",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 22,
+    "distAP": 30
+  },
+  {
+    "name": "Sant Quirze del Vallès",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 24,
+    "distAP": 30
+  },
+  {
+    "name": "Matadepera",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 35,
+    "distAP": 40
+  },
+  {
+    "name": "Vacarisses",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 42,
+    "distAP": 42
+  },
+  {
+    "name": "Ullastrell",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 38,
+    "distAP": 38
+  },
+  {
+    "name": "Viladecavalls",
+    "comarca": "Vallès Occidental",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 40,
+    "distAP": 40
+  },
+  {
+    "name": "Olesa de Montserrat",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 42,
+    "distAP": 38
+  },
+  {
+    "name": "Esparreguera",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 38,
+    "distAP": 34
+  },
+  {
+    "name": "Abrera",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 36,
+    "distAP": 32
+  },
+  {
+    "name": "Martorell",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 38,
+    "distAP": 30
+  },
+  {
+    "name": "Sant Esteve Sesrovires",
+    "comarca": "Baix Llobregat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 38,
+    "distAP": 32
+  },
+  {
+    "name": "Gelida",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 42,
+    "distAP": 36
+  },
+  {
+    "name": "Subirats",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 48,
+    "distAP": 42
+  },
+  {
+    "name": "Olèrdola",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 52,
+    "distAP": 46
+  },
+  {
+    "name": "Santa Margarida i els Monjos",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 55,
+    "distAP": 48
+  },
+  {
+    "name": "Avinyonet del Penedès",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 50,
+    "distAP": 44
+  },
+  {
+    "name": "Sant Pere de Riudebitlles",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 48,
+    "distAP": 42
+  },
+  {
+    "name": "La Granada",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 46,
+    "distAP": 40
+  },
+  {
+    "name": "Sant Llorenç d'Hortons",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 45,
+    "distAP": 38
+  },
+  {
+    "name": "Vilafranca del Penedès",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 52,
+    "distAP": 46
+  },
+  {
+    "name": "Sant Sadurní d'Anoia",
+    "comarca": "Alt Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 48,
+    "distAP": 42
+  },
+  {
+    "name": "Sitges",
+    "comarca": "Garraf",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 40,
+    "distAP": 30
+  },
+  {
+    "name": "Vilanova i la Geltrú",
+    "comarca": "Garraf",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 52,
+    "distAP": 42
+  },
+  {
+    "name": "Cubelles",
+    "comarca": "Garraf",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 55,
+    "distAP": 42
+  },
+  {
+    "name": "Cunit",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 58,
+    "distAP": 44
+  },
+  {
+    "name": "Calafell",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 62,
+    "distAP": 48
+  },
+  {
+    "name": "Segur de Calafell",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 64,
+    "distAP": 50
+  },
+  {
+    "name": "El Vendrell",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 70,
+    "distAP": 55
+  },
+  {
+    "name": "Torredembarra",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 82,
+    "distAP": 68
+  },
+  {
+    "name": "Altafulla",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 86,
+    "distAP": 72
+  },
+  {
+    "name": "Creixell",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 88,
+    "distAP": 74
+  },
+  {
+    "name": "Roda de Berà",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 82,
+    "distAP": 68
+  },
+  {
+    "name": "Coma-ruga",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 58
+  },
+  {
+    "name": "Sant Vicenç de Calders",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 74,
+    "distAP": 60
+  },
+  {
+    "name": "L'Arboç",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 66,
+    "distAP": 52
+  },
+  {
+    "name": "Banyeres del Penedès",
+    "comarca": "Baix Penedès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 68,
+    "distAP": 54
+  },
+  {
+    "name": "Igualada",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 78,
+    "distAP": 72
+  },
+  {
+    "name": "Vilanova del Camí",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 80,
+    "distAP": 74
+  },
+  {
+    "name": "Santa Margarida de Montbui",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 80,
+    "distAP": 74
+  },
+  {
+    "name": "Piera",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 60,
+    "distAP": 55
+  },
+  {
+    "name": "Capellades",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 75,
+    "distAP": 70
+  },
+  {
+    "name": "La Pobla de Claramunt",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 66
+  },
+  {
+    "name": "Jorba",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 82,
+    "distAP": 76
+  },
+  {
+    "name": "Calaf",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 90,
+    "distAP": 90
+  },
+  {
+    "name": "Castellolí",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 70,
+    "distAP": 65
+  },
+  {
+    "name": "Òdena",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 78,
+    "distAP": 72
+  },
+  {
+    "name": "Montbui",
+    "comarca": "Anoia",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 80,
+    "distAP": 74
+  },
+  {
+    "name": "Manresa",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 75
+  },
+  {
+    "name": "Sant Joan de Vilatorrada",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 74,
+    "distAP": 77
+  },
+  {
+    "name": "Santpedor",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 76,
+    "distAP": 79
+  },
+  {
+    "name": "Sallent",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 82,
+    "distAP": 85
+  },
+  {
+    "name": "Súria",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 80,
+    "distAP": 83
+  },
+  {
+    "name": "Navarcles",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 75
+  },
+  {
+    "name": "Sant Fruitós de Bages",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 75
+  },
+  {
+    "name": "Artés",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 78,
+    "distAP": 81
+  },
+  {
+    "name": "Avinyó",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 88,
+    "distAP": 91
+  },
+  {
+    "name": "Moià",
+    "comarca": "Moianès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 68,
+    "distAP": 75
+  },
+  {
+    "name": "Cardona",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 100,
+    "distAP": 100
+  },
+  {
+    "name": "Balsareny",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 85,
+    "distAP": 88
+  },
+  {
+    "name": "Navàs",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 90,
+    "distAP": 93
+  },
+  {
+    "name": "Castellnou de Bages",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 75,
+    "distAP": 78
+  },
+  {
+    "name": "Monistrol de Montserrat",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 52,
+    "distAP": 50
+  },
+  {
+    "name": "Montserrat",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 55,
+    "distAP": 50
+  },
+  {
+    "name": "Castellgalí",
+    "comarca": "Bages",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 65,
+    "distAP": 65
+  },
+  {
+    "name": "Berga",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 118
+  },
+  {
+    "name": "Gironella",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 105,
+    "distAP": 108
+  },
+  {
+    "name": "Puig-reig",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 100,
+    "distAP": 103
+  },
+  {
+    "name": "Olvan",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 108,
+    "distAP": 111
+  },
+  {
+    "name": "Casserres",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 106,
+    "distAP": 109
+  },
+  {
+    "name": "Cercs",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 121
+  },
+  {
+    "name": "Bagà",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 140,
+    "distAP": 143
+  },
+  {
+    "name": "Guardiola de Berguedà",
+    "comarca": "Berguedà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 138,
+    "distAP": 141
+  },
+  {
+    "name": "Vic",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 70,
+    "distAP": 82
+  },
+  {
+    "name": "Manlleu",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 75,
+    "distAP": 87
+  },
+  {
+    "name": "Torelló",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 78,
+    "distAP": 90
+  },
+  {
+    "name": "Sant Hipòlit de Voltregà",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 80,
+    "distAP": 92
+  },
+  {
+    "name": "Roda de Ter",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 78,
+    "distAP": 90
+  },
+  {
+    "name": "Centelles",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 58,
+    "distAP": 70
+  },
+  {
+    "name": "Tona",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 62,
+    "distAP": 74
+  },
+  {
+    "name": "Balenyà",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 60,
+    "distAP": 72
+  },
+  {
+    "name": "Seva",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 65,
+    "distAP": 77
+  },
+  {
+    "name": "Calldetenes",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 84
+  },
+  {
+    "name": "Gurb",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 84
+  },
+  {
+    "name": "Hostalets de Balenyà",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 60,
+    "distAP": 72
+  },
+  {
+    "name": "Taradell",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 67,
+    "distAP": 79
+  },
+  {
+    "name": "Sant Julià de Vilatorta",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 68,
+    "distAP": 80
+  },
+  {
+    "name": "Santa Eugènia de Berga",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 70,
+    "distAP": 82
+  },
+  {
+    "name": "Malla",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 84
+  },
+  {
+    "name": "Orís",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 85,
+    "distAP": 97
+  },
+  {
+    "name": "Olost",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 82,
+    "distAP": 89
+  },
+  {
+    "name": "Prats de Lluçanès",
+    "comarca": "Osona",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 92,
+    "distAP": 99
+  },
+  {
+    "name": "Ripoll",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 110,
+    "distAP": 122
+  },
+  {
+    "name": "Ribes de Freser",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 132
+  },
+  {
+    "name": "Campdevànol",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 112,
+    "distAP": 124
+  },
+  {
+    "name": "Gombrèn",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 130
+  },
+  {
+    "name": "Ogassa",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 127
+  },
+  {
+    "name": "Sant Joan de les Abadesses",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 130
+  },
+  {
+    "name": "Camprodon",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 130,
+    "distAP": 142
+  },
+  {
+    "name": "Molló",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 140,
+    "distAP": 152
+  },
+  {
+    "name": "Setcases",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 145,
+    "distAP": 157
+  },
+  {
+    "name": "Vilallonga de Ter",
+    "comarca": "Ripollès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 135,
+    "distAP": 147
+  },
+  {
+    "name": "Puigcerdà",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 170,
+    "distAP": 175
+  },
+  {
+    "name": "Llívia",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 172,
+    "distAP": 177
+  },
+  {
+    "name": "Bellver de Cerdanya",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 185,
+    "distAP": 190
+  },
+  {
+    "name": "Alp",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 155,
+    "distAP": 160
+  },
+  {
+    "name": "Das",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 165,
+    "distAP": 170
+  },
+  {
+    "name": "Isòvol",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 168,
+    "distAP": 173
+  },
+  {
+    "name": "Meranges",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 175,
+    "distAP": 180
+  },
+  {
+    "name": "Prullans",
+    "comarca": "Cerdanya",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 182,
+    "distAP": 187
+  },
+  {
+    "name": "La Seu d'Urgell",
+    "comarca": "Alt Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 200,
+    "distAP": 205
+  },
+  {
+    "name": "Organyà",
+    "comarca": "Alt Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 185,
+    "distAP": 190
+  },
+  {
+    "name": "Oliana",
+    "comarca": "Alt Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 175,
+    "distAP": 180
+  },
+  {
+    "name": "Bassella",
+    "comarca": "Alt Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 172,
+    "distAP": 177
+  },
+  {
+    "name": "Sort",
+    "comarca": "Pallars Sobirà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 230,
+    "distAP": 235
+  },
+  {
+    "name": "Llavorsí",
+    "comarca": "Pallars Sobirà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 240,
+    "distAP": 245
+  },
+  {
+    "name": "Rialp",
+    "comarca": "Pallars Sobirà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 232,
+    "distAP": 237
+  },
+  {
+    "name": "Esterri d'Àneu",
+    "comarca": "Pallars Sobirà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 255,
+    "distAP": 260
+  },
+  {
+    "name": "Tremp",
+    "comarca": "Pallars Jussà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 195,
+    "distAP": 200
+  },
+  {
+    "name": "La Pobla de Segur",
+    "comarca": "Pallars Jussà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 215,
+    "distAP": 220
+  },
+  {
+    "name": "Pont de Suert",
+    "comarca": "Alta Ribagorça",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 255,
+    "distAP": 260
+  },
+  {
+    "name": "Vielha",
+    "comarca": "Val d'Aran",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 300,
+    "distAP": 305
+  },
+  {
+    "name": "Bossòst",
+    "comarca": "Val d'Aran",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 310,
+    "distAP": 315
+  },
+  {
+    "name": "Les",
+    "comarca": "Val d'Aran",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 308,
+    "distAP": 313
+  },
+  {
+    "name": "Salardú",
+    "comarca": "Val d'Aran",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 315,
+    "distAP": 320
+  },
+  {
+    "name": "Artíes",
+    "comarca": "Val d'Aran",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 312,
+    "distAP": 317
+  },
+  {
+    "name": "Solsona",
+    "comarca": "Solsonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 140,
+    "distAP": 143
+  },
+  {
+    "name": "Olius",
+    "comarca": "Solsonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 138,
+    "distAP": 141
+  },
+  {
+    "name": "Riner",
+    "comarca": "Solsonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 142,
+    "distAP": 145
+  },
+  {
+    "name": "Guixers",
+    "comarca": "Solsonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 151
+  },
+  {
+    "name": "Balaguer",
+    "comarca": "Noguera",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 150,
+    "distAP": 155
+  },
+  {
+    "name": "Artesa de Segre",
+    "comarca": "Noguera",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 160,
+    "distAP": 165
+  },
+  {
+    "name": "Ponts",
+    "comarca": "Noguera",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 155,
+    "distAP": 160
+  },
+  {
+    "name": "Agramunt",
+    "comarca": "Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 145,
+    "distAP": 150
+  },
+  {
+    "name": "Tàrrega",
+    "comarca": "Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 120
+  },
+  {
+    "name": "Cervera",
+    "comarca": "Segarra",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 100,
+    "distAP": 110
+  },
+  {
+    "name": "Guissona",
+    "comarca": "Segarra",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 125
+  },
+  {
+    "name": "Mollerussa",
+    "comarca": "Pla d'Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 135,
+    "distAP": 140
+  },
+  {
+    "name": "Bellpuig",
+    "comarca": "Urgell",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 130,
+    "distAP": 135
+  },
+  {
+    "name": "Les Borges Blanques",
+    "comarca": "Garrigues",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 140,
+    "distAP": 145
+  },
+  {
+    "name": "Arbeca",
+    "comarca": "Garrigues",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 135,
+    "distAP": 140
+  },
+  {
+    "name": "Juneda",
+    "comarca": "Garrigues",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 138,
+    "distAP": 143
+  },
+  {
+    "name": "Vinaixa",
+    "comarca": "Garrigues",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 142,
+    "distAP": 147
+  },
+  {
+    "name": "Borges del Camp",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 100
+  },
+  {
+    "name": "Alcover",
+    "comarca": "Alt Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 108,
+    "distAP": 93
+  },
+  {
+    "name": "La Selva del Camp",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 110,
+    "distAP": 96
+  },
+  {
+    "name": "Lleida",
+    "comarca": "Segrià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 170,
+    "distAP": 165
+  },
+  {
+    "name": "Alcarràs",
+    "comarca": "Segrià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 178,
+    "distAP": 173
+  },
+  {
+    "name": "Torres de Segre",
+    "comarca": "Segrià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 175,
+    "distAP": 170
+  },
+  {
+    "name": "Almacelles",
+    "comarca": "Segrià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 180,
+    "distAP": 175
+  },
+  {
+    "name": "Torrefarrera",
+    "comarca": "Segrià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 165,
+    "distAP": 160
+  },
+  {
+    "name": "Alpicat",
+    "comarca": "Segrià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 168,
+    "distAP": 163
+  },
+  {
+    "name": "Rosselló",
+    "comarca": "Noguera",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 160,
+    "distAP": 155
+  },
+  {
+    "name": "La Portella",
+    "comarca": "Noguera",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 158,
+    "distAP": 153
+  },
+  {
+    "name": "Térmens",
+    "comarca": "Noguera",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 155,
+    "distAP": 150
+  },
+  {
+    "name": "Tarragona",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 105,
+    "distAP": 90
+  },
+  {
+    "name": "Reus",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 100
+  },
+  {
+    "name": "Cambrils",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 108,
+    "distAP": 94
+  },
+  {
+    "name": "Salou",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 110,
+    "distAP": 96
+  },
+  {
+    "name": "La Pineda",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 106,
+    "distAP": 92
+  },
+  {
+    "name": "Vila-seca",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 107,
+    "distAP": 93
+  },
+  {
+    "name": "Constantí",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 108,
+    "distAP": 94
+  },
+  {
+    "name": "La Canonja",
+    "comarca": "Tarragonès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 104,
+    "distAP": 90
+  },
+  {
+    "name": "Valls",
+    "comarca": "Alt Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 100,
+    "distAP": 86
+  },
+  {
+    "name": "Montblanc",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 100
+  },
+  {
+    "name": "L'Espluga de Francolí",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 103
+  },
+  {
+    "name": "Conesa",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 122,
+    "distAP": 107
+  },
+  {
+    "name": "Prades",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 128,
+    "distAP": 113
+  },
+  {
+    "name": "Cornudella de Montsant",
+    "comarca": "Priorat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 130,
+    "distAP": 115
+  },
+  {
+    "name": "Falset",
+    "comarca": "Priorat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 135,
+    "distAP": 120
+  },
+  {
+    "name": "Móra la Nova",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 145,
+    "distAP": 130
+  },
+  {
+    "name": "Móra d'Ebre",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 133
+  },
+  {
+    "name": "Gandesa",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 165,
+    "distAP": 150
+  },
+  {
+    "name": "Mont-roig del Camp",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 106
+  },
+  {
+    "name": "Miami Platja",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 130,
+    "distAP": 116
+  },
+  {
+    "name": "L'Ametlla de Mar",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 155,
+    "distAP": 140
+  },
+  {
+    "name": "L'Ampolla",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 165,
+    "distAP": 150
+  },
+  {
+    "name": "Riudoms",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 103
+  },
+  {
+    "name": "Alforja",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 106
+  },
+  {
+    "name": "Duesaigües",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 122,
+    "distAP": 108
+  },
+  {
+    "name": "Vandellòs",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 133
+  },
+  {
+    "name": "Hospitalet de l'Infant",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 150,
+    "distAP": 135
+  },
+  {
+    "name": "Pratdip",
+    "comarca": "Baix Camp",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 145,
+    "distAP": 130
+  },
+  {
+    "name": "Tivissa",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 152,
+    "distAP": 137
+  },
+  {
+    "name": "Rasquera",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 158,
+    "distAP": 143
+  },
+  {
+    "name": "Benifallet",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 165,
+    "distAP": 150
+  },
+  {
+    "name": "Ascó",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 155,
+    "distAP": 140
+  },
+  {
+    "name": "Tortosa",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 180,
+    "distAP": 165
+  },
+  {
+    "name": "Amposta",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 188,
+    "distAP": 173
+  },
+  {
+    "name": "Deltebre",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 190,
+    "distAP": 175
+  },
+  {
+    "name": "Sant Carles de la Ràpita",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 195,
+    "distAP": 180
+  },
+  {
+    "name": "Ulldecona",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 205,
+    "distAP": 190
+  },
+  {
+    "name": "Alcanar",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 200,
+    "distAP": 185
+  },
+  {
+    "name": "Les Cases d'Alcanar",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 202,
+    "distAP": 187
+  },
+  {
+    "name": "La Sénia",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 210,
+    "distAP": 195
+  },
+  {
+    "name": "Roquetes",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 182,
+    "distAP": 167
+  },
+  {
+    "name": "Jesús",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 178,
+    "distAP": 163
+  },
+  {
+    "name": "L'Aldea",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 186,
+    "distAP": 171
+  },
+  {
+    "name": "Camarles",
+    "comarca": "Baix Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 188,
+    "distAP": 173
+  },
+  {
+    "name": "Sant Jaume d'Enveja",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 193,
+    "distAP": 178
+  },
+  {
+    "name": "Mas de Barberans",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 208,
+    "distAP": 193
+  },
+  {
+    "name": "Freginals",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 206,
+    "distAP": 191
+  },
+  {
+    "name": "Godall",
+    "comarca": "Montsià",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 204,
+    "distAP": 189
+  },
+  {
+    "name": "Girona",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 102,
+    "distAP": 115
+  },
+  {
+    "name": "Salt",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 103,
+    "distAP": 116
+  },
+  {
+    "name": "Sarrià de Ter",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 104,
+    "distAP": 117
+  },
+  {
+    "name": "Fornells de la Selva",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 100,
+    "distAP": 113
+  },
+  {
+    "name": "Quart",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 105,
+    "distAP": 118
+  },
+  {
+    "name": "Vilablareix",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 102,
+    "distAP": 115
+  },
+  {
+    "name": "Celrà",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 106,
+    "distAP": 119
+  },
+  {
+    "name": "Bordils",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 108,
+    "distAP": 121
+  },
+  {
+    "name": "Bàscara",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 116,
+    "distAP": 129
+  },
+  {
+    "name": "Medinyà",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 108,
+    "distAP": 121
+  },
+  {
+    "name": "Bescanó",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 106,
+    "distAP": 119
+  },
+  {
+    "name": "Sant Gregori",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 107,
+    "distAP": 120
+  },
+  {
+    "name": "Lloret de Mar",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 78,
+    "distAP": 90
+  },
+  {
+    "name": "Tossa de Mar",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 90,
+    "distAP": 102
+  },
+  {
+    "name": "Santa Coloma de Farners",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 88,
+    "distAP": 100
+  },
+  {
+    "name": "Sils",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 80,
+    "distAP": 92
+  },
+  {
+    "name": "Vidreres",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 78,
+    "distAP": 90
+  },
+  {
+    "name": "Riudarenes",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 82,
+    "distAP": 94
+  },
+  {
+    "name": "Maçanet de la Selva",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 80,
+    "distAP": 92
+  },
+  {
+    "name": "Caldes de Malavella",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 90,
+    "distAP": 102
+  },
+  {
+    "name": "Llagostera",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 96,
+    "distAP": 108
+  },
+  {
+    "name": "Cassà de la Selva",
+    "comarca": "Gironès",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 98,
+    "distAP": 110
+  },
+  {
+    "name": "Anglès",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 92,
+    "distAP": 104
+  },
+  {
+    "name": "Arbúcies",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 85,
+    "distAP": 97
+  },
+  {
+    "name": "Sant Hilari Sacalm",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 95,
+    "distAP": 107
+  },
+  {
+    "name": "Amer",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 100,
+    "distAP": 112
+  },
+  {
+    "name": "Breda",
+    "comarca": "La Selva",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 72,
+    "distAP": 84
+  },
+  {
+    "name": "Tordera",
+    "comarca": "Maresme",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 70,
+    "distAP": 82
+  },
+  {
+    "name": "Palafrugell",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 130,
+    "distAP": 142
+  },
+  {
+    "name": "Palamós",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 125,
+    "distAP": 138
+  },
+  {
+    "name": "Sant Feliu de Guíxols",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 110,
+    "distAP": 122
+  },
+  {
+    "name": "Calonge",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 122,
+    "distAP": 134
+  },
+  {
+    "name": "Sant Antoni de Calonge",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 122,
+    "distAP": 134
+  },
+  {
+    "name": "Platja d'Aro",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 130
+  },
+  {
+    "name": "Castell-Platja d'Aro",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 130
+  },
+  {
+    "name": "Begur",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 145,
+    "distAP": 157
+  },
+  {
+    "name": "Pals",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 142,
+    "distAP": 154
+  },
+  {
+    "name": "Torroella de Montgrí",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 140,
+    "distAP": 152
+  },
+  {
+    "name": "L'Estartit",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 145,
+    "distAP": 157
+  },
+  {
+    "name": "La Bisbal d'Empordà",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 132
+  },
+  {
+    "name": "Forallac",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 122,
+    "distAP": 134
+  },
+  {
+    "name": "Cruïlles",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 130
+  },
+  {
+    "name": "Peratallada",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 130,
+    "distAP": 142
+  },
+  {
+    "name": "Regencós",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 138,
+    "distAP": 150
+  },
+  {
+    "name": "Mont-ras",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 128,
+    "distAP": 140
+  },
+  {
+    "name": "Llafranc",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 132,
+    "distAP": 144
+  },
+  {
+    "name": "Calella de Palafrugell",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 132,
+    "distAP": 144
+  },
+  {
+    "name": "Tamariu",
+    "comarca": "Baix Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 135,
+    "distAP": 147
+  },
+  {
+    "name": "Figueres",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 145,
+    "distAP": 158
+  },
+  {
+    "name": "Roses",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 160,
+    "distAP": 172
+  },
+  {
+    "name": "Castelló d'Empúries",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 158,
+    "distAP": 170
+  },
+  {
+    "name": "L'Escala",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 160
+  },
+  {
+    "name": "Empuriabrava",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 162,
+    "distAP": 174
+  },
+  {
+    "name": "Cadaqués",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 175,
+    "distAP": 187
+  },
+  {
+    "name": "Llançà",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 168,
+    "distAP": 180
+  },
+  {
+    "name": "El Port de la Selva",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 170,
+    "distAP": 182
+  },
+  {
+    "name": "La Jonquera",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 152,
+    "distAP": 165
+  },
+  {
+    "name": "Portbou",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 178,
+    "distAP": 190
+  },
+  {
+    "name": "Colera",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 174,
+    "distAP": 186
+  },
+  {
+    "name": "Pau",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 162,
+    "distAP": 174
+  },
+  {
+    "name": "Palau-saverdera",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 158,
+    "distAP": 170
+  },
+  {
+    "name": "Peralada",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 155,
+    "distAP": 167
+  },
+  {
+    "name": "Vilajuïga",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 156,
+    "distAP": 168
+  },
+  {
+    "name": "El Far d'Empordà",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 160
+  },
+  {
+    "name": "Viladamat",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 150,
+    "distAP": 162
+  },
+  {
+    "name": "Sant Pere Pescador",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 155,
+    "distAP": 167
+  },
+  {
+    "name": "Garriguella",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 158,
+    "distAP": 170
+  },
+  {
+    "name": "Mollet de Peralada",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 153,
+    "distAP": 165
+  },
+  {
+    "name": "Agullana",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 150,
+    "distAP": 162
+  },
+  {
+    "name": "Darnius",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 152,
+    "distAP": 164
+  },
+  {
+    "name": "Maçanet de Cabrenys",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 160
+  },
+  {
+    "name": "Sant Llorenç de la Muga",
+    "comarca": "Alt Empordà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 160
+  },
+  {
+    "name": "Banyoles",
+    "comarca": "Pla de l'Estany",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 128
+  },
+  {
+    "name": "Porqueres",
+    "comarca": "Pla de l'Estany",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 116,
+    "distAP": 129
+  },
+  {
+    "name": "Cornellà del Terri",
+    "comarca": "Pla de l'Estany",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 131
+  },
+  {
+    "name": "Mieres",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 133
+  },
+  {
+    "name": "Olot",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 130,
+    "distAP": 142
+  },
+  {
+    "name": "Sant Joan les Fonts",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 132,
+    "distAP": 144
+  },
+  {
+    "name": "Besalú",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 132
+  },
+  {
+    "name": "Castellfollit de la Roca",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 128,
+    "distAP": 140
+  },
+  {
+    "name": "Les Planes d'Hostoles",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 112,
+    "distAP": 124
+  },
+  {
+    "name": "La Vall d'en Bas",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 120,
+    "distAP": 132
+  },
+  {
+    "name": "Sant Feliu de Pallerols",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 115,
+    "distAP": 127
+  },
+  {
+    "name": "Montagut i Oix",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 125,
+    "distAP": 137
+  },
+  {
+    "name": "Beuda",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 122,
+    "distAP": 134
+  },
+  {
+    "name": "Maià de Montcal",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 124,
+    "distAP": 136
+  },
+  {
+    "name": "Sant Jaume de Llierca",
+    "comarca": "Garrotxa",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 126,
+    "distAP": 138
+  },
+  {
+    "name": "La Morera de Montsant",
+    "comarca": "Priorat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 132,
+    "distAP": 117
+  },
+  {
+    "name": "Gratallops",
+    "comarca": "Priorat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 138,
+    "distAP": 123
+  },
+  {
+    "name": "Porrera",
+    "comarca": "Priorat",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 136,
+    "distAP": 121
+  },
+  {
+    "name": "Bot",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 170,
+    "distAP": 155
+  },
+  {
+    "name": "Batea",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 172,
+    "distAP": 157
+  },
+  {
+    "name": "Corbera d'Ebre",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 162,
+    "distAP": 147
+  },
+  {
+    "name": "La Fatarella",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 168,
+    "distAP": 153
+  },
+  {
+    "name": "Vilalba dels Arcs",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 170,
+    "distAP": 155
+  },
+  {
+    "name": "El Pinell de Brai",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 168,
+    "distAP": 153
+  },
+  {
+    "name": "Prat de Comte",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 175,
+    "distAP": 160
+  },
+  {
+    "name": "Arnes",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 178,
+    "distAP": 163
+  },
+  {
+    "name": "Horta de Sant Joan",
+    "comarca": "Terra Alta",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 180,
+    "distAP": 165
+  },
+  {
+    "name": "Vimbodí i Poblet",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 122,
+    "distAP": 107
+  },
+  {
+    "name": "Solivella",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 118,
+    "distAP": 103
+  },
+  {
+    "name": "Sarral",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 112,
+    "distAP": 97
+  },
+  {
+    "name": "Santa Coloma de Queralt",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 108,
+    "distAP": 100
+  },
+  {
+    "name": "Rocafort de Queralt",
+    "comarca": "Conca de Barberà",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 110,
+    "distAP": 102
+  },
+  {
+    "name": "Garcia",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 142,
+    "distAP": 127
+  },
+  {
+    "name": "Flix",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 152,
+    "distAP": 137
+  },
+  {
+    "name": "Vinebre",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 150,
+    "distAP": 135
+  },
+  {
+    "name": "La Torre de l'Espanyol",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 148,
+    "distAP": 133
+  },
+  {
+    "name": "Miravet",
+    "comarca": "Ribera d'Ebre",
+    "region": "Catalunya",
+    "metro": false,
+    "distPC": 158,
+    "distAP": 143
+  },
+  {
+    "name": "Madrid",
+    "comarca": "Comunitat de Madrid",
+    "region": "España",
+    "metro": false,
+    "distPC": 600,
+    "distAP": 590
+  },
+  {
+    "name": "Valencia",
+    "comarca": "País Valencià",
+    "region": "España",
+    "metro": false,
+    "distPC": 355,
+    "distAP": 340
+  },
+  {
+    "name": "Sevilla",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1000,
+    "distAP": 985
+  },
+  {
+    "name": "Zaragoza",
+    "comarca": "Aragó",
+    "region": "España",
+    "metro": false,
+    "distPC": 308,
+    "distAP": 295
+  },
+  {
+    "name": "Málaga",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1000,
+    "distAP": 985
+  },
+  {
+    "name": "Murcia",
+    "comarca": "Regió de Múrcia",
+    "region": "España",
+    "metro": false,
+    "distPC": 650,
+    "distAP": 635
+  },
+  {
+    "name": "Palma",
+    "comarca": "Illes Balears",
+    "region": "España",
+    "metro": false,
+    "distPC": 0,
+    "distAP": 0
+  },
+  {
+    "name": "Las Palmas de Gran Canaria",
+    "comarca": "Canàries",
+    "region": "España",
+    "metro": false,
+    "distPC": 0,
+    "distAP": 0
+  },
+  {
+    "name": "Bilbao",
+    "comarca": "País Basc",
+    "region": "España",
+    "metro": false,
+    "distPC": 620,
+    "distAP": 610
+  },
+  {
+    "name": "Alicante",
+    "comarca": "País Valencià",
+    "region": "España",
+    "metro": false,
+    "distPC": 510,
+    "distAP": 495
+  },
+  {
+    "name": "Córdoba",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 900,
+    "distAP": 885
+  },
+  {
+    "name": "Valladolid",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 700,
+    "distAP": 690
+  },
+  {
+    "name": "Vigo",
+    "comarca": "Galícia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1090,
+    "distAP": 1080
+  },
+  {
+    "name": "Gijón",
+    "comarca": "Astúries",
+    "region": "España",
+    "metro": false,
+    "distPC": 900,
+    "distAP": 890
+  },
+  {
+    "name": "Granada",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 860,
+    "distAP": 845
+  },
+  {
+    "name": "A Coruña",
+    "comarca": "Galícia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1100,
+    "distAP": 1090
+  },
+  {
+    "name": "Vitoria-Gasteiz",
+    "comarca": "País Basc",
+    "region": "España",
+    "metro": false,
+    "distPC": 560,
+    "distAP": 550
+  },
+  {
+    "name": "Elche",
+    "comarca": "País Valencià",
+    "region": "España",
+    "metro": false,
+    "distPC": 520,
+    "distAP": 505
+  },
+  {
+    "name": "Oviedo",
+    "comarca": "Astúries",
+    "region": "España",
+    "metro": false,
+    "distPC": 920,
+    "distAP": 910
+  },
+  {
+    "name": "Donostia / San Sebastián",
+    "comarca": "País Basc",
+    "region": "España",
+    "metro": false,
+    "distPC": 560,
+    "distAP": 555
+  },
+  {
+    "name": "Móstoles",
+    "comarca": "Comunitat de Madrid",
+    "region": "España",
+    "metro": false,
+    "distPC": 610,
+    "distAP": 600
+  },
+  {
+    "name": "Santa Cruz de Tenerife",
+    "comarca": "Canàries",
+    "region": "España",
+    "metro": false,
+    "distPC": 0,
+    "distAP": 0
+  },
+  {
+    "name": "Pamplona",
+    "comarca": "Navarra",
+    "region": "España",
+    "metro": false,
+    "distPC": 490,
+    "distAP": 480
+  },
+  {
+    "name": "Almería",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 930,
+    "distAP": 915
+  },
+  {
+    "name": "Burgos",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 590,
+    "distAP": 580
+  },
+  {
+    "name": "Albacete",
+    "comarca": "Castella-La Manxa",
+    "region": "España",
+    "metro": false,
+    "distPC": 590,
+    "distAP": 575
+  },
+  {
+    "name": "Santander",
+    "comarca": "Cantàbria",
+    "region": "España",
+    "metro": false,
+    "distPC": 820,
+    "distAP": 810
+  },
+  {
+    "name": "Castelló de la Plana",
+    "comarca": "País Valencià",
+    "region": "España",
+    "metro": false,
+    "distPC": 280,
+    "distAP": 265
+  },
+  {
+    "name": "Logroño",
+    "comarca": "La Rioja",
+    "region": "España",
+    "metro": false,
+    "distPC": 440,
+    "distAP": 430
+  },
+  {
+    "name": "Badajoz",
+    "comarca": "Extremadura",
+    "region": "España",
+    "metro": false,
+    "distPC": 1080,
+    "distAP": 1065
+  },
+  {
+    "name": "Salamanca",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 800,
+    "distAP": 790
+  },
+  {
+    "name": "Huelva",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1070,
+    "distAP": 1055
+  },
+  {
+    "name": "León",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 810,
+    "distAP": 800
+  },
+  {
+    "name": "Cádiz",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1110,
+    "distAP": 1095
+  },
+  {
+    "name": "Jaén",
+    "comarca": "Andalusia",
+    "region": "España",
+    "metro": false,
+    "distPC": 800,
+    "distAP": 785
+  },
+  {
+    "name": "Ourense",
+    "comarca": "Galícia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1050,
+    "distAP": 1040
+  },
+  {
+    "name": "Lugo",
+    "comarca": "Galícia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1090,
+    "distAP": 1080
+  },
+  {
+    "name": "Toledo",
+    "comarca": "Castella-La Manxa",
+    "region": "España",
+    "metro": false,
+    "distPC": 640,
+    "distAP": 625
+  },
+  {
+    "name": "Mérida",
+    "comarca": "Extremadura",
+    "region": "España",
+    "metro": false,
+    "distPC": 1020,
+    "distAP": 1005
+  },
+  {
+    "name": "Pontevedra",
+    "comarca": "Galícia",
+    "region": "España",
+    "metro": false,
+    "distPC": 1090,
+    "distAP": 1080
+  },
+  {
+    "name": "Huesca",
+    "comarca": "Aragó",
+    "region": "España",
+    "metro": false,
+    "distPC": 390,
+    "distAP": 380
+  },
+  {
+    "name": "Teruel",
+    "comarca": "Aragó",
+    "region": "España",
+    "metro": false,
+    "distPC": 335,
+    "distAP": 320
+  },
+  {
+    "name": "Cuenca",
+    "comarca": "Castella-La Manxa",
+    "region": "España",
+    "metro": false,
+    "distPC": 590,
+    "distAP": 580
+  },
+  {
+    "name": "Ciudad Real",
+    "comarca": "Castella-La Manxa",
+    "region": "España",
+    "metro": false,
+    "distPC": 690,
+    "distAP": 680
+  },
+  {
+    "name": "Ávila",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 730,
+    "distAP": 720
+  },
+  {
+    "name": "Segovia",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 700,
+    "distAP": 690
+  },
+  {
+    "name": "Soria",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 530,
+    "distAP": 520
+  },
+  {
+    "name": "Zamora",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 760,
+    "distAP": 750
+  },
+  {
+    "name": "Palencia",
+    "comarca": "Castella i Lleó",
+    "region": "España",
+    "metro": false,
+    "distPC": 680,
+    "distAP": 670
+  },
+  {
+    "name": "Guadalajara",
+    "comarca": "Castella-La Manxa",
+    "region": "España",
+    "metro": false,
+    "distPC": 560,
+    "distAP": 550
+  },
+  {
+    "name": "Cáceres",
+    "comarca": "Extremadura",
+    "region": "España",
+    "metro": false,
+    "distPC": 1000,
+    "distAP": 990
+  }
+];
+
+// ─── DB ──────────────────────────────────────────────────────────────────────
+const DB_NAME = 'taxibcn', DB_VER = 1;
+let db;
+
+function openDB() {
+  return new Promise((res, rej) => {
+    const req = indexedDB.open(DB_NAME, DB_VER);
+    req.onupgradeneeded = e => {
+      const d = e.target.result;
+      if (!d.objectStoreNames.contains('distances')) d.createObjectStore('distances');
+      if (!d.objectStoreNames.contains('config'))    d.createObjectStore('config');
+    };
+    req.onsuccess = e => { db = e.target.result; res(db); };
+    req.onerror   = () => rej(req.error);
+  });
+}
+
+async function dbGet(store, key) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readonly');
+    const req = tx.objectStore(store).get(key);
+    req.onsuccess = () => res(req.result);
+    req.onerror   = () => rej(req.error);
+  });
+}
+
+async function dbSet(store, key, value) {
+  return new Promise((res, rej) => {
+    const tx = db.transaction(store, 'readwrite');
+    const req = tx.objectStore(store).put(value, key);
+    req.onsuccess = () => res();
+    req.onerror   = () => rej(req.error);
+  });
+}
+
+// ─── STATE ───────────────────────────────────────────────────────────────────
+let towns        = [];
+let currentOrigin = 'pc';   // 'pc' | 'ap' | 'gps'
+let currentTariff = 'day';
+let selectedTown  = null;
+let apiKey        = '';
+let gpsCoords     = null;   // {lat, lng} if obtained
+
+const ORIGINS = {
+  pc:  { label: 'Pl. Catalunya', coords: '41.3874,2.1686',  mapsPlace: 'Plaça+de+Catalunya,+Barcelona' },
+  ap:  { label: 'Aeroport',      coords: '41.2971,2.0785',  mapsPlace: 'Aeroport+de+Barcelona-El+Prat' },
+  gps: { label: 'Ubicació actual', coords: null,             mapsPlace: null },
+};
+
+const TARIFFS = {
+  metro: {
+    day:   { flag: 2.80, rate: 1.35 },
+    night: { flag: 2.80, rate: 1.66 },
+  },
+  outer: {
+    day:   { multiplier: 1.64 },
+    night: { multiplier: 1.78 },
+  }
+};
+
+const AIRPORT_SUPPLEMENT = 4.60;
+
+// ─── INIT ─────────────────────────────────────────────────────────────────────
+async function init() {
+  // Always have towns available immediately
+  towns = TOWNS_DATA;
+
+  try {
+    await openDB();
+    apiKey = await dbGet('config', 'apiKey') || '';
+    // Try to load custom towns from IndexedDB (user-imported)
+    const cached = await dbGet('config', 'towns');
+    if (cached && cached.length) towns = cached;
+  } catch (e) {
+    console.warn('IndexedDB not available, using built-in data', e);
+  }
+
+  // Auto-detect tariff by time
+  const now = new Date(), h = now.getHours(), d = now.getDay();
+  currentTariff = (d === 0 || d === 6 || h < 8 || h >= 20) ? 'night' : 'day';
+  document.querySelectorAll('.tariff-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tariff === currentTariff));
+
+  initSearch();
+}
+
+// ─── SEARCH ──────────────────────────────────────────────────────────────────
+let searchInput, dropdown;
+
+function norm(s) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+}
+
+function initSearch() {
+  searchInput = document.getElementById('search-input');
+  dropdown    = document.getElementById('dropdown');
+
+  searchInput.addEventListener('input', () => {
+    const q = searchInput.value.trim();
+    if (!q) { closeDropdown(); return; }
+    const nq = norm(q);
+    const matches = towns
+      .filter(t => norm(t.name).includes(nq))
+      .sort((a,b) => norm(a.name).indexOf(nq) - norm(b.name).indexOf(nq) || a.name.localeCompare(b.name,'ca'))
+      .slice(0, 40);
+    renderDropdown(matches, q);
+  });
+
+  searchInput.addEventListener('keydown', e => { if (e.key === 'Escape') closeDropdown(); });
+  document.addEventListener('click', e => { if (!e.target.closest('.search-wrapper')) closeDropdown(); });
+}
+
+function closeDropdown() { dropdown.classList.remove('visible'); }
+
+function renderDropdown(results, q) {
+  if (!results.length) { closeDropdown(); return; }
+  dropdown.innerHTML = results.map(t => {
+    const tag = t.metro ? `<span class="tag tag-amb">AMB</span>`
+      : t.region === 'Catalunya' ? `<span class="tag tag-cat">CAT</span>`
+      : `<span class="tag tag-esp">ESP</span>`;
+    const hl = highlight(t.name, q);
+    return `<div class="dropdown-item" onclick="selectTown('${t.name.replace(/'/g,"\\'")}')">
+      <span>${hl} <small style="color:var(--muted);font-size:11px">${t.comarca}</small></span>
+      ${tag}
+    </div>`;
+  }).join('');
+  dropdown.classList.add('visible');
+}
+
+function highlight(name, q) {
+  const i = norm(name).indexOf(norm(q));
+  if (i === -1) return name;
+  return name.slice(0,i) + '<strong style="color:var(--yellow)">' + name.slice(i, i+q.length) + '</strong>' + name.slice(i+q.length);
+}
+
+// ─── SELECTORS ───────────────────────────────────────────────────────────────
+function selectOrigin(origin) {
+  if (origin === 'gps') { requestGPS(); return; }
+  currentOrigin = origin;
+  document.querySelectorAll('.origin-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.origin === origin));
+  if (selectedTown) calculate();
+}
+
+async function requestGPS() {
+  if (!navigator.geolocation) { alert('El teu dispositiu no suporta geolocalització'); return; }
+  document.getElementById('btn-gps').classList.add('active');
+  document.getElementById('btn-gps').querySelector('.label').textContent = 'Localitzant...';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      currentOrigin = 'gps';
+      ORIGINS.gps.coords = `${gpsCoords.lat},${gpsCoords.lng}`;
+      ORIGINS.gps.mapsPlace = `${gpsCoords.lat},${gpsCoords.lng}`;
+      document.querySelectorAll('.origin-btn').forEach(b =>
+        b.classList.toggle('active', b.dataset.origin === 'gps'));
+      document.getElementById('btn-gps').querySelector('.label').textContent = 'Ubicació';
+      if (selectedTown) calculate();
+    },
+    err => {
+      document.getElementById('btn-gps').classList.remove('active');
+      document.getElementById('btn-gps').querySelector('.label').textContent = 'Ubicació';
+      alert('No s\'ha pogut obtenir la ubicació. Comprova els permisos.');
+    }
+  );
+}
+
+function selectTown(name) {
+  const town = towns.find(t => t.name === name);
+  if (!town) return;
+  selectedTown = town;
+  searchInput.value = town.name;
+  closeDropdown();
+  calculate();
+}
+
+function selectTariff(tariff) {
+  currentTariff = tariff;
+  document.querySelectorAll('.tariff-btn').forEach(b =>
+    b.classList.toggle('active', b.dataset.tariff === tariff));
+  if (selectedTown) calculate();
+}
+
+// ─── DISTANCE via Google Maps API ────────────────────────────────────────────
+async function fetchRealDistance(originCoords, destName) {
+  if (!apiKey) return null;
+  // Use a CORS proxy or direct call (requires API key with no referrer restriction for local use)
+  const dest = encodeURIComponent(destName + ', Spain');
+  const url  = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originCoords}&destinations=${dest}&mode=driving&key=${apiKey}`;
+  try {
+    const r = await fetch(url);
+    const d = await r.json();
+    const el = d.rows?.[0]?.elements?.[0];
+    if (el?.status === 'OK') return Math.round(el.distance.value / 1000);
+  } catch {}
+  return null;
+}
+
+// ─── CALCULATE ───────────────────────────────────────────────────────────────
+async function calculate() {
+  const town   = selectedTown;
+  const isAP   = (currentOrigin === 'ap');
+  const isGPS  = (currentOrigin === 'gps');
+  const origin = ORIGINS[currentOrigin];
+
+  // Show results section
+  const resultsEl = document.getElementById('results');
+  resultsEl.style.display = 'block';
+
+  // Header
+  document.getElementById('res-town').textContent    = town.name;
+  document.getElementById('res-comarca').textContent = town.comarca || '';
+  const badge = document.getElementById('res-tariff-badge');
+  badge.textContent = currentTariff === 'day' ? '☀ DIÜRNA' : '🌙 NOCTURNA';
+  badge.className   = 'tariff-badge ' + currentTariff;
+
+  // Card style
+  const card = document.getElementById('result-card');
+  card.className = 'result-card' + (isAP ? ' airport' : '');
+
+  // Supplement row
+  const suppRow = document.getElementById('res-supp-row');
+  suppRow.style.display = isAP ? 'flex' : 'none';
+
+  // Origin label
+  document.getElementById('res-origin').textContent = origin.label;
+
+  // Tariff display
+  let calcPrice, dispFlag, dispRate;
+  if (town.metro) {
+    const t  = TARIFFS.metro[currentTariff];
+    calcPrice = dist => t.flag + dist * t.rate + (isAP ? AIRPORT_SUPPLEMENT : 0);
+    dispFlag  = fmt(t.flag) + ' €';
+    dispRate  = fmt(t.rate) + ' €/km';
+    document.getElementById('res-flag-row').style.display = 'flex';
+  } else {
+    const t  = TARIFFS.outer[currentTariff];
+    calcPrice = dist => dist * t.multiplier + (isAP ? AIRPORT_SUPPLEMENT : 0);
+    dispFlag  = '—';
+    dispRate  = '× ' + t.multiplier.toFixed(2).replace('.',',');
+    document.getElementById('res-flag-row').style.display = 'none';
+  }
+  document.getElementById('res-flag').textContent = dispFlag;
+  document.getElementById('res-rate').textContent = dispRate;
+
+  // Outer note
+  document.getElementById('outer-note').style.display = town.metro ? 'none' : 'flex';
+
+  // Use stored dist first
+  let dist = isAP ? town.distAP : town.distPC;
+  if (isGPS) dist = town.distPC; // fallback until real dist fetched
+
+  renderPriceRow(calcPrice, dist, false);
+  showTaximeter(calcPrice, dist, isAP);
+
+  // Google Maps link
+  const destEnc = encodeURIComponent(town.name + ', Spain');
+  const gmLink  = document.getElementById('gmaps-link');
+  if (origin.mapsPlace) {
+    gmLink.href  = `https://www.google.com/maps/dir/?api=1&origin=${origin.mapsPlace}&destination=${destEnc}&travelmode=driving`;
+    gmLink.style.display = 'inline-flex';
+  }
+
+  // Animate in
+  resultsEl.style.animation = 'none';
+  requestAnimationFrame(() => {
+    resultsEl.style.animation = '';
+    resultsEl.classList.add('visible');
+  });
+  setTimeout(() => resultsEl.scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+
+  // Try cache first
+  const cacheKey = `${currentOrigin}_${town.name}`;
+  const cached   = await dbGet('distances', cacheKey);
+  if (cached) {
+    renderPriceRow(calcPrice, cached, true);
+    showTaximeter(calcPrice, cached, isAP);
+    return;
+  }
+
+  // Fetch real distance
+  if (apiKey && origin.coords) {
+    document.getElementById('loading-dist').style.display = 'block';
+    const real = await fetchRealDistance(origin.coords, town.name);
+    document.getElementById('loading-dist').style.display = 'none';
+    if (real !== null) {
+      await dbSet('distances', cacheKey, real);
+      renderPriceRow(calcPrice, real, true);
+      showTaximeter(calcPrice, real, isAP);
+    }
+  }
+}
+
+function renderPriceRow(calcPrice, dist, isReal) {
+  const base   = calcPrice(dist);
+  const margin = 5;
+  document.getElementById('res-dist').textContent = dist + ' km' + (isReal ? ' ✓' : ' (est.)');
+  document.getElementById('res-min').textContent  = fmt(Math.max(0, base - margin));
+  document.getElementById('res-max').textContent  = fmt(base + margin);
+}
+
+// ─── TAXIMETER ────────────────────────────────────────────────────────────────
+function showTaximeter(calcPrice, dist, isAP) {
+  const base   = calcPrice(dist);
+  const margin = 5;
+  const mid    = base;
+  const supp   = isAP ? AIRPORT_SUPPLEMENT : 0;
+  const fare   = mid - supp;
+
+  const taxiEl     = document.getElementById('taximeter');
+  const mainDigits = document.getElementById('taxi-main-digits');
+  const suppRow    = document.getElementById('taxi-supp-row');
+  const suppDigits = document.getElementById('taxi-supp-digits');
+  const tariffLbl  = document.getElementById('taxi-tariff');
+
+  taxiEl.classList.add('visible');
+
+  tariffLbl.textContent = selectedTown.metro
+    ? (currentTariff === 'day' ? 'T1' : 'T2')
+    : (currentTariff === 'day' ? 'T6' : 'T7');
+
+  // Animate main digits
+  animateDigits(mainDigits, fare, 1200);
+
+  if (isAP) {
+    suppRow.style.display = 'block';
+    animateDigits(suppDigits, supp, 800);
+  } else {
+    suppRow.style.display = 'none';
+  }
+}
+
+function animateDigits(el, target, duration) {
+  const start = performance.now();
+  const from  = 0;
+  function step(now) {
+    const p  = Math.min((now - start) / duration, 1);
+    const ease = 1 - Math.pow(1 - p, 3);
+    el.textContent = fmt(from + (target - from) * ease);
+    if (p < 1) requestAnimationFrame(step);
+    else el.textContent = fmt(target);
+  }
+  requestAnimationFrame(step);
+}
+
+// ─── API MODAL ────────────────────────────────────────────────────────────────
+function openApiModal() {
+  closeMenu();
+  document.getElementById('api-key-input').value = apiKey || '';
+  updateApiStatus();
+  document.getElementById('api-modal').classList.add('open');
+}
+
+function closeApiModal() {
+  document.getElementById('api-modal').classList.remove('open');
+}
+
+async function saveApiKey() {
+  const val = document.getElementById('api-key-input').value.trim();
+  apiKey = val;
+  await dbSet('config', 'apiKey', val);
+  updateApiStatus();
+}
+
+function updateApiStatus() {
+  const el = document.getElementById('api-status');
+  if (apiKey) {
+    el.className = 'api-status ok';
+    el.textContent = '✓ Clau configurada. Les distàncies es calcularan via Google Maps.';
+  } else {
+    el.className = 'api-status err';
+    el.textContent = '✗ Sense clau. S\'usen distàncies estimades.';
+  }
+}
+
+// ─── DATA IMPORT / EXPORT ────────────────────────────────────────────────────
+function exportData() {
+  closeMenu();
+  const payload = JSON.stringify({ towns, version: 1 }, null, 2);
+  const blob = new Blob([payload], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'taxibcn-data.json';
+  a.click();
+}
+
+function importData() {
+  closeMenu();
+  const input = document.createElement('input');
+  input.type = 'file'; input.accept = '.json';
+  input.onchange = async e => {
+    const file = e.target.files[0];
+    if (!file) return;
+    const text = await file.text();
+    try {
+      const parsed = JSON.parse(text);
+      const data = parsed.towns || parsed;
+      if (!Array.isArray(data)) throw new Error();
+      towns = data;
+      await dbSet('config', 'towns', towns);
+      alert(`✓ ${towns.length} poblacions importades correctament.`);
+    } catch {
+      alert('Error: fitxer JSON invàlid.');
+    }
+  };
+  input.click();
+}
+
+async function clearCache() {
+  const tx = db.transaction('distances', 'readwrite');
+  tx.objectStore('distances').clear();
+  alert('✓ Cache de distàncies eliminat.');
+}
+
+// ─── HAMBURGER MENU ───────────────────────────────────────────────────────────
+function openMenu() {
+  document.getElementById('menu-overlay').classList.add('open');
+  document.getElementById('menu-panel').classList.add('open');
+}
+
+function closeMenu() {
+  document.getElementById('menu-overlay').classList.remove('open');
+  document.getElementById('menu-panel').classList.remove('open');
+}
+
+// ─── UTILS ────────────────────────────────────────────────────────────────────
+function fmt(n) { return n.toFixed(2).replace('.', ','); }
+
+// ─── START ────────────────────────────────────────────────────────────────────
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
+
+</script>
+</body>
+</html>
