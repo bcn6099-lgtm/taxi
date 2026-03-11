@@ -486,19 +486,102 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* Scrollbar */
-  #dropdown::-webkit-scrollbar { width: 4px; }
-  #dropdown::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
-
-  .dot-sep {
-    width: 4px; height: 4px;
-    background: var(--border);
-    border-radius: 50%;
-    display: inline-block;
-    margin: 0 4px;
-    vertical-align: middle;
+  /* Origin selector buttons */
+  .origin-selector {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-bottom: 24px;
   }
-</style>
+
+  .origin-btn {
+    padding: 16px;
+    border: 2px solid var(--border);
+    border-radius: 4px;
+    background: var(--cream);
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: left;
+    color: var(--dark);
+    position: relative;
+    overflow: hidden;
+  }
+
+  .origin-btn::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--border);
+    transition: background 0.2s;
+  }
+
+  .origin-btn .btn-icon { font-size: 20px; display: block; margin-bottom: 6px; }
+  .origin-btn .btn-name { font-weight: 500; font-size: 13px; display: block; }
+  .origin-btn .btn-sub  { font-size: 10px; color: var(--muted); display: block; margin-top: 2px; }
+
+  .origin-btn.active {
+    border-color: var(--amber);
+    background: var(--amber-pale);
+  }
+  .origin-btn.active::before { background: var(--amber); }
+
+  .origin-btn.active.airport {
+    border-color: var(--rust);
+    background: #FDF0EC;
+  }
+  .origin-btn.active.airport::before { background: var(--rust); }
+
+  /* Single result card */
+  .result-card {
+    border: 1.5px solid var(--border);
+    border-radius: 4px;
+    padding: 28px 24px;
+    background: white;
+    box-shadow: 0 2px 12px rgba(26,20,16,0.05);
+    position: relative;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+
+  .result-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 3px;
+    background: var(--amber);
+    transition: background 0.3s;
+  }
+
+  .result-card.airport::before { background: var(--rust); }
+
+  .loading-row {
+    text-align: center;
+    font-size: 11px;
+    color: var(--muted);
+    padding: 8px 0;
+    letter-spacing: 0.05em;
+  }
+
+  .gmaps-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    text-decoration: none;
+    border: 1px solid var(--border);
+    padding: 5px 10px;
+    border-radius: 2px;
+    transition: all 0.2s;
+    margin-top: 12px;
+  }
+  .gmaps-link:hover { border-color: var(--amber); color: var(--dark); }
+
 </head>
 <body>
 <div class="container">
@@ -510,6 +593,23 @@
   </header>
 
   <div class="search-section">
+
+    <!-- Origen selector -->
+    <label class="field-label">Origen</label>
+    <div class="origin-selector">
+      <button class="origin-btn active" id="btn-pc" onclick="selectOrigin('pc', this)">
+        <span class="btn-icon">📍</span>
+        <span class="btn-name">Pl. Catalunya</span>
+        <span class="btn-sub">Centre de Barcelona</span>
+      </button>
+      <button class="origin-btn airport" id="btn-ap" onclick="selectOrigin('ap', this)">
+        <span class="btn-icon">✈️</span>
+        <span class="btn-name">Aeroport</span>
+        <span class="btn-sub">+ suplement 4,60 €</span>
+      </button>
+    </div>
+
+    <!-- Cerca -->
     <label class="field-label" for="search-input">Destí — Escriu una població</label>
     <div class="search-wrapper">
       <span class="search-icon">🔍</span>
@@ -541,79 +641,55 @@
       <div class="result-tariff-badge badge-day" id="result-tariff-badge">Diürna</div>
     </div>
 
-    <div class="origins-grid">
-      <!-- Plaça Catalunya -->
-      <div class="origin-card">
-        <div class="origin-label">📍 Origen</div>
-        <div class="origin-name">Pl. Catalunya</div>
-        <div class="stat-row">
-          <span class="stat-label">Distància</span>
-          <span class="stat-value" id="pc-dist">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Bajada bandera</span>
-          <span class="stat-value" id="pc-flag">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">€/km</span>
-          <span class="stat-value" id="pc-rate">—</span>
-        </div>
-        <div class="price-range">
-          <div class="price-label">Horquilla estimada</div>
-          <div class="price-values">
-            <span class="price-min" id="pc-min">—</span>
-            <span class="price-sep">–</span>
-            <span class="price-max" id="pc-max">—</span>
-            <span class="price-unit">€</span>
-          </div>
+    <div class="result-card" id="result-card">
+      <div class="stat-row">
+        <span class="stat-label">Origen</span>
+        <span class="stat-value" id="res-origin-label">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Distància</span>
+        <span class="stat-value" id="res-dist">—</span>
+      </div>
+      <div class="stat-row" id="res-flag-row">
+        <span class="stat-label">Bajada bandera</span>
+        <span class="stat-value" id="res-flag">—</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Tarifa aplicada</span>
+        <span class="stat-value" id="res-rate">—</span>
+      </div>
+      <div class="stat-row" id="res-supplement-row" style="display:none">
+        <span class="stat-label">Suplement aeroport</span>
+        <span class="stat-value" style="color:var(--rust)">+ 4,60 €</span>
+      </div>
+      <div class="price-range">
+        <div class="price-label">Horquilla estimada</div>
+        <div class="price-values">
+          <span class="price-min" id="res-min">—</span>
+          <span class="price-sep">–</span>
+          <span class="price-max" id="res-max">—</span>
+          <span class="price-unit">€</span>
         </div>
       </div>
-
-      <!-- Aeroport -->
-      <div class="origin-card airport">
-        <div class="origin-label">✈️ Origen</div>
-        <div class="origin-name">Aeroport</div>
-        <div class="stat-row">
-          <span class="stat-label">Distància</span>
-          <span class="stat-value" id="ap-dist">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Bajada bandera</span>
-          <span class="stat-value" id="ap-flag">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">€/km</span>
-          <span class="stat-value" id="ap-rate">—</span>
-        </div>
-        <div class="stat-row">
-          <span class="stat-label">Suplement aeroport</span>
-          <span class="stat-value" style="color:var(--rust)">+ 4,60 €</span>
-        </div>
-        <div class="price-range">
-          <div class="price-label">Horquilla estimada <span style="font-size:9px;color:var(--rust)">(suplement inclòs)</span></div>
-          <div class="price-values">
-            <span class="price-min" id="ap-min">—</span>
-            <span class="price-sep">–</span>
-            <span class="price-max" id="ap-max">—</span>
-            <span class="price-unit">€</span>
-          </div>
-        </div>
-      </div>
+      <div id="loading-dist" class="loading-row" style="display:none">⏳ Calculant distància real...</div>
+      <a id="gmaps-link" class="gmaps-link" href="#" target="_blank" style="display:none">
+        🗺 Veure ruta a Google Maps
+      </a>
     </div>
 
     <div class="info-note" id="outer-note" style="display:none">
       <span class="icon">ℹ️</span>
-      <span>Tarifa intermunicipal (T6/T7): inclou el retorn del vehicle, per això la tarifa per km s'aplica al doble de la distància. Els preus indicats ja ho reflecteixen.</span>
+      <span>Tarifa intermunicipal: distància × 1,64 (diürna) o × 1,78 (nocturna). Inclou el retorn del vehicle.</span>
     </div>
     <div class="info-note">
       <span class="icon">⚠️</span>
-      <span>Preus orientatius. El preu final pot variar per trànsit, peatges, equipatge o recàrrecs especials. Consulta sempre el taxímetre oficial.</span>
+      <span>Preus orientatius. El preu final pot variar per trànsit, peatges o altres recàrrecs. Consulta sempre el taxímetre oficial.</span>
     </div>
   </div>
 
   <div class="disclaimer">
     Tarifes vigents AMB i fora de l'àrea metropolitana de Barcelona<br>
-    Dades de distàncies aproximades per carretera
+    Distàncies calculades via Google Maps
   </div>
 
 </div>
@@ -664,14 +740,14 @@ const towns = [
   { name: "Viladecans",                     comarca: "Baix Llobregat",          metro: true,  distPC: 18,  distAP: 8   },
 
   // ── BARCELONÈS / MARESME / VALLÈS ORIENTAL ───────────────────────────────
-  { name: "Mataró",                         comarca: "Maresme",                 metro: false, distPC: 30,  distAP: 45  },
-  { name: "Arenys de Mar",                  comarca: "Maresme",                 metro: false, distPC: 42,  distAP: 55  },
-  { name: "Arenys de Munt",                 comarca: "Maresme",                 metro: false, distPC: 44,  distAP: 57  },
-  { name: "Canet de Mar",                   comarca: "Maresme",                 metro: false, distPC: 50,  distAP: 63  },
-  { name: "Calella",                        comarca: "Maresme",                 metro: false, distPC: 58,  distAP: 70  },
-  { name: "Pineda de Mar",                  comarca: "Maresme",                 metro: false, distPC: 62,  distAP: 74  },
-  { name: "Santa Susanna",                  comarca: "Maresme",                 metro: false, distPC: 65,  distAP: 77  },
-  { name: "Malgrat de Mar",                 comarca: "Maresme",                 metro: false, distPC: 68,  distAP: 80  },
+  { name: "Mataró",                         comarca: "Maresme",                 metro: false, distPC: 30,  distAP: 47  },
+  { name: "Arenys de Mar",                  comarca: "Maresme",                 metro: false, distPC: 42,  distAP: 59  },
+  { name: "Arenys de Munt",                 comarca: "Maresme",                 metro: false, distPC: 44,  distAP: 61  },
+  { name: "Canet de Mar",                   comarca: "Maresme",                 metro: false, distPC: 50,  distAP: 67  },
+  { name: "Calella",                        comarca: "Maresme",                 metro: false, distPC: 58,  distAP: 75  },
+  { name: "Pineda de Mar",                  comarca: "Maresme",                 metro: false, distPC: 62,  distAP: 79  },
+  { name: "Santa Susanna",                  comarca: "Maresme",                 metro: false, distPC: 72,  distAP: 86  },
+  { name: "Malgrat de Mar",                 comarca: "Maresme",                 metro: false, distPC: 74,  distAP: 91  },
   { name: "Blanes",                         comarca: "La Selva",                metro: false, distPC: 70,  distAP: 82  },
   { name: "Premià de Mar",                  comarca: "Maresme",                 metro: false, distPC: 20,  distAP: 34  },
   { name: "Premià de Dalt",                 comarca: "Maresme",                 metro: false, distPC: 22,  distAP: 36  },
@@ -1095,45 +1171,57 @@ const tariffs = {
 
 // ─── STATE ────────────────────────────────────────────────────────────────────
 let currentTariff = 'day';
-let selectedTown = null;
+let currentOrigin = 'pc'; // 'pc' | 'ap'
+let selectedTown  = null;
+
+// Origins config
+const ORIGINS = {
+  pc: { label: 'Pl. Catalunya', coords: '41.3874,2.1686', mapsName: 'Plaça+de+Catalunya,+Barcelona' },
+  ap: { label: 'Aeroport',      coords: '41.2971,2.0785', mapsName: 'Aeroport+de+Barcelona-El+Prat' },
+};
+const AIRPORT_SUPPLEMENT = 4.60;
+const GMAPS_API_KEY = 'YOUR_API_KEY'; // substitueix per la teva clau
+
+// ─── AUTO-DETECT TARIFF BY CURRENT TIME ──────────────────────────────────────
+function detectTariff() {
+  const now  = new Date();
+  const hour = now.getHours();
+  const day  = now.getDay();
+  return (day === 0 || day === 6 || hour < 8 || hour >= 20) ? 'night' : 'day';
+}
+
+window.addEventListener('DOMContentLoaded', () => {
+  const auto = detectTariff();
+  currentTariff = auto;
+  document.querySelectorAll('.tariff-btn').forEach(btn => {
+    btn.classList.toggle('selected', btn.dataset.tariff === auto);
+  });
+});
 
 // ─── SEARCH ──────────────────────────────────────────────────────────────────
-const input = document.getElementById('search-input');
+const input    = document.getElementById('search-input');
 const dropdown = document.getElementById('dropdown');
 
 function normalize(str) {
-  return str.toLowerCase()
-    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[''`]/g, "'");
+  return str.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
-function filter(query) {
-  if (!query || query.length < 1) return [];
+function filterTowns(query) {
+  if (!query) return [];
   const q = normalize(query);
   return towns.filter(t => normalize(t.name).includes(q))
-    .sort((a, b) => {
-      const ai = normalize(a.name).indexOf(q);
-      const bi = normalize(b.name).indexOf(q);
-      return ai - bi || a.name.localeCompare(b.name, 'ca');
-    });
+    .sort((a, b) => normalize(a.name).indexOf(q) - normalize(b.name).indexOf(q) || a.name.localeCompare(b.name, 'ca'));
 }
 
 input.addEventListener('input', () => {
-  const results = filter(input.value.trim());
+  const results = filterTowns(input.value.trim());
   renderDropdown(results);
 });
 
-input.addEventListener('keydown', e => {
-  if (e.key === 'Escape') closeDropdown();
-});
+input.addEventListener('keydown', e => { if (e.key === 'Escape') closeDropdown(); });
+document.addEventListener('click', e => { if (!e.target.closest('.search-wrapper')) closeDropdown(); });
 
-document.addEventListener('click', e => {
-  if (!e.target.closest('.search-wrapper')) closeDropdown();
-});
-
-function closeDropdown() {
-  dropdown.classList.remove('visible');
-}
+function closeDropdown() { dropdown.classList.remove('visible'); }
 
 function renderDropdown(results) {
   if (!results.length) { closeDropdown(); return; }
@@ -1150,17 +1238,22 @@ function highlightMatch(name, query) {
   if (!query) return name;
   const idx = normalize(name).indexOf(normalize(query));
   if (idx === -1) return name;
-  return name.slice(0, idx) +
-    '<strong>' + name.slice(idx, idx + query.length) + '</strong>' +
-    name.slice(idx + query.length);
+  return name.slice(0, idx) + '<strong>' + name.slice(idx, idx + query.length) + '</strong>' + name.slice(idx + query.length);
 }
 
-// ─── SELECT ──────────────────────────────────────────────────────────────────
+// ─── SELECTORS ───────────────────────────────────────────────────────────────
+function selectOrigin(origin, btn) {
+  currentOrigin = origin;
+  document.querySelectorAll('.origin-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  if (selectedTown) calculate();
+}
+
 function selectTown(name) {
   const town = towns.find(t => t.name === name);
   if (!town) return;
   selectedTown = town;
-  input.value = town.name;
+  input.value  = town.name;
   closeDropdown();
   calculate();
 }
@@ -1172,79 +1265,93 @@ function selectTariff(tariff, btn) {
   if (selectedTown) calculate();
 }
 
-// ─── AUTO-DETECT TARIFF BY CURRENT TIME ──────────────────────────────────────
-function detectTariff() {
-  const now = new Date();
-  const hour = now.getHours();
-  const day  = now.getDay(); // 0=diumenge, 6=dissabte
-  const isWeekend = (day === 0 || day === 6);
-  const isNight   = (hour < 8 || hour >= 20);
-  return (isNight || isWeekend) ? 'night' : 'day';
+// ─── GOOGLE MAPS DISTANCE ────────────────────────────────────────────────────
+async function fetchDistance(originCoords, destName) {
+  // Usem el proxy de CORS de Google Maps Distance Matrix
+  const dest = encodeURIComponent(destName + ', Catalunya, Spain');
+  const url  = `https://maps.googleapis.com/maps/api/distancematrix/json?origins=${originCoords}&destinations=${dest}&mode=driving&key=${GMAPS_API_KEY}`;
+  try {
+    const res  = await fetch(url);
+    const data = await res.json();
+    const el   = data.rows?.[0]?.elements?.[0];
+    if (el?.status === 'OK') return el.distance.value / 1000; // metres → km
+  } catch {}
+  return null;
 }
 
-// Aplica la tarifa detectada en carregar
-window.addEventListener('DOMContentLoaded', () => {
-  const auto = detectTariff();
-  currentTariff = auto;
-  document.querySelectorAll('.tariff-btn').forEach(btn => {
-    btn.classList.toggle('selected', btn.dataset.tariff === auto);
-  });
-});
-
 // ─── CALCULATE ───────────────────────────────────────────────────────────────
-function calculate() {
-  const town = selectedTown;
+async function calculate() {
+  const town    = selectedTown;
+  const isAP    = (currentOrigin === 'ap');
+  const origin  = ORIGINS[currentOrigin];
 
-  const AIRPORT_SUPPLEMENT = 4.60;
+  // Update card style
+  const card = document.getElementById('result-card');
+  card.classList.toggle('airport', isAP);
 
-  let calcPricePC, calcPriceAP, displayFlag, displayRate;
+  // Supplement row
+  document.getElementById('res-supplement-row').style.display = isAP ? 'flex' : 'none';
 
-  if (town.metro) {
-    const t = tariffs.metro[currentTariff];
-    calcPricePC = (dist) => t.flag + dist * t.rate;
-    calcPriceAP = (dist) => t.flag + dist * t.rate + AIRPORT_SUPPLEMENT;
-    displayFlag = fmt(t.flag) + ' €';
-    displayRate = fmt(t.rate) + ' €/km';
-  } else {
-    const t = tariffs.outer[currentTariff];
-    calcPricePC = (dist) => dist * t.multiplier;
-    calcPriceAP = (dist) => dist * t.multiplier + AIRPORT_SUPPLEMENT;
-    displayFlag = '—';
-    displayRate = '× ' + t.multiplier.toFixed(2).replace('.', ',');
-  }
-
-  const pcBase = calcPricePC(town.distPC);
-  const apBase = calcPriceAP(town.distAP);
-
-  const margin = 5;
-
-  // Update badge
+  // Badge
   const badge = document.getElementById('result-tariff-badge');
   badge.textContent = currentTariff === 'day' ? '☀️ Diürna' : '🌙 Nocturna';
-  badge.className = 'result-tariff-badge ' + (currentTariff === 'day' ? 'badge-day' : 'badge-night');
+  badge.className   = 'result-tariff-badge ' + (currentTariff === 'day' ? 'badge-day' : 'badge-night');
 
   // Town name + comarca
   document.getElementById('result-town-name').textContent = town.name;
-  document.getElementById('result-comarca').textContent = town.comarca || '';
+  document.getElementById('result-comarca').textContent   = town.comarca || '';
+  document.getElementById('res-origin-label').textContent = origin.label;
 
-  // Plaça Catalunya
-  document.getElementById('pc-dist').textContent = town.distPC + ' km';
-  document.getElementById('pc-flag').textContent = displayFlag;
-  document.getElementById('pc-rate').textContent = displayRate;
-  document.getElementById('pc-min').textContent = fmt(Math.max(0, pcBase - margin));
-  document.getElementById('pc-max').textContent = fmt(pcBase + margin);
+  // Tariff display
+  let displayFlag, displayRate, calcPrice;
+  if (town.metro) {
+    const t   = tariffs.metro[currentTariff];
+    displayFlag = fmt(t.flag) + ' €';
+    displayRate = fmt(t.rate) + ' €/km';
+    calcPrice   = (dist) => t.flag + dist * t.rate + (isAP ? AIRPORT_SUPPLEMENT : 0);
+    document.getElementById('res-flag-row').style.display = 'flex';
+  } else {
+    const t     = tariffs.outer[currentTariff];
+    displayFlag = '—';
+    displayRate = '× ' + t.multiplier.toFixed(2).replace('.', ',');
+    calcPrice   = (dist) => dist * t.multiplier + (isAP ? AIRPORT_SUPPLEMENT : 0);
+    document.getElementById('res-flag-row').style.display = 'none';
+  }
+  document.getElementById('res-flag').textContent = displayFlag;
+  document.getElementById('res-rate').textContent = displayRate;
 
-  // Aeroport
-  document.getElementById('ap-dist').textContent = town.distAP + ' km';
-  document.getElementById('ap-flag').textContent = displayFlag;
-  document.getElementById('ap-rate').textContent = displayRate;
-  document.getElementById('ap-min').textContent = fmt(Math.max(0, apBase - margin));
-  document.getElementById('ap-max').textContent = fmt(apBase + margin);
+  // Use stored distance as default while waiting for real one
+  const storedDist = isAP ? town.distAP : town.distPC;
+  renderPrice(calcPrice, storedDist, false);
 
-  // Note for outer
-  document.getElementById('outer-note').style.display = town.metro ? 'none' : 'flex';
+  // Google Maps link
+  const destEncoded = encodeURIComponent(town.name + ', Catalunya, Spain');
+  const mapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${origin.mapsName}&destination=${destEncoded}&travelmode=driving`;
+  const link = document.getElementById('gmaps-link');
+  link.href  = mapsUrl;
+  link.style.display = 'inline-flex';
 
-  // Show results
+  // Show results immediately with estimated distance
+  showResults();
+
+  // Then fetch real distance from Google Maps API
+  if (GMAPS_API_KEY !== 'YOUR_API_KEY') {
+    document.getElementById('loading-dist').style.display = 'block';
+    const realDist = await fetchDistance(origin.coords, town.name);
+    document.getElementById('loading-dist').style.display = 'none';
+    if (realDist !== null) renderPrice(calcPrice, realDist, true);
+  }
+}
+
+function renderPrice(calcPrice, dist, isReal = false) {
+  const margin = 5;
+  const base   = calcPrice(dist);
+  document.getElementById('res-dist').textContent = dist.toFixed(1).replace('.', ',') + ' km' + (isReal ? ' ✓' : ' (est.)');
+  document.getElementById('res-min').textContent  = fmt(Math.max(0, base - margin));
+  document.getElementById('res-max').textContent  = fmt(base + margin);
+}
+
+function showResults() {
   const resultsEl = document.getElementById('results');
   resultsEl.classList.remove('visible');
   requestAnimationFrame(() => {
@@ -1254,14 +1361,10 @@ function calculate() {
       resultsEl.classList.add('visible');
     });
   });
-
-  // Scroll to results
   setTimeout(() => resultsEl.scrollIntoView({ behavior: 'smooth', block: 'start' }), 100);
 }
 
-function fmt(n) {
-  return n.toFixed(2).replace('.', ',');
-}
+function fmt(n) { return n.toFixed(2).replace('.', ','); }
 </script>
 </body>
 </html>
