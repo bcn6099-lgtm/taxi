@@ -579,7 +579,7 @@
       <!-- Aeroport -->
       <div class="origin-card airport">
         <div class="origin-label">✈️ Origen</div>
-        <div class="origin-name">Aeroport T1/T2</div>
+        <div class="origin-name">Aeroport</div>
         <div class="stat-row">
           <span class="stat-label">Distància</span>
           <span class="stat-value" id="ap-dist">—</span>
@@ -591,6 +591,10 @@
         <div class="stat-row">
           <span class="stat-label">€/km</span>
           <span class="stat-value" id="ap-rate">—</span>
+        </div>
+        <div class="stat-row">
+          <span class="stat-label">Suplement aeroport</span>
+          <span class="stat-value">+ 4,60 €</span>
         </div>
         <div class="price-range">
           <div class="price-label">Horquilla estimada</div>
@@ -1183,10 +1187,14 @@ function calculate() {
   const type = town.metro ? 'metro' : 'outer';
   const t = tariffs[type][currentTariff];
 
-  const calcPrice = (dist) => t.flag + dist * t.rate * t.multiplier;
+  const AIRPORT_SUPPLEMENT = 4.60;
+
+  // T6/T7: el multiplicador (1,64 / 1,78) s'aplica NOMÉS sobre el preu/km, no sobre la bajada de bandera
+  const effectiveRate = t.rate * t.multiplier;
+  const calcPrice = (dist) => t.flag + dist * effectiveRate;
 
   const pcBase = calcPrice(town.distPC);
-  const apBase = calcPrice(town.distAP);
+  const apBase = calcPrice(town.distAP) + AIRPORT_SUPPLEMENT;
 
   const margin = 10; // ±10€ each side → horquilla de 20€
 
@@ -1202,7 +1210,7 @@ function calculate() {
   // Plaça Catalunya
   document.getElementById('pc-dist').textContent = town.distPC + ' km';
   document.getElementById('pc-flag').textContent = fmt(t.flag) + ' €';
-  document.getElementById('pc-rate').textContent = fmt(t.rate * t.multiplier) + ' €/km';
+  document.getElementById('pc-rate').textContent = fmt(effectiveRate) + ' €/km';
   document.getElementById('pc-min').textContent = fmt(Math.max(0, pcBase - margin));
   document.getElementById('pc-mid').textContent = fmt(pcBase);
   document.getElementById('pc-max').textContent = fmt(pcBase + margin);
@@ -1210,7 +1218,7 @@ function calculate() {
   // Aeroport
   document.getElementById('ap-dist').textContent = town.distAP + ' km';
   document.getElementById('ap-flag').textContent = fmt(t.flag) + ' €';
-  document.getElementById('ap-rate').textContent = fmt(t.rate * t.multiplier) + ' €/km';
+  document.getElementById('ap-rate').textContent = fmt(effectiveRate) + ' €/km';
   document.getElementById('ap-min').textContent = fmt(Math.max(0, apBase - margin));
   document.getElementById('ap-mid').textContent = fmt(apBase);
   document.getElementById('ap-max').textContent = fmt(apBase + margin);
