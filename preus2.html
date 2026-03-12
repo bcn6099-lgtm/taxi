@@ -1,129 +1,268 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="ca">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculadora de Taxi</title>
-    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700&display=swap" rel="stylesheet">
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f4f4f4;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            padding: 20px;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BCN PREUS · Taxi Calculator</title>
+  <style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap');
 
-        .container {
-            background: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            max-width: 450px;
-            width: 100%;
-            text-align: center;
-        }
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-        h1 { color: #333; }
+:root {
+  --yellow:     #F5C800;
+  --yellow-dim: #C9A200;
+  --black:      #0A0A0A;
+  --dark:       #111111;
+  --panel:      #181818;
+  --border:     #2A2A2A;
+  --text:       #E8E8E8;
+  --muted:      #666666;
+  --red:        #E03A2F;
+  --green:      #39D353;
+  --digit-glow: 0 0 15px rgba(255,255,255,0.5); /* Brillo blanco suave tipo LED */
+}
 
-        input, select {
-            width: 90%;
-            padding: 10px;
-            margin: 10px 0;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
+body {
+  background: var(--black);
+  color: var(--text);
+  font-family: 'Inter', sans-serif;
+  min-height: 100vh;
+}
 
-        /* --- ESTILOS DEL TAXÍMETRO --- */
-        .taximetro-wrapper {
-            position: relative;
-            display: inline-block;
-            margin-top: 20px;
-            width: 100%;
-        }
+/* ── HEADER ─────────────────────────────────────────────────────────────── */
+.app-header {
+  background: var(--yellow);
+  padding: 0 16px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 200;
+}
 
-        .taximetro-bg {
-            width: 100%;
-            display: block;
-            border-radius: 5px;
-        }
+.header-title {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 28px;
+  letter-spacing: 0.08em;
+  color: var(--black);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
-        /* El contenedor del número sobre la pantalla */
-        #precio-display {
-            position: absolute;
-            /* Ajusta estos valores para que el número caiga justo en el hueco de tu imagen */
-            top: 42%; 
-            left: 50%;
-            transform: translate(-50%, -50%);
-            
-            font-family: 'Orbitron', sans-serif;
-            color: #ff0000; /* Rojo digital */
-            font-size: 3rem;
-            font-weight: bold;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
-            letter-spacing: 2px;
-            pointer-events: none; /* Para que no interfiera al hacer clic */
-        }
+.hamburger-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
 
-        button {
-            background-color: #ffcc00;
-            border: none;
-            padding: 15px 30px;
-            font-weight: bold;
-            cursor: pointer;
-            border-radius: 5px;
-            margin-top: 10px;
-            width: 100%;
-        }
+.hamburger-btn span {
+  display: block;
+  width: 24px;
+  height: 2px;
+  background: var(--black);
+}
 
-        button:hover {
-            background-color: #e6b800;
-        }
-    </style>
+/* ── MAIN ────────────────────────────────────────────────────────────────── */
+.main {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 20px 16px 80px;
+}
+
+/* ── ORIGIN SELECTOR ─────────────────────────────────────────────────────── */
+.origin-selector {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+.origin-btn {
+  background: var(--panel);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 8px;
+  cursor: pointer;
+  text-align: center;
+  color: var(--muted);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.origin-btn.active {
+  background: var(--yellow);
+  border-color: var(--yellow);
+  color: var(--black);
+}
+
+/* ── SEARCH ─────────────────────────────────────────────────────────────── */
+.search-box {
+  background: var(--panel);
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  padding: 20px;
+  margin-bottom: 12px;
+}
+
+.search-input {
+  width: 100%;
+  background: var(--black);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  padding: 12px 40px;
+  color: var(--text);
+  outline: none;
+}
+
+.dropdown {
+  display: none;
+  background: var(--panel);
+  border: 1.5px solid var(--yellow);
+  position: absolute;
+  width: 100%;
+  z-index: 100;
+}
+
+.dropdown.visible { display: block; }
+
+/* ── TAXIMETER ──────────────────────────────────────────────────────────── */
+.taximeter {
+  display: none;
+  margin-top: 20px;
+  user-select: none;
+}
+
+.taximeter.visible { display: block; }
+
+.taxi-photo-wrap {
+  position: relative;
+  width: 100%;
+  padding-bottom: 44.7%; /* Proporción de la imagen original */
+  border-radius: 12px;
+  overflow: hidden;
+  background: #000;
+}
+
+.taxi-photo-wrap img {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* AJUSTES DE POSICIÓN DE NÚMEROS */
+.taxi-overlay {
+  position: absolute;
+  inset: 0;
+}
+
+/* Importe principal (EUROS) */
+.taxi-main-price {
+  position: absolute;
+  right: 15%; /* Alineado a la derecha del hueco grande */
+  top: 18%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(24px, 10vw, 80px);
+  color: #ffffff;
+  text-shadow: var(--digit-glow);
+  letter-spacing: 0.05em;
+}
+
+/* Suplementos (EXTRA) */
+.taxi-supp-price {
+  position: absolute;
+  right: 15%; /* Alineado a la derecha del hueco inferior */
+  bottom: 13%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(14px, 6vw, 45px);
+  color: #ffffff;
+  text-shadow: var(--digit-glow);
+}
+
+/* Letra de Tarifa (T1, T2, etc) */
+.taxi-tariff-letter {
+  position: absolute;
+  left: 12%;
+  bottom: 15%;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: clamp(12px, 5vw, 35px);
+  color: #ffffff;
+}
+
+/* ── RESULTS & UTILS ────────────────────────────────────────────────────── */
+#results.visible { display: block; }
+.result-town { font-family: 'Bebas Neue', sans-serif; font-size: 2.4rem; color: var(--yellow); }
+
+</style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Calculadora de Precios</h1>
+<header class="app-header">
+  <div class="header-title">✈ BCN PREUS</div>
+  <button class="hamburger-btn" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</header>
+
+<main class="main">
+  <div class="origin-selector">
+    <button class="origin-btn active" onclick="selectOrigin('pc')">📍 Pl. Cat</button>
+    <button class="origin-btn" onclick="selectOrigin('ap')">✈️ Aeroport</button>
+    <button class="origin-btn" onclick="selectOrigin('gps')">🎯 GPS</button>
+  </div>
+
+  <div class="search-box">
+    <input class="search-input" id="search-input" type="text" placeholder="Escriu una població...">
+    <div class="dropdown" id="dropdown"></div>
+  </div>
+
+  <div id="results">
+    <div class="result-town" id="res-town">Destí</div>
     
-    <label for="distancia">Distancia (km):</label>
-    <input type="number" id="distancia" placeholder="Ej: 5.5" step="0.1">
-
-    <label for="tarifa">Tipo de Tarifa:</label>
-    <select id="tarifa">
-        <option value="1.20">Tarifa 1 (Día)</option>
-        <option value="1.50">Tarifa 2 (Noche/Festivo)</option>
-    </select>
-
-    <button onclick="calcularPrecio()">CALCULAR TARIFA</button>
-
-    <div class="taximetro-wrapper">
-        <img src="taximetro_vacio.png" alt="Taxímetro" class="taximetro-bg">
+    <div class="taximeter" id="taximeter">
+      <div class="taxi-photo-wrap">
+        <img src="data:image/png;base64,..." alt="Taxímetro">
         
-        <div id="precio-display">0.00</div>
+        <div class="taxi-overlay">
+          <div id="taxi-main-val" class="taxi-main-price">00,00</div>
+          
+          <div id="taxi-supp-val" class="taxi-supp-price">0,00</div>
+          
+          <div id="taxi-tariff-val" class="taxi-tariff-letter">T1</div>
+        </div>
+      </div>
     </div>
-</div>
+  </div>
+</main>
 
 <script>
-    function calcularPrecio() {
-        // Obtenemos los valores de los inputs
-        const km = parseFloat(document.getElementById('distancia').value);
-        const tarifa = parseFloat(document.getElementById('tarifa').value);
-        const bajadaBandera = 2.50; // Ejemplo de precio mínimo inicial
+// Función de formateo mejorada para realismo de taxímetro
+function fmt(n) { 
+  return n.toLocaleString('es-ES', { 
+    minimumFractionDigits: 2, 
+    maximumFractionDigits: 2 
+  }); 
+}
 
-        if (isNaN(km) || km <= 0) {
-            alert("Por favor, introduce una distancia válida.");
-            return;
-        }
+// Ejemplo de cómo se actualizarían los valores
+function updateTaximeter(price, extra, tariffName) {
+  document.getElementById('taxi-main-val').textContent = fmt(price);
+  document.getElementById('taxi-supp-val').textContent = fmt(extra);
+  document.getElementById('taxi-tariff-val').textContent = tariffName;
+  document.getElementById('taximeter').classList.add('visible');
+}
 
-        // Cálculo simple
-        let total = bajadaBandera + (km * tarifa);
-
-        // Actualizamos el número dentro de la imagen
-        // Usamos toFixed(2) para mostrar siempre 2 decimales
-        document.getElementById('precio-display').innerText = total.toFixed(2);
-    }
+// Lógica de búsqueda y selección (omitida por brevedad, mantén la tuya)
 </script>
 
 </body>
