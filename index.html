@@ -3,24 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#FFC107">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="icon" type="image/png" href="taxi_ico.png">
+    <link rel="apple-touch-icon" href="taxi_ico.png">
+    <link rel="manifest" href="manifest.json">
     <title>Webapp Dashboard</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body {
             margin: 0;
-            padding: 10px;
-            background-color: #000000; /* Fondo negro */
+            padding: env(safe-area-inset-top, 0px) 10px 10px;
+            background-color: #000000;
             font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
         }
-
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px; /* Padding reducido entre celdas */
+            gap: 8px;
             max-width: 600px;
             margin: 0 auto;
         }
-
         .menu-item {
             text-decoration: none;
             display: flex;
@@ -28,9 +33,8 @@
             overflow: hidden;
             border-radius: 4px;
         }
-
         .header-cell {
-            background-color: #333333; /* Gris oscuro para el texto */
+            background-color: #333333;
             color: white;
             padding: 15px;
             font-size: 1.2rem;
@@ -39,9 +43,8 @@
             display: flex;
             align-items: center;
         }
-
         .icon-cell {
-            background-color: #FFC107; /* Amarillo corporativo similar al taxi */
+            background-color: #FFC107;
             height: 140px;
             display: flex;
             justify-content: center;
@@ -49,43 +52,33 @@
             color: #000000;
             font-size: 3.5rem;
         }
-
-        /* Efecto al presionar */
         .menu-item:active {
             opacity: 0.8;
         }
     </style>
 </head>
 <body>
-
     <div class="grid-container">
         <a href="facturacio.html" class="menu-item">
             <div class="header-cell">Caixa</div>
             <div class="icon-cell"><i class="fa-solid fa-cash-register"></i></div>
         </a>
-
         <a href="preus.html" class="menu-item">
             <div class="header-cell">Preus</div>
             <div class="icon-cell"><i class="fa-solid fa-tags"></i></div>
         </a>
-
         <a href="avions.html" class="menu-item">
             <div class="header-cell">Aero</div>
             <div class="icon-cell"><i class="fa-solid fa-plane-up"></i></div>
         </a>
-
         <a href="facturas.html" class="menu-item">
             <div class="header-cell">Factures</div>
             <div class="icon-cell"><i class="fa-solid fa-file-invoice-dollar"></i></div>
         </a>
-
         <a href="analisi.html" class="menu-item">
             <div class="header-cell">Anàlisi</div>
             <div class="icon-cell"><i class="fa-solid fa-chart-line"></i></div>
         </a>
     </div>
-
 </body>
 </html>
-
-
