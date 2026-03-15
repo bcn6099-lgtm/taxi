@@ -92,10 +92,13 @@ body {
 
 /* ── ORIGIN BUTTONS ─────────────────────────────────────────────────────── */
 .origin-selector {
-  display: grid;
+  display: none;
   grid-template-columns: 1fr 1fr 1fr;
   gap: 8px;
-  margin-bottom: 20px;
+  margin-top: 16px;
+}
+.origin-selector.visible {
+  display: grid;
 }
 
 .origin-btn {
@@ -154,9 +157,9 @@ body {
   background: var(--black);
   border: 1.5px solid var(--border);
   border-radius: 4px;
-  padding: 12px 12px 12px 40px;
+  padding: 14px 14px 14px 44px;
   font-family: 'Inter', sans-serif;
-  font-size: 15px;
+  font-size: 19px;
   color: var(--text);
   outline: none;
   transition: border-color 0.2s;
@@ -191,9 +194,9 @@ body {
 .dropdown.visible { display: block; animation: dropIn 0.15s ease; }
 
 .dropdown-item {
-  padding: 10px 14px;
+  padding: 13px 16px;
   cursor: pointer;
-  font-size: 14px;
+  font-size: 17px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -302,15 +305,6 @@ body {
   overflow: hidden;
 }
 
-.result-card::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 3px;
-  background: var(--yellow);
-  transition: background 0.3s;
-}
-.result-card.airport::before { background: var(--red); }
 
 .stat-row {
   display: flex;
@@ -767,25 +761,6 @@ body {
 <!-- ── MAIN ────────────────────────────────────────────────────────────── -->
 <main class="main">
 
-  <!-- Origin selector -->
-  <div class="origin-selector">
-    <button class="origin-btn active" data-origin="pc" onclick="selectOrigin('pc')">
-      <span class="icon">📍</span>
-      <span class="label">Pl. Cat</span>
-      <span class="sub">Catalunya</span>
-    </button>
-    <button class="origin-btn" data-origin="ap" onclick="selectOrigin('ap')">
-      <span class="icon">✈️</span>
-      <span class="label">Aeroport</span>
-      <span class="sub">+4,60 € supl.</span>
-    </button>
-    <button class="origin-btn" id="btn-gps" data-origin="gps" onclick="selectOrigin('gps')">
-      <span class="icon">🎯</span>
-      <span class="label">Ubicació</span>
-      <span class="sub">GPS actual</span>
-    </button>
-  </div>
-
   <!-- Search -->
   <div class="search-box">
     <label class="field-label" for="search-input">Destí</label>
@@ -916,6 +891,25 @@ body {
     </div>
 
   </div><!-- /results -->
+
+  <!-- Origin selector (sota els resultats) -->
+  <div class="origin-selector" id="origin-selector">
+    <button class="origin-btn" data-origin="ap" onclick="selectOrigin('ap')">
+      <span class="icon">✈️</span>
+      <span class="label">Aeroport</span>
+      <span class="sub">+4,60 € supl.</span>
+    </button>
+    <button class="origin-btn active" data-origin="pc" onclick="selectOrigin('pc')">
+      <span class="icon">📍</span>
+      <span class="label">Pl. Cat</span>
+      <span class="sub">Catalunya</span>
+    </button>
+    <button class="origin-btn" id="btn-gps" data-origin="gps" onclick="selectOrigin('gps')">
+      <span class="icon">🎯</span>
+      <span class="label">Ubicació</span>
+      <span class="sub">GPS actual</span>
+    </button>
+  </div>
 
 </main>
 
@@ -4699,7 +4693,8 @@ async function requestGPS() {
       document.getElementById('btn-gps').classList.remove('active');
       document.getElementById('btn-gps').querySelector('.label').textContent = 'Ubicació';
       alert('No s\'ha pogut obtenir la ubicació. Comprova els permisos.');
-    }
+    },
+    { timeout: 8000, maximumAge: 60000, enableHighAccuracy: false }
   );
 }
 
@@ -4795,10 +4790,15 @@ async function calculate() {
 
   // Use stored dist first
   let dist = isAP ? town.distAP : town.distPC;
-  if (isGPS) dist = town.distPC; // fallback until real dist fetched
+  if (isGPS) dist = null; // GPS: no pre-calculated distance, always fetch real
 
-  renderPriceRow(calcPrice, dist, false);
-  showTaximeter(calcPrice, dist, isAP);
+  if (dist !== null) {
+    renderPriceRow(calcPrice, dist, false);
+    showTaximeter(calcPrice, dist, isAP);
+  } else {
+    // GPS: show loading state immediately
+    document.getElementById('loading-dist').style.display = 'block';
+  }
 
   // Google Maps link
   const destEnc = encodeURIComponent(town.name + ', Spain');
@@ -4814,15 +4814,18 @@ async function calculate() {
     resultsEl.style.animation = '';
     resultsEl.classList.add('visible');
   });
+  document.getElementById('origin-selector').classList.add('visible');
   setTimeout(() => resultsEl.scrollIntoView({ behavior:'smooth', block:'start' }), 100);
 
-  // Try cache first
+  // Try cache first (skip cache for GPS since position may change)
   const cacheKey = `${currentOrigin}_${town.name}`;
-  const cached   = await dbGet('distances', cacheKey);
-  if (cached) {
-    renderPriceRow(calcPrice, cached, true);
-    showTaximeter(calcPrice, cached, isAP);
-    return;
+  if (!isGPS) {
+    const cached = await dbGet('distances', cacheKey);
+    if (cached) {
+      renderPriceRow(calcPrice, cached, true);
+      showTaximeter(calcPrice, cached, isAP);
+      return;
+    }
   }
 
   // Fetch real distance via OSRM (no API key needed)
@@ -4831,9 +4834,14 @@ async function calculate() {
     const real = await fetchRealDistance(origin.coords, town.lat, town.lng);
     document.getElementById('loading-dist').style.display = 'none';
     if (real !== null) {
-      await dbSet('distances', cacheKey, real);
+      if (!isGPS) await dbSet('distances', cacheKey, real);
       renderPriceRow(calcPrice, real, true);
       showTaximeter(calcPrice, real, isAP);
+    } else if (dist === null) {
+      // GPS fallback if OSRM fails
+      const fallbackDist = town.distPC;
+      renderPriceRow(calcPrice, fallbackDist, false);
+      showTaximeter(calcPrice, fallbackDist, isAP);
     }
   }
 }
