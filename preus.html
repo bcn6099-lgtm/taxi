@@ -662,6 +662,32 @@ body {
 .menu-item .menu-label { font-weight: 500; }
 .menu-item .menu-sub { font-size: 11px; color: var(--muted); display: block; margin-top: 1px; }
 
+.nav-selector {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+.nav-btn {
+  flex: 1;
+  background: var(--black);
+  border: 1.5px solid var(--border);
+  border-radius: 4px;
+  padding: 8px 6px;
+  cursor: pointer;
+  color: var(--muted);
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-align: center;
+  transition: all 0.2s;
+}
+.nav-btn.active {
+  border-color: var(--yellow);
+  color: var(--yellow);
+  background: rgba(245,200,0,0.07);
+}
+
 /* ── MODAL ──────────────────────────────────────────────────────────────── */
 .modal-overlay {
   position: fixed;
@@ -910,7 +936,7 @@ body {
       </div>
       <div class="loading-row" id="loading-dist">⏳ Calculant distància (OSRM)...</div>
       <a class="gmaps-link" id="gmaps-link" href="#" target="_blank" style="display:none">
-        🗺 Veure ruta a Google Maps
+        🗺 <span id="gmaps-link-label">Veure ruta a Google Maps</span>
       </a>
     </div>
 
@@ -965,6 +991,19 @@ body {
       <div>
         <span class="menu-label">Distàncies via OSRM</span>
         <span class="menu-sub">OpenStreetMap · gratuït · sense clau</span>
+      </div>
+    </div>
+    <div class="menu-item" style="cursor:default; flex-direction:column; align-items:flex-start; gap:8px;">
+      <div style="display:flex; align-items:center; gap:14px;">
+        <span class="menu-icon">🗺</span>
+        <div>
+          <span class="menu-label">App de navegació</span>
+          <span class="menu-sub">Obre la ruta amb...</span>
+        </div>
+      </div>
+      <div class="nav-selector">
+        <button class="nav-btn active" id="nav-btn-gmaps" onclick="setNavApp('gmaps')">🗺 Google Maps</button>
+        <button class="nav-btn" id="nav-btn-waze" onclick="setNavApp('waze')">🔵 Waze</button>
       </div>
     </div>
     <div class="menu-item" onclick="exportData()">
@@ -4607,6 +4646,7 @@ let currentTariff = 'day';
 let selectedTown  = null;
 let apiKey        = '';
 let gpsCoords     = null;   // {lat, lng} if obtained
+let navApp        = 'gmaps'; // 'gmaps' | 'waze'
 
 const ORIGINS = {
   pc:  { label: 'Pl. Catalunya', coords: '41.3874,2.1686',  mapsPlace: 'Plaça+de+Catalunya,+Barcelona' },
@@ -4860,9 +4900,9 @@ async function calculate() {
 
   
 
-  // Use stored dist first; always force GPS fetch when coords available
+  // Use stored dist first; only skip pre-calc if using GPS origin
   let dist = isAP ? town.distAP : town.distPC;
-  if (gpsCoords || isGPS) dist = null; // Always fetch real distance from current position
+  if (isGPS) dist = null; // GPS origin: always fetch real distance
 
   if (dist !== null) {
     renderPriceRow(calcPrice, dist, false);
@@ -4872,14 +4912,14 @@ async function calculate() {
     document.getElementById('loading-dist').style.display = 'block';
   }
 
-  // Google Maps link
+  // Navigation link (Google Maps or Waze)
   const destEnc = encodeURIComponent(town.name + ', Spain');
   const gmLink  = document.getElementById('gmaps-link');
-  const originForMaps = isGPS && gpsCoords
+  const originForMaps = (isGPS && gpsCoords)
     ? `${gpsCoords.lat},${gpsCoords.lng}`
     : origin.mapsPlace;
   if (originForMaps) {
-    gmLink.href  = `https://www.google.com/maps/dir/?api=1&origin=${originForMaps}&destination=${destEnc}&travelmode=driving`;
+    updateNavLink(gmLink, originForMaps, town.lat, town.lng, town.name);
     gmLink.style.display = 'inline-flex';
   } else {
     gmLink.style.display = 'none';
@@ -4897,11 +4937,11 @@ async function calculate() {
     window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
   }, 100);
 
-  // Determine origin coords: always prefer live GPS position if available
-  const fetchOriginCoords = gpsCoords
+  // Determine origin coords: use GPS coords only when GPS origin is selected
+  const fetchOriginCoords = (isGPS && gpsCoords)
     ? `${gpsCoords.lat},${gpsCoords.lng}`
     : origin.coords;
-  const usingLiveGPS = !!gpsCoords;
+  const usingLiveGPS = isGPS && !!gpsCoords;
 
   // Try cache only when not using live GPS (position changes)
   const cacheKey = `${usingLiveGPS ? 'gps' : currentOrigin}_${town.name}`;
@@ -5054,6 +5094,36 @@ async function clearCache() {
   const tx = db.transaction('distances', 'readwrite');
   tx.objectStore('distances').clear();
   alert('✓ Cache de distàncies eliminat.');
+}
+
+// ─── NAVIGATION APP ───────────────────────────────────────────────────────────
+function setNavApp(app) {
+  navApp = app;
+  document.getElementById('nav-btn-gmaps').classList.toggle('active', app === 'gmaps');
+  document.getElementById('nav-btn-waze').classList.toggle('active',  app === 'waze');
+  // Re-build link if a town is already showing
+  if (selectedTown) {
+    const gmLink = document.getElementById('gmaps-link');
+    if (gmLink.style.display !== 'none') {
+      const isGPS   = currentOrigin === 'gps';
+      const origin  = ORIGINS[currentOrigin];
+      const originForMaps = (isGPS && gpsCoords)
+        ? `${gpsCoords.lat},${gpsCoords.lng}`
+        : origin.mapsPlace;
+      if (originForMaps) updateNavLink(gmLink, originForMaps, selectedTown.lat, selectedTown.lng, selectedTown.name);
+    }
+  }
+}
+
+function updateNavLink(el, originStr, destLat, destLng, destName) {
+  const destEnc = encodeURIComponent(destName + ', Spain');
+  if (navApp === 'waze') {
+    el.href = `https://waze.com/ul?ll=${destLat},${destLng}&navigate=yes`;
+    document.getElementById('gmaps-link-label').textContent = 'Obrir a Waze';
+  } else {
+    el.href = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(originStr)}&destination=${destEnc}&travelmode=driving`;
+    document.getElementById('gmaps-link-label').textContent = 'Veure ruta a Google Maps';
+  }
 }
 
 // ─── HAMBURGER MENU ───────────────────────────────────────────────────────────
