@@ -7,6 +7,25 @@
   <style>
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Share+Tech+Mono&family=Inter:wght@400;500;600&display=swap');
 
+@font-face {
+  font-family: 'DSEG7 Classic';
+  src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff') format('woff'),
+       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Regular.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'DSEG7 Classic';
+  src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff2') format('woff2'),
+       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.woff') format('woff'),
+       url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Bold.ttf') format('truetype');
+  font-weight: bold;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
@@ -157,7 +176,7 @@ body {
   background: var(--black);
   border: 1.5px solid var(--border);
   border-radius: 4px;
-  padding: 14px 14px 14px 44px;
+  padding: 14px 44px 14px 44px;
   font-family: 'Inter', sans-serif;
   font-size: 19px;
   color: var(--text);
@@ -175,6 +194,26 @@ body {
   font-size: 16px;
   pointer-events: none;
 }
+
+.search-clear {
+  position: absolute;
+  right: 10px; top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  color: var(--red);
+  width: 28px; height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s;
+  font-weight: 700;
+  line-height: 1;
+}
+.search-clear:hover { background: rgba(224,58,47,0.15); }
 
 /* ── DROPDOWN ───────────────────────────────────────────────────────────── */
 .dropdown {
@@ -227,8 +266,6 @@ body {
   grid-template-columns: 1fr 1fr;
   gap: 8px;
   margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border);
 }
 
 .tariff-btn {
@@ -452,16 +489,20 @@ body {
 }
 
 /* Dígits principals (preu carrera) — gran, centre */
+.taxi-main-price-wrap {
+  position: relative;
+  flex: 1;
+  text-align: right;
+}
 .taxi-main-price {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(42px, 12vw, 72px);
+  font-family: 'DSEG7 Classic', 'Share Tech Mono', monospace;
+  font-size: clamp(26px, 7vw, 44px);
   font-weight: 400;
   color: #2596be;
   text-shadow: 0 0 24px rgba(37,150,190,0.7), 0 0 6px rgba(37,150,190,0.9);
   letter-spacing: 0.04em;
   line-height: 1;
-  text-align: right;
-  flex: 1;
+
 }
 
 /* Fila suplement — visible només aeroport */
@@ -486,8 +527,8 @@ body {
 }
 
 .taxi-supp-price {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(22px, 6vw, 38px);
+  font-family: 'DSEG7 Classic', 'Share Tech Mono', monospace;
+  font-size: clamp(20px, 5vw, 34px);
   color: #2596be;
   text-shadow: 0 0 16px rgba(37,150,190,0.6), 0 0 4px rgba(37,150,190,0.8);
   letter-spacing: 0.04em;
@@ -520,8 +561,8 @@ body {
 }
 
 .taxi-total-price {
-  font-family: 'Share Tech Mono', monospace;
-  font-size: clamp(28px, 7vw, 48px);
+  font-family: 'DSEG7 Classic', 'Share Tech Mono', monospace;
+  font-size: clamp(34px, 9vw, 56px);
   color: #2596be;
   text-shadow: 0 0 20px rgba(37,150,190,0.8), 0 0 5px rgba(37,150,190,1);
   letter-spacing: 0.04em;
@@ -530,7 +571,7 @@ body {
 
 .taxi-total-eur {
   font-family: 'Share Tech Mono', monospace;
-  font-size: 14px;
+  font-size: 20px;
   color: #2596be;
   opacity: 0.7;
   margin-left: 4px;
@@ -768,20 +809,10 @@ body {
       <span class="search-icon">🔍</span>
       <input class="search-input" id="search-input"
         type="text" placeholder="Escriu una població..." autocomplete="off">
+      <button class="search-clear" id="search-clear" onclick="clearSearch()" style="display:none">✕</button>
       <div class="dropdown" id="dropdown"></div>
     </div>
 
-    <!-- Tariff -->
-    <div class="tariff-row">
-      <button class="tariff-btn" data-tariff="day" onclick="selectTariff('day')">
-        <span class="t-name">☀ Diürna</span>
-        <span class="t-desc">Feiners 08:00–20:00</span>
-      </button>
-      <button class="tariff-btn" data-tariff="night" onclick="selectTariff('night')">
-        <span class="t-name">🌙 Nocturna</span>
-        <span class="t-desc">Nit, cap de setmana</span>
-      </button>
-    </div>
   </div>
 
   <!-- Results -->
@@ -822,13 +853,15 @@ body {
               </div>
             </div>
           </div>
-          <div class="taxi-main-price" id="taxi-main-digits">0,00</div>
+          <div class="taxi-main-price-wrap">
+            <div class="taxi-main-price" id="taxi-main-digits">0.00</div>
+          </div>
         </div>
 
         <!-- Fila suplement (ocult per defecte) -->
         <div class="taxi-row-supp" id="taxi-supp-row">
           <span class="taxi-lbl-supl" id="taxi-lbl-supl">SUPL AERO</span>
-          <div class="taxi-supp-price" id="taxi-supp-digits">0,00</div>
+          <div class="taxi-supp-price" id="taxi-supp-digits">0.00</div>
         </div>
 
         <div class="taxi-divider-total"></div>
@@ -837,7 +870,7 @@ body {
         <div class="taxi-row-total">
           <span class="taxi-lbl-total">TOTAL</span>
           <div>
-            <span class="taxi-total-price" id="taxi-total-digits">0,00</span>
+            <span class="taxi-total-price" id="taxi-total-digits">0.00</span>
             <span class="taxi-total-eur">€</span>
           </div>
         </div>
@@ -881,14 +914,7 @@ body {
       </a>
     </div>
 
-    <div class="info-note" id="outer-note" style="display:none">
-      <span>ℹ️</span>
-      <span>Tarifa interurbana T6/T7: bajada de bandera (inclou km de franquícia) + km facturables × tarifa ida+retorn. El preu inclou el retorn del vehicle en buit.</span>
-    </div>
-    <div class="info-note warning">
-      <span>⚠️</span>
-      <span>Preus orientatius. El preu final pot variar per trànsit, peatges o recàrrecs. Consulta el taxímetre oficial.</span>
-    </div>
+
 
   </div><!-- /results -->
 
@@ -910,6 +936,19 @@ body {
       <span class="sub">GPS actual</span>
     </button>
   </div>
+
+  <!-- Tariff selector (sempre a baix de tot) -->
+  <div class="tariff-row" id="tariff-row-bottom" style="margin-top:20px; padding-top:16px; border-top: 1px solid var(--border);">
+    <button class="tariff-btn" data-tariff="day" onclick="selectTariff('day')">
+      <span class="t-name">☀ Diürna</span>
+      <span class="t-desc">Feiners 08:00–20:00</span>
+    </button>
+    <button class="tariff-btn" data-tariff="night" onclick="selectTariff('night')">
+      <span class="t-name">🌙 Nocturna / Cap de setmana</span>
+      <span class="t-desc">Nit, dissabtes i festius</span>
+    </button>
+  </div>
+  <div style="text-align:center; font-size:9px; letter-spacing:0.12em; text-transform:uppercase; color:var(--muted); margin-top:8px; opacity:0.6;">Selecciona la franja horària</div>
 
 </main>
 
@@ -4607,6 +4646,24 @@ async function init() {
     console.warn('IndexedDB not available, using built-in data', e);
   }
 
+  // Request GPS silently on load — no blocking, no alerts
+  if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+      pos => {
+        gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+        currentOrigin = 'gps';
+        ORIGINS.gps.coords    = `${gpsCoords.lat},${gpsCoords.lng}`;
+        ORIGINS.gps.mapsPlace = `${gpsCoords.lat},${gpsCoords.lng}`;
+        document.querySelectorAll('.origin-btn').forEach(b =>
+          b.classList.toggle('active', b.dataset.origin === 'gps'));
+        const lbl = document.getElementById('btn-gps');
+        if (lbl) lbl.querySelector('.label').textContent = 'Ubicació';
+      },
+      () => { /* permission denied or error — keep default origin */ },
+      { timeout: 8000, maximumAge: 60000, enableHighAccuracy: false }
+    );
+  }
+
   // Auto-detect tariff by time
   const now = new Date(), h = now.getHours(), d = now.getDay();
   currentTariff = (d === 0 || d === 6 || h < 8 || h >= 20) ? 'night' : 'day';
@@ -4629,6 +4686,7 @@ function initSearch() {
 
   searchInput.addEventListener('input', () => {
     const q = searchInput.value.trim();
+    document.getElementById('search-clear').style.display = q ? 'flex' : 'none';
     if (!q) { closeDropdown(); return; }
     const nq = norm(q);
     const matches = towns
@@ -4643,6 +4701,17 @@ function initSearch() {
 }
 
 function closeDropdown() { dropdown.classList.remove('visible'); }
+
+function clearSearch() {
+  searchInput.value = '';
+  document.getElementById('search-clear').style.display = 'none';
+  selectedTown = null;
+  closeDropdown();
+  document.getElementById('results').classList.remove('visible');
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('origin-selector').classList.remove('visible');
+  searchInput.focus();
+}
 
 function renderDropdown(results, q) {
   if (!results.length) { closeDropdown(); return; }
@@ -4671,6 +4740,9 @@ function selectOrigin(origin) {
   currentOrigin = origin;
   document.querySelectorAll('.origin-btn').forEach(b =>
     b.classList.toggle('active', b.dataset.origin === origin));
+  // Reset GPS label if we switch away
+  const gpsBtn = document.getElementById('btn-gps');
+  if (gpsBtn) gpsBtn.querySelector('.label').textContent = 'Ubicació';
   if (selectedTown) calculate();
 }
 
@@ -4703,6 +4775,7 @@ function selectTown(name) {
   if (!town) return;
   selectedTown = town;
   searchInput.value = town.name;
+  document.getElementById('search-clear').style.display = 'flex';
   closeDropdown();
   calculate();
 }
@@ -4747,7 +4820,7 @@ async function calculate() {
   document.getElementById('res-town').textContent    = town.name;
   document.getElementById('res-comarca').textContent = town.comarca || '';
   const badge = document.getElementById('res-tariff-badge');
-  badge.textContent = currentTariff === 'day' ? '☀ DIÜRNA' : '🌙 NOCTURNA';
+  badge.textContent = currentTariff === 'day' ? '☀ DIÜRNA' : '🌙 NOCTURNA / CAP SETM.';
   badge.className   = 'tariff-badge ' + currentTariff;
 
   // Card style
@@ -4785,12 +4858,11 @@ async function calculate() {
   document.getElementById('res-flag').textContent = dispFlag;
   document.getElementById('res-rate').textContent = dispRate;
 
-  // Outer note
-  document.getElementById('outer-note').style.display = town.metro ? 'none' : 'flex';
+  
 
-  // Use stored dist first
+  // Use stored dist first; always force GPS fetch when coords available
   let dist = isAP ? town.distAP : town.distPC;
-  if (isGPS) dist = null; // GPS: no pre-calculated distance, always fetch real
+  if (gpsCoords || isGPS) dist = null; // Always fetch real distance from current position
 
   if (dist !== null) {
     renderPriceRow(calcPrice, dist, false);
@@ -4803,9 +4875,14 @@ async function calculate() {
   // Google Maps link
   const destEnc = encodeURIComponent(town.name + ', Spain');
   const gmLink  = document.getElementById('gmaps-link');
-  if (origin.mapsPlace) {
-    gmLink.href  = `https://www.google.com/maps/dir/?api=1&origin=${origin.mapsPlace}&destination=${destEnc}&travelmode=driving`;
+  const originForMaps = isGPS && gpsCoords
+    ? `${gpsCoords.lat},${gpsCoords.lng}`
+    : origin.mapsPlace;
+  if (originForMaps) {
+    gmLink.href  = `https://www.google.com/maps/dir/?api=1&origin=${originForMaps}&destination=${destEnc}&travelmode=driving`;
     gmLink.style.display = 'inline-flex';
+  } else {
+    gmLink.style.display = 'none';
   }
 
   // Animate in
@@ -4815,11 +4892,20 @@ async function calculate() {
     resultsEl.classList.add('visible');
   });
   document.getElementById('origin-selector').classList.add('visible');
-  setTimeout(() => resultsEl.scrollIntoView({ behavior:'smooth', block:'start' }), 100);
+  setTimeout(() => {
+    const top = resultsEl.getBoundingClientRect().top + window.scrollY - 68;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }, 100);
 
-  // Try cache first (skip cache for GPS since position may change)
-  const cacheKey = `${currentOrigin}_${town.name}`;
-  if (!isGPS) {
+  // Determine origin coords: always prefer live GPS position if available
+  const fetchOriginCoords = gpsCoords
+    ? `${gpsCoords.lat},${gpsCoords.lng}`
+    : origin.coords;
+  const usingLiveGPS = !!gpsCoords;
+
+  // Try cache only when not using live GPS (position changes)
+  const cacheKey = `${usingLiveGPS ? 'gps' : currentOrigin}_${town.name}`;
+  if (!usingLiveGPS) {
     const cached = await dbGet('distances', cacheKey);
     if (cached) {
       renderPriceRow(calcPrice, cached, true);
@@ -4828,18 +4914,18 @@ async function calculate() {
     }
   }
 
-  // Fetch real distance via OSRM (no API key needed)
-  if (origin.coords && town.lat && town.lng) {
+  // Fetch real distance via OSRM from current position (or selected origin as fallback)
+  if (fetchOriginCoords && town.lat && town.lng) {
     document.getElementById('loading-dist').style.display = 'block';
-    const real = await fetchRealDistance(origin.coords, town.lat, town.lng);
+    const real = await fetchRealDistance(fetchOriginCoords, town.lat, town.lng);
     document.getElementById('loading-dist').style.display = 'none';
     if (real !== null) {
-      if (!isGPS) await dbSet('distances', cacheKey, real);
+      if (!usingLiveGPS) await dbSet('distances', cacheKey, real);
       renderPriceRow(calcPrice, real, true);
       showTaximeter(calcPrice, real, isAP);
-    } else if (dist === null) {
-      // GPS fallback if OSRM fails
-      const fallbackDist = town.distPC;
+    } else {
+      // OSRM failed: fall back to pre-calculated distance
+      const fallbackDist = isAP ? town.distAP : town.distPC;
       renderPriceRow(calcPrice, fallbackDist, false);
       showTaximeter(calcPrice, fallbackDist, isAP);
     }
@@ -4924,9 +5010,9 @@ function animateDigits(el, target, duration) {
   function step(now) {
     const p  = Math.min((now - start) / duration, 1);
     const ease = 1 - Math.pow(1 - p, 3);
-    el.textContent = fmt(from + (target - from) * ease);
+    el.textContent = fmtTaxi(from + (target - from) * ease);
     if (p < 1) requestAnimationFrame(step);
-    else el.textContent = fmt(target);
+    else el.textContent = fmtTaxi(target);
   }
   requestAnimationFrame(step);
 }
@@ -4983,6 +5069,7 @@ function closeMenu() {
 
 // ─── UTILS ────────────────────────────────────────────────────────────────────
 function fmt(n) { return n.toFixed(2).replace('.', ','); }
+function fmtTaxi(n) { return n.toFixed(2); } // Punt decimal com un taxímetre real
 
 // ─── START ────────────────────────────────────────────────────────────────────
 if (document.readyState === 'loading') {
