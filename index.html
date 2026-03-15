@@ -2,62 +2,357 @@
 <html lang="ca">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <meta name="theme-color" content="#FFC107">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-title" content="Taxi Dashboard">
+    <meta name="application-name" content="Taxi Dashboard">
     <link rel="icon" type="image/png" href="taxi_ico.png">
     <link rel="apple-touch-icon" href="taxi_ico.png">
     <link rel="manifest" href="manifest.json">
-    <title>Webapp Dashboard</title>
+    <title>Taxi 6099</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            margin: 0;
-            padding: env(safe-area-inset-top, 0px) 10px 10px;
-            background-color: #000000;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: #000;
+            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            overscroll-behavior: none;
+        }
+
+        /* ── App shell ── */
+        .app {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+            min-height: 100dvh;
+        }
+
+        /* ── Header ── */
+        .app-header {
+            background-color: #FFC107;
+            padding: 14px 18px;
+            padding-top: calc(14px + env(safe-area-inset-top, 0px));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .header-logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header-logo svg {
+            width: 28px;
+            height: 28px;
+            flex-shrink: 0;
+        }
+
+        .header-logo-text {
+            line-height: 1.2;
+        }
+
+        .header-logo-text .brand {
+            font-size: 13px;
+            font-weight: 800;
+            color: #1a1a1a;
+            letter-spacing: 0.06em;
+        }
+
+        .header-logo-text .sub {
+            font-size: 9.5px;
+            font-weight: 600;
+            color: #1a1a1a;
+            letter-spacing: 0.09em;
+            text-transform: uppercase;
+            display: block;
+            line-height: 1.25;
+        }
+
+        .header-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1a1a1a;
+            letter-spacing: 0.01em;
+        }
+
+        /* ── Page title ── */
+        .page-title {
+            padding: 22px 18px 14px;
+            background-color: #000;
+        }
+
+        .page-title h1 {
+            margin: 0;
+            font-size: 34px;
+            font-weight: 300;
+            color: #fff;
+            letter-spacing: -0.02em;
+            line-height: 1.1;
+        }
+
+        /* ── Grid ── */
         .grid-container {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
+            gap: 10px;
+            padding: 0 10px calc(10px + env(safe-area-inset-bottom, 0px));
             max-width: 600px;
             margin: 0 auto;
+            width: 100%;
         }
+
+        /* Last item alone → full width */
+        .grid-container .menu-item:last-child:nth-child(odd) {
+            grid-column: span 2;
+        }
+
+        /* ── Card ── */
         .menu-item {
             text-decoration: none;
             display: flex;
             flex-direction: column;
             overflow: hidden;
-            border-radius: 4px;
+            border-radius: 7px;
+            cursor: pointer;
+            transition: transform 0.1s ease, opacity 0.1s ease;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.35);
         }
+
+        .menu-item:active {
+            transform: scale(0.96);
+            opacity: 0.85;
+        }
+
         .header-cell {
-            background-color: #333333;
-            color: white;
-            padding: 15px;
-            font-size: 1.2rem;
+            background-color: #333;
+            color: #fff;
+            padding: 12px 15px;
+            font-size: 1.1rem;
             font-weight: 500;
-            height: 50px;
+            min-height: 50px;
             display: flex;
             align-items: center;
         }
+
         .icon-cell {
             background-color: #FFC107;
-            height: 140px;
+            height: 130px;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: #000000;
-            font-size: 3.5rem;
+            color: #fff;
+            font-size: 3.8rem;
         }
-        .menu-item:active {
-            opacity: 0.8;
+
+        /* ── Install banner ── */
+        #install-banner {
+            display: none;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #1a1a1a;
+            color: #fff;
+            padding: 16px 18px;
+            padding-bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+            z-index: 1000;
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.5);
+            border-top: 2px solid #FFC107;
+        }
+
+        #install-banner.visible {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from { transform: translateY(100%); }
+            to   { transform: translateY(0); }
+        }
+
+        #install-banner .banner-icon {
+            font-size: 2rem;
+            color: #FFC107;
+            flex-shrink: 0;
+        }
+
+        #install-banner .banner-text {
+            flex: 1;
+        }
+
+        #install-banner .banner-text strong {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 3px;
+        }
+
+        #install-banner .banner-text span {
+            font-size: 12px;
+            color: #aaa;
+            line-height: 1.4;
+        }
+
+        #install-banner .banner-actions {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .btn-install {
+            background: #FFC107;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 700;
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .btn-dismiss {
+            background: transparent;
+            color: #888;
+            border: none;
+            padding: 6px;
+            font-size: 12px;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        /* ── iOS install instructions overlay ── */
+        #ios-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.75);
+            z-index: 2000;
+            justify-content: flex-end;
+            align-items: flex-end;
+            padding: 0 20px 30px;
+            padding-bottom: calc(30px + env(safe-area-inset-bottom, 0px));
+        }
+
+        #ios-overlay.visible {
+            display: flex;
+        }
+
+        .ios-card {
+            background: #1a1a1a;
+            border-radius: 16px;
+            padding: 22px 20px;
+            width: 100%;
+            border: 1px solid #333;
+            position: relative;
+        }
+
+        .ios-card h3 {
+            margin: 0 0 12px;
+            font-size: 16px;
+            color: #fff;
+        }
+
+        .ios-card p {
+            margin: 0 0 10px;
+            font-size: 14px;
+            color: #ccc;
+            line-height: 1.5;
+        }
+
+        .ios-card .step {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+
+        .ios-card .step-num {
+            background: #FFC107;
+            color: #000;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            flex-shrink: 0;
+        }
+
+        .ios-card .step span {
+            font-size: 13px;
+            color: #ccc;
+        }
+
+        .ios-card .step span strong {
+            color: #fff;
+        }
+
+        .btn-close-ios {
+            background: #333;
+            color: #fff;
+            border: none;
+            padding: 10px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            width: 100%;
+            margin-top: 14px;
+        }
+
+        /* Arrow pointing down for iOS */
+        .ios-card::after {
+            content: '';
+            position: absolute;
+            bottom: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 12px solid transparent;
+            border-right: 12px solid transparent;
+            border-top: 12px solid #1a1a1a;
         }
     </style>
 </head>
 <body>
+<div class="app">
+
+    <!-- Header -->
+    <header class="app-header">
+        <div class="header-logo">
+            <!-- AMB hexagon logo -->
+            <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <polygon points="14,1 26,7.5 26,20.5 14,27 2,20.5 2,7.5" fill="#1a1a1a"/>
+                <polygon points="14,5 22,9.5 22,18.5 14,23 6,18.5 6,9.5" fill="#FFC107"/>
+            </svg>
+            <div class="header-logo-text">
+                <div class="brand">AMB Taxi</div>
+                
+        </div>
+        <div class="header-title">
+            <i class="fa-solid fa-taxi" style="color:#1a1a1a; font-size:20px;"></i>
+        </div>
+    </header>
+
+
+    <!-- Grid -->
     <div class="grid-container">
         <a href="facturacio.html" class="menu-item">
             <div class="header-cell">Caixa</div>
@@ -80,5 +375,114 @@
             <div class="icon-cell"><i class="fa-solid fa-chart-line"></i></div>
         </a>
     </div>
+</div>
+
+<!-- Install banner (Android / Chrome) -->
+<div id="install-banner">
+    <div class="banner-icon"><i class="fa-solid fa-taxi"></i></div>
+    <div class="banner-text">
+        <strong>Instal·la l'aplicació</strong>
+        <span>Accedeix ràpidament des de la pantalla d'inici, sense barra del navegador.</span>
+    </div>
+    <div class="banner-actions">
+        <button class="btn-install" id="btn-install">Instal·lar</button>
+        <button class="btn-dismiss" id="btn-dismiss">Ara no</button>
+    </div>
+</div>
+
+<!-- iOS install overlay -->
+<div id="ios-overlay">
+    <div class="ios-card">
+        <h3>Instal·la l'aplicació</h3>
+        <div class="step">
+            <div class="step-num">1</div>
+            <span>Toca el botó <strong>Compartir</strong> <i class="fa-solid fa-arrow-up-from-bracket" style="color:#FFC107"></i> a la barra inferior de Safari</span>
+        </div>
+        <div class="step">
+            <div class="step-num">2</div>
+            <span>Selecciona <strong>"Afegir a la pantalla d'inici"</strong></span>
+        </div>
+        <div class="step">
+            <div class="step-num">3</div>
+            <span>Toca <strong>"Afegir"</strong> per confirmar</span>
+        </div>
+        <button class="btn-close-ios" id="btn-close-ios">Entès</button>
+    </div>
+</div>
+
+<script>
+    // ── PWA Install logic ──
+
+    const DISMISSED_KEY = 'pwa_install_dismissed';
+    let deferredPrompt = null;
+
+    const banner   = document.getElementById('install-banner');
+    const btnInst  = document.getElementById('btn-install');
+    const btnDism  = document.getElementById('btn-dismiss');
+    const iosOvrl  = document.getElementById('ios-overlay');
+    const btnClsIos = document.getElementById('btn-close-ios');
+
+    function isIos() {
+        return /iphone|ipad|ipod/i.test(navigator.userAgent);
+    }
+
+    function isInStandaloneMode() {
+        return window.navigator.standalone === true ||
+               window.matchMedia('(display-mode: standalone)').matches;
+    }
+
+    function hasDismissed() {
+        return localStorage.getItem(DISMISSED_KEY) === '1';
+    }
+
+    // Android / Chrome: capture beforeinstallprompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+
+        if (!hasDismissed() && !isInStandaloneMode()) {
+            // Small delay so the page renders first
+            setTimeout(() => banner.classList.add('visible'), 1500);
+        }
+    });
+
+    btnInst.addEventListener('click', async () => {
+        banner.classList.remove('visible');
+        if (deferredPrompt) {
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'dismissed') localStorage.setItem(DISMISSED_KEY, '1');
+            deferredPrompt = null;
+        }
+    });
+
+    btnDism.addEventListener('click', () => {
+        banner.classList.remove('visible');
+        localStorage.setItem(DISMISSED_KEY, '1');
+    });
+
+    // iOS Safari: show manual instructions
+    if (isIos() && !isInStandaloneMode() && !hasDismissed()) {
+        setTimeout(() => iosOvrl.classList.add('visible'), 1500);
+    }
+
+    btnClsIos.addEventListener('click', () => {
+        iosOvrl.classList.remove('visible');
+        localStorage.setItem(DISMISSED_KEY, '1');
+    });
+
+    // Close iOS overlay tapping backdrop
+    iosOvrl.addEventListener('click', (e) => {
+        if (e.target === iosOvrl) {
+            iosOvrl.classList.remove('visible');
+            localStorage.setItem(DISMISSED_KEY, '1');
+        }
+    });
+
+    // Register service worker (needs sw.js in same folder)
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+</script>
 </body>
 </html>
