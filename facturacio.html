@@ -1104,22 +1104,28 @@
             background: #000;
             border: 1px solid #1a3a3a;
             border-radius: 10px;
-            padding: 1.25rem 1rem 0.9rem;
+            padding: 1rem;
             margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+        }
+        .carreres-total-inner {
             display: flex;
             flex-direction: column;
             align-items: center;
-            justify-content: center;
-            gap: 0.4rem;
+            gap: 0.2rem;
         }
         .carreres-total-label {
             font-size: 0.65rem;
-            color: #2a6060;
+            color: #888;
             text-transform: uppercase;
             letter-spacing: 0.12em;
-            order: 2;
+            white-space: nowrap;
         }
-        .carreres-total-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); order: 1; }
+        .carreres-total-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); }
 
         .btn-nova-carrera {
             display: block;
@@ -1356,7 +1362,8 @@
             <div class="sidebar-title">📊 Taxi Control</div>
         </div>
         <div class="sidebar-menu">
-            <div class="menu-item active" id="menu-inici" onclick="navigateTo('jornada')">🚕 Inici</div>
+            <a class="menu-item" href="index.html" style="display:block;text-decoration:none;">🏠 Inici</a>
+            <div class="menu-item active" id="menu-inici" onclick="navigateTo('jornada')">🚕 Torn</div>
             <div class="menu-item" onclick="navigateTo('dashboard')">📈 Resum</div>
             <div class="menu-item" onclick="navigateTo('dies')">📅 Dies</div>
             <div class="menu-item" onclick="navigateTo('mesos')">📆 Mesos</div>
@@ -1632,8 +1639,11 @@
                 <div class="carreres-title">🚕 Carreres d'avui</div>
             </div>
             <div class="carreres-total-bar">
-                <span class="carreres-total-label">Total recaptat</span>
-                <span class="carreres-total-value dseg7-total" id="carreresTotalValue">0,00€</span>
+                <button id="btnToggleTotal" onclick="toggleTotalVisibility()" style="background:none;border:none;cursor:pointer;font-size:1.4rem;color:#2a6060;padding:0.25rem 0.5rem;align-self:center;" title="Mostrar/amagar total">👁</button>
+                <div class="carreres-total-inner">
+                    <span class="carreres-total-value dseg7-total" id="carreresTotalValue">0,00€</span>
+                    <span class="carreres-total-label">Total recaptat</span>
+                </div>
             </div>
             <button class="btn-nova-carrera" onclick="mostrarFormCarrera()">🟢 Iniciar Carrera</button>
             <div id="carreresLlista"></div>
@@ -4000,6 +4010,7 @@
             document.getElementById('fechaMonth').valueAsDate = new Date();
             
             await loadJornadaState();
+            initTotalVisibility();
             
             setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
@@ -4379,6 +4390,7 @@
             document.getElementById('carrera-form-page').style.display = 'none';
             document.getElementById('carrera-detail-page').style.display = 'none';
             document.getElementById('carreres-page').style.display = 'block';
+            applyTotalVisibility();
             renderCarreresLlista();
         }
 
@@ -4673,6 +4685,38 @@
             // Demanar token (obre popup Google)
             initDriveTokenClient(config.clientId, doUpload);
             driveTokenClient.requestAccessToken({ prompt: '' });
+        }
+
+        // ---- TOGGLE TOTAL VISIBILITY ----
+        const TOTAL_HIDDEN_KEY = 'totalRecaptatHidden';
+        let totalHidden = false;
+
+        function initTotalVisibility() {
+            totalHidden = localStorage.getItem(TOTAL_HIDDEN_KEY) === '1';
+            applyTotalVisibility();
+        }
+
+        function toggleTotalVisibility() {
+            totalHidden = !totalHidden;
+            localStorage.setItem(TOTAL_HIDDEN_KEY, totalHidden ? '1' : '0');
+            applyTotalVisibility();
+        }
+
+        function applyTotalVisibility() {
+            const el = document.getElementById('carreresTotalValue');
+            const btn = document.getElementById('btnToggleTotal');
+            if (!el || !btn) return;
+            if (totalHidden) {
+                el.style.filter = 'blur(16px)';
+                el.style.userSelect = 'none';
+                btn.textContent = '🙈';
+                btn.title = 'Mostrar total';
+            } else {
+                el.style.filter = '';
+                el.style.userSelect = '';
+                btn.textContent = '👁';
+                btn.title = 'Amagar total';
+            }
         }
 
         initApp();
