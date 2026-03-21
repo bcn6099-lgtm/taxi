@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facturació Taxi</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     
     <!-- Favicon -->
 <link rel="icon" type="image/png" href="taxi_ico2.png">
@@ -1366,8 +1367,11 @@
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="navigateTo('add')">➕ Afegir dia</div>
             <div class="menu-divider"></div>
-            <div class="menu-item" onclick="exportJSON()">💾 Exportar JSON</div>
+            <div class="menu-item" onclick="exportJSON()">💾 Exportar JSON (local)</div>
+            <div class="menu-item" onclick="exportarADrive()">☁️ Exportar a Drive</div>
             <div class="menu-item" onclick="document.getElementById('importFile').click()">📂 Importar JSON</div>
+            <div class="menu-divider"></div>
+            <div class="menu-item" onclick="obrirConfigDrive()">⚙️ Configurar Drive</div>
             <div class="menu-divider"></div>
             <div class="menu-item danger" onclick="confirmDeleteAllData()">🗑️ Esborrar totes les dades</div>
             <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
@@ -1612,7 +1616,7 @@
 
         <!-- VISTA JORNADA (botons + total) -->
         <div id="jornada-home" class="main-content" style="padding-top:4rem;">
-            <h1 class="page-title">🚕 Torn <span id="tornDateDisplay" style="font-size:1rem;font-weight:500;color:var(--text-secondary);margin-left:0.5rem;vertical-align:middle;"></span></h1>
+            <h1 class="page-title">🚕 Torn <span id="tornDateDisplay" style="font-size:1.75rem;font-weight:700;color:var(--accent);margin-left:0.4rem;"></span></h1>
             <div class="jornada-bar">
                 <button class="btn-jornada btn-jornada-start" id="btnIniciarJornada" onclick="iniciarJornada()">🟢 Iniciar Torn</button>
                 <button class="btn-jornada btn-jornada-end" id="btnFinalitzarJornada" onclick="finalitzarJornada()" disabled>🔴 Fi Torn</button>
@@ -1669,6 +1673,41 @@
             </div>
         </div>
 
+    </div>
+
+
+    <!-- DRIVE CONFIG MODAL -->
+    <div class="modal" id="driveConfigModal">
+        <div class="modal-content" style="max-width:440px;">
+            <div class="modal-header">
+                <h2 class="modal-title">☁️ Configurar Google Drive</h2>
+                <button class="modal-close" onclick="document.getElementById('driveConfigModal').classList.remove('active')">×</button>
+            </div>
+            <div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:1.25rem;line-height:1.6;">
+                Per exportar a Drive necessites un <strong style="color:var(--text-primary)">Client ID de Google</strong> i l'<strong style="color:var(--text-primary)">ID de la carpeta</strong> on vols desar els fitxers.<br><br>
+                <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--accent);">🔗 Obtenir Client ID a Google Cloud Console</a>
+                <ol style="margin-top:0.75rem;padding-left:1.2rem;color:var(--text-secondary);">
+                    <li>Crea un projecte nou</li>
+                    <li>Activa l'API de Google Drive</li>
+                    <li>Crea credencials → OAuth 2.0 → Aplicació web</li>
+                    <li>Afegeix l'URL d'aquesta app als orígens autoritzats</li>
+                    <li>Copia el Client ID aquí</li>
+                </ol>
+                <div style="margin-top:0.75rem;">Per l'ID de carpeta: obre la carpeta a Drive, copia el codi de la URL: <code style="background:var(--bg-secondary);padding:0.1rem 0.4rem;border-radius:4px;">drive.google.com/drive/folders/<strong>AQUEST_ID</strong></code></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Client ID de Google</label>
+                <input type="text" id="driveClientId" class="form-input" placeholder="xxxx.apps.googleusercontent.com">
+            </div>
+            <div class="form-group">
+                <label class="form-label">ID de la carpeta de Drive</label>
+                <input type="text" id="driveFolderId" class="form-input" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs...">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" onclick="guardarConfigDrive()">Guardar configuració</button>
+                <button class="btn btn-secondary" onclick="document.getElementById('driveConfigModal').classList.remove('active')">Cancel·lar</button>
+            </div>
+        </div>
     </div>
 
     <!-- EDIT MODAL -->
@@ -4245,7 +4284,7 @@
             const dateEl = document.getElementById('tornDateDisplay');
             if (dateEl) {
                 const now = new Date();
-                const mesos = ['gen.','febr.','març','abr.','maig','juny','jul.','ag.','set.','oct.','nov.','des.'];
+                const mesos = ['GEN.','FEBR.','MARÇ','ABR.','MAIG','JUNY','JUL.','AG.','SET.','OCT.','NOV.','DES.'];
                 dateEl.textContent = `${String(now.getDate()).padStart(2,'0')} ${mesos[now.getMonth()]} ${String(now.getFullYear()).slice(2)}`;
             }
         }
@@ -4521,7 +4560,122 @@
             tornarACarreres();
         }
 
-                initApp();
+        
+        // ==========================================
+        // GOOGLE DRIVE EXPORT
+        // ==========================================
+        const DRIVE_CONFIG_KEY = 'driveConfig';
+        let driveTokenClient = null;
+        let driveAccessToken = null;
+
+        function getDriveConfig() {
+            try {
+                const c = localStorage.getItem(DRIVE_CONFIG_KEY);
+                return c ? JSON.parse(c) : null;
+            } catch(e) { return null; }
+        }
+
+        function guardarConfigDrive() {
+            const clientId = document.getElementById('driveClientId').value.trim();
+            const folderId = document.getElementById('driveFolderId').value.trim();
+            if (!clientId || !folderId) {
+                alert('Cal omplir els dos camps.');
+                return;
+            }
+            localStorage.setItem(DRIVE_CONFIG_KEY, JSON.stringify({ clientId, folderId }));
+            document.getElementById('driveConfigModal').classList.remove('active');
+            // Reinicialitzar client amb nou clientId
+            driveAccessToken = null;
+            driveTokenClient = null;
+            alert('✅ Configuració guardada! Ja pots exportar a Drive.');
+        }
+
+        function obrirConfigDrive() {
+            const config = getDriveConfig();
+            if (config) {
+                document.getElementById('driveClientId').value = config.clientId || '';
+                document.getElementById('driveFolderId').value = config.folderId || '';
+            }
+            document.getElementById('driveConfigModal').classList.add('active');
+            toggleMenu();
+        }
+
+        function initDriveTokenClient(clientId, callback) {
+            if (!window.google || !window.google.accounts) {
+                alert('Error: no s\'ha carregat la llibreria de Google. Comprova la connexió a internet.');
+                return;
+            }
+            driveTokenClient = google.accounts.oauth2.initTokenClient({
+                client_id: clientId,
+                scope: 'https://www.googleapis.com/auth/drive.file',
+                callback: (response) => {
+                    if (response.error) {
+                        alert('Error d\'autenticació: ' + response.error);
+                        return;
+                    }
+                    driveAccessToken = response.access_token;
+                    callback();
+                }
+            });
+        }
+
+        async function exportarADrive() {
+            toggleMenu();
+            const config = getDriveConfig();
+            if (!config || !config.clientId || !config.folderId) {
+                if (confirm('Primer has de configurar el Client ID i la carpeta de Drive.\n\nVols configurar-ho ara?')) {
+                    obrirConfigDrive();
+                }
+                return;
+            }
+
+            // Preparar dades
+            const storedData = await getStoredData();
+            const storedGastos = await getStoredGastos();
+            const storedCarreres = await getAllCarreres();
+            const exportObj = { version: 3, facturacio: storedData, gastos: storedGastos, carreres: storedCarreres };
+            const dataStr = JSON.stringify(exportObj, null, 2);
+            const now = new Date();
+            const pad = n => String(n).padStart(2, '0');
+            const dateStr = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}`;
+            const timeStr = `${pad(now.getHours())}${pad(now.getMinutes())}`;
+            const fileName = `facturacio_taxi_${dateStr}_${timeStr}.json`;
+
+            const doUpload = async () => {
+                try {
+                    const blob = new Blob([dataStr], { type: 'application/json' });
+                    const metadata = JSON.stringify({ name: fileName, parents: [config.folderId] });
+                    const form = new FormData();
+                    form.append('metadata', new Blob([metadata], { type: 'application/json' }));
+                    form.append('file', blob);
+                    const uploadResp = await fetch(
+                        'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart',
+                        { method: 'POST', headers: { Authorization: `Bearer ${driveAccessToken}` }, body: form }
+                    );
+                    if (uploadResp.ok) {
+                        alert(`✅ Exportat a Drive!\n📄 ${fileName}`);
+                    } else {
+                        const err = await uploadResp.json();
+                        throw new Error(err.error?.message || uploadResp.status);
+                    }
+                } catch(e) {
+                    console.error('Drive upload error:', e);
+                    alert('Error en pujar a Drive: ' + e.message);
+                }
+            };
+
+            // Si ja tenim token vàlid, pujar directament
+            if (driveAccessToken) {
+                await doUpload();
+                return;
+            }
+
+            // Demanar token (obre popup Google)
+            initDriveTokenClient(config.clientId, doUpload);
+            driveTokenClient.requestAccessToken({ prompt: '' });
+        }
+
+        initApp();
     </script>
 </body>
 </html>
