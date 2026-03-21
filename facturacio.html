@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Facturació Taxi</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    
     <!-- Favicon -->
 <link rel="icon" type="image/png" href="taxi_ico2.png">
 
@@ -1002,6 +1003,339 @@
             color: var(--text-secondary);
             font-size: 1.125rem;
         }
+
+        /* ==========================================
+           JORNADA / CARRERES STYLES
+        ========================================== */
+        .jornada-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            margin-bottom: 1.5rem;
+            padding: 0.75rem 1rem;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+        }
+
+        .btn-jornada {
+            flex: 1;
+            padding: 0.85rem 0.5rem;
+            border: none;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: all 0.18s;
+            letter-spacing: 0.02em;
+        }
+
+        .btn-jornada-start {
+            background: #2e7d32;
+            color: #fff;
+        }
+        .btn-jornada-start:hover { background: #388e3c; }
+        .btn-jornada-start:disabled { background: #1b4d1e; color: #558b57; cursor: not-allowed; }
+
+        .btn-jornada-end {
+            background: #b71c1c;
+            color: #fff;
+        }
+        .btn-jornada-end:hover { background: #c62828; }
+        .btn-jornada-end:disabled { background: #4a1010; color: #8b4444; cursor: not-allowed; }
+
+        .jornada-total {
+            flex: 0 0 auto;
+            text-align: center;
+            min-width: 90px;
+        }
+        .jornada-total-amount {
+            font-size: 1.6rem;
+            font-weight: 700;
+            color: var(--accent);
+            line-height: 1;
+        }
+        .jornada-total-label {
+            font-size: 0.65rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-top: 2px;
+        }
+
+        /* CARRERES PAGE */
+        #carreres-page {
+            display: none;
+        }
+        #carreres-page.active {
+            display: block;
+        }
+
+        .carreres-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .btn-back-jornada {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-primary);
+            border-radius: 8px;
+            padding: 0.5rem 0.75rem;
+            font-size: 1rem;
+            cursor: pointer;
+            font-family: inherit;
+            transition: border-color 0.15s;
+        }
+        .btn-back-jornada:hover { border-color: var(--accent); }
+
+        .carreres-title {
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: var(--accent);
+            flex: 1;
+        }
+
+        .carreres-total-bar {
+            background: #000;
+            border: 1px solid #1a3a3a;
+            border-radius: 10px;
+            padding: 1.25rem 1rem 0.9rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+        }
+        .carreres-total-label {
+            font-size: 0.65rem;
+            color: #2a6060;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            order: 2;
+        }
+        .carreres-total-value { font-size: 1.6rem; font-weight: 700; color: var(--accent); order: 1; }
+
+        .btn-nova-carrera {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: #2e7d32;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            margin-bottom: 1.25rem;
+            transition: background 0.15s;
+        }
+        .btn-nova-carrera:hover { background: #388e3c; }
+
+        .carrera-item {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.9rem 1rem;
+            margin-bottom: 0.6rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: border-color 0.15s;
+        }
+        .carrera-item:hover { border-color: var(--accent); }
+        .carrera-item-num {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            min-width: 24px;
+        }
+        .carrera-item-amount {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: var(--accent);
+            flex: 1;
+            text-align: right;
+            padding-right: 0.75rem;
+        }
+        .carrera-item-arrow { color: var(--text-secondary); font-size: 0.9rem; }
+
+        /* CARRERA FORM PAGE */
+        #carrera-form-page {
+            display: none;
+        }
+        #carrera-form-page.active {
+            display: block;
+        }
+
+        .carrera-form-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .carrera-location-display {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 0.85rem 1rem;
+            margin-bottom: 1rem;
+            font-size: 0.875rem;
+        }
+        .carrera-location-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.25rem;
+        }
+        .carrera-location-value {
+            color: var(--text-primary);
+            font-weight: 500;
+            min-height: 1.2em;
+        }
+        .carrera-location-loading {
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .carrera-importe-input {
+            width: 100%;
+            padding: 1rem;
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--accent);
+            font-family: inherit;
+            margin-bottom: 1.25rem;
+            transition: border-color 0.15s;
+        }
+        .carrera-importe-input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .btn-fi-carrera {
+            display: block;
+            width: 100%;
+            padding: 1rem;
+            background: #b71c1c;
+            color: #fff;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 700;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+        .btn-fi-carrera:hover { background: #c62828; }
+        .btn-fi-carrera:disabled { background: #5a1010; color: #a06060; cursor: not-allowed; }
+
+        /* CARRERA DETAIL PAGE */
+        #carrera-detail-page {
+            display: none;
+        }
+        #carrera-detail-page.active {
+            display: block;
+        }
+
+        .carrera-detail-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 1.25rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .carrera-detail-route {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .carrera-detail-stop {
+            display: flex;
+            gap: 0.75rem;
+            align-items: flex-start;
+        }
+
+        .carrera-detail-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-top: 5px;
+            flex-shrink: 0;
+        }
+        .dot-green { background: #4caf50; }
+        .dot-red { background: #ff4444; }
+
+        .carrera-detail-stop-label {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+        .carrera-detail-stop-addr {
+            font-size: 0.875rem;
+            color: var(--text-primary);
+        }
+
+        .carrera-detail-importe-edit {
+            width: 100%;
+            padding: 0.85rem;
+            font-size: 1.75rem;
+            font-weight: 700;
+            text-align: center;
+            background: var(--bg-secondary);
+            border: 2px solid var(--border);
+            border-radius: 10px;
+            color: var(--accent);
+            font-family: inherit;
+            margin-bottom: 1.25rem;
+            transition: border-color 0.15s;
+        }
+        .carrera-detail-importe-edit:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        /* DSEG7 font directa via jsDelivr */
+        @font-face {
+            font-family: 'DSEG7Classic';
+            src: url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff2') format('woff2'),
+                 url('https://cdn.jsdelivr.net/npm/dseg@0.46.0/fonts/DSEG7-Classic/DSEG7Classic-Regular.woff') format('woff');
+            font-weight: normal;
+            font-style: normal;
+        }
+
+        /* DSEG7 total a la vista de carreres */
+        .dseg7-total {
+            font-family: 'DSEG7Classic', 'Courier New', monospace;
+            font-size: 3.6rem;
+            color: #00e5ff;
+            text-shadow:
+                0 0 6px rgba(0,229,255,0.95),
+                0 0 18px rgba(0,229,255,0.55),
+                0 0 36px rgba(0,229,255,0.25);
+            letter-spacing: 0.04em;
+            line-height: 1;
+        }
+
+        /* Jornada bar sense total central */
+        .jornada-bar {
+            gap: 0.75rem;
+            justify-content: space-between;
+        }
     </style>
 </head>
 <body>
@@ -1021,7 +1355,8 @@
             <div class="sidebar-title">📊 Taxi Control</div>
         </div>
         <div class="sidebar-menu">
-            <div class="menu-item active" onclick="navigateTo('dashboard')">📈 Resum</div>
+            <div class="menu-item active" id="menu-inici" onclick="navigateTo('jornada')">🚕 Inici</div>
+            <div class="menu-item" onclick="navigateTo('dashboard')">📈 Resum</div>
             <div class="menu-item" onclick="navigateTo('dies')">📅 Dies</div>
             <div class="menu-item" onclick="navigateTo('mesos')">📆 Mesos</div>
             <div class="menu-item" onclick="navigateTo('historic')">📋 Històric</div>
@@ -1045,7 +1380,7 @@
             <!-- DASHBOARD PAGE -->
             <div id="dashboard" class="page active">
                 <h1 class="page-title">📈 Resum General</h1>
-                
+
                 <div class="filters">
                     <div class="filters-row">
                         <!-- Month drum spinner -->
@@ -1272,6 +1607,70 @@
         </div>
     </div>
 
+    <!-- JORNADA PAGE (vista principal, fora de mainContent) -->
+    <div id="jornada-root" style="display:none; min-height:100vh; background:var(--bg-primary);">
+
+        <!-- VISTA JORNADA (botons + total) -->
+        <div id="jornada-home" class="main-content" style="padding-top:4rem;">
+            <h1 class="page-title">🚕 Torn <span id="tornDateDisplay" style="font-size:1rem;font-weight:500;color:var(--text-secondary);margin-left:0.5rem;vertical-align:middle;"></span></h1>
+            <div class="jornada-bar">
+                <button class="btn-jornada btn-jornada-start" id="btnIniciarJornada" onclick="iniciarJornada()">🟢 Iniciar Torn</button>
+                <button class="btn-jornada btn-jornada-end" id="btnFinalitzarJornada" onclick="finalitzarJornada()" disabled>🔴 Fi Torn</button>
+            </div>
+            <!-- Total ocult, actualitzat per JS, usat a la vista de carreres -->
+            <span id="jornadaTotalDisplay" style="display:none">0,00€</span>
+        </div>
+
+        <!-- CARRERES PAGE -->
+        <div id="carreres-page" style="display:none;" class="main-content" style="padding-top:4rem;">
+            <div class="carreres-header">
+                <button class="btn-back-jornada" onclick="tornarAJornadaHome()">← Tornar</button>
+                <div class="carreres-title">🚕 Carreres d'avui</div>
+            </div>
+            <div class="carreres-total-bar">
+                <span class="carreres-total-label">Total recaptat</span>
+                <span class="carreres-total-value dseg7-total" id="carreresTotalValue">0,00€</span>
+            </div>
+            <button class="btn-nova-carrera" onclick="mostrarFormCarrera()">🟢 Iniciar Carrera</button>
+            <div id="carreresLlista"></div>
+        </div>
+
+        <!-- CARRERA FORM PAGE -->
+        <div id="carrera-form-page" style="display:none;" class="main-content" style="padding-top:4rem;">
+            <div class="carrera-form-header">
+                <button class="btn-back-jornada" onclick="tornarACarreres()">← Tornar</button>
+                <div class="carreres-title">Nova Carrera</div>
+            </div>
+            <div class="carrera-location-display">
+                <div class="carrera-location-label">🟢 Origen (detecció automàtica)</div>
+                <div class="carrera-location-value" id="origenDisplay"><span class="carrera-location-loading">Detectant ubicació...</span></div>
+            </div>
+            <div class="form-group">
+                <label class="form-label" style="text-align:center;display:block;font-size:1rem;margin-bottom:0.5rem;">Import (€)</label>
+                <input type="number" id="carreraImport" class="carrera-importe-input" placeholder="0,00" step="0.01" min="0" inputmode="decimal">
+            </div>
+            <button class="btn-fi-carrera" id="btnFiCarrera" onclick="finalitzarCarrera()">🔴 Fi Carrera</button>
+        </div>
+
+        <!-- CARRERA DETAIL PAGE -->
+        <div id="carrera-detail-page" style="display:none;" class="main-content" style="padding-top:4rem;">
+            <div class="carrera-form-header">
+                <button class="btn-back-jornada" onclick="tornarACarreres()">← Tornar</button>
+                <div class="carreres-title">Detall Carrera</div>
+            </div>
+            <div class="carrera-detail-card">
+                <div class="carrera-detail-route" id="carreraDetailRoute"></div>
+                <label class="form-label" style="text-align:center;display:block;font-size:0.875rem;margin-bottom:0.5rem;">Import (€)</label>
+                <input type="number" id="carreraDetailImport" class="carrera-detail-importe-edit" step="0.01" min="0" inputmode="decimal">
+            </div>
+            <div style="display:flex;gap:0.75rem;">
+                <button class="btn btn-primary" style="flex:1;padding:0.9rem;" onclick="guardarEdicioCursa()">💾 Guardar</button>
+                <button class="btn btn-danger" style="flex:1;padding:0.9rem;" onclick="eliminarCursa()">🗑️ Eliminar</button>
+            </div>
+        </div>
+
+    </div>
+
     <!-- EDIT MODAL -->
     <div class="modal" id="editModal">
         <div class="modal-content">
@@ -1410,9 +1809,10 @@
         // INDEXEDDB CONFIGURATION
         // ==========================================
         const DB_NAME = 'TaxiFacturacioDB';
-        const DB_VERSION = 2;
+        const DB_VERSION = 3;
         const STORE_NAME = 'facturacio_data';
         const GASTOS_STORE_NAME = 'gastos_data';
+        const CARRERES_STORE_NAME = 'carreres_data';
         let db = null;
 
         async function initDB() {
@@ -1445,7 +1845,86 @@
                         const gastosStore = db.createObjectStore(GASTOS_STORE_NAME, { keyPath: 'mes_anio' });
                         console.log('Gastos object store created');
                     }
+
+                    // Store de carreres (nou v3)
+                    if (!db.objectStoreNames.contains(CARRERES_STORE_NAME)) {
+                        const carreresStore = db.createObjectStore(CARRERES_STORE_NAME, { keyPath: 'id' });
+                        carreresStore.createIndex('fecha', 'fecha', { unique: false });
+                        console.log('Carreres object store created');
+                    }
                 };
+            });
+        }
+
+        // ---- CARRERES DB FUNCTIONS ----
+        async function saveCarreraToStorage(carrera) {
+            if (!db) return false;
+            return new Promise((resolve) => {
+                const tx = db.transaction([CARRERES_STORE_NAME], 'readwrite');
+                const store = tx.objectStore(CARRERES_STORE_NAME);
+                const req = store.put(carrera);
+                req.onsuccess = () => resolve(true);
+                req.onerror = () => { console.error('Error saving carrera:', req.error); resolve(false); };
+            });
+        }
+
+        async function updateCarreraInStorage(carrera) {
+            return saveCarreraToStorage(carrera);
+        }
+
+        async function deleteCarreraFromStorage(id) {
+            if (!db) return false;
+            return new Promise((resolve) => {
+                const tx = db.transaction([CARRERES_STORE_NAME], 'readwrite');
+                const store = tx.objectStore(CARRERES_STORE_NAME);
+                const req = store.delete(id);
+                req.onsuccess = () => resolve(true);
+                req.onerror = () => { console.error('Error deleting carrera:', req.error); resolve(false); };
+            });
+        }
+
+        async function getCarreresForDate(fecha) {
+            if (!db) return [];
+            return new Promise((resolve) => {
+                const tx = db.transaction([CARRERES_STORE_NAME], 'readonly');
+                const store = tx.objectStore(CARRERES_STORE_NAME);
+                const idx = store.index('fecha');
+                const req = idx.getAll(fecha);
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => resolve([]);
+            });
+        }
+
+        async function getAllCarreres() {
+            if (!db) return [];
+            return new Promise((resolve) => {
+                const tx = db.transaction([CARRERES_STORE_NAME], 'readonly');
+                const store = tx.objectStore(CARRERES_STORE_NAME);
+                const req = store.getAll();
+                req.onsuccess = () => resolve(req.result || []);
+                req.onerror = () => resolve([]);
+            });
+        }
+
+        async function clearCarreresStorage() {
+            if (!db) return false;
+            return new Promise((resolve) => {
+                const tx = db.transaction([CARRERES_STORE_NAME], 'readwrite');
+                const store = tx.objectStore(CARRERES_STORE_NAME);
+                const req = store.clear();
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        }
+
+        async function bulkSaveCarreres(carreresArray) {
+            if (!db || !carreresArray.length) return true;
+            return new Promise((resolve) => {
+                const tx = db.transaction([CARRERES_STORE_NAME], 'readwrite');
+                const store = tx.objectStore(CARRERES_STORE_NAME);
+                carreresArray.forEach(c => store.put(c));
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
             });
         }
 
@@ -1875,11 +2354,23 @@
         }
 
         function navigateTo(page) {
+            // Jornada és una vista independent (fora de mainContent)
+            if (page === 'jornada') {
+                mostrarJornadaRoot();
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                if (event && event.target) event.target.classList.add('active');
+                toggleMenu();
+                return;
+            }
+
+            // Torna a mainContent si venim de jornada
+            mostrarMainContent();
+
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
             
             document.getElementById(page).classList.add('active');
-            event.target.classList.add('active');
+            if (event && event.target) event.target.classList.add('active');
             
             toggleMenu();
 
@@ -2139,6 +2630,14 @@
             const stats = calculateStats(monthData);
             const mediaHoraColor = getConditionalColor(stats.mediaHora, 15, 25);
             
+            // Mitjana d'hores per dia (només dies amb hores registrades)
+            const diesAmbHores = monthData.filter(d => d.horas_trabajadas && d.horas_trabajadas > 0);
+            const totalHoresMes = diesAmbHores.reduce((sum, d) => sum + d.horas_trabajadas, 0);
+            const mediaHoresDia = diesAmbHores.length > 0 ? totalHoresMes / diesAmbHores.length : 0;
+            const mediaHoresDiaStr = mediaHoresDia > 0
+                ? `${Math.floor(mediaHoresDia)}h ${Math.round((mediaHoresDia % 1) * 60).toString().padStart(2,'0')}m`
+                : '-';
+
             document.getElementById('diesStats').innerHTML = `
                 <div class="stat-card">
                     <div class="stat-label">Total</div>
@@ -2159,6 +2658,11 @@
                 <div class="stat-card">
                     <div class="stat-label">Dies treballats</div>
                     <div class="stat-value">${monthData.length}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Mitjana hores/dia</div>
+                    <div class="stat-value">${mediaHoresDiaStr}</div>
+                    ${diesAmbHores.length < monthData.length ? `<div class="stat-change" style="color:var(--text-secondary)">${diesAmbHores.length}/${monthData.length} dies</div>` : ''}
                 </div>
             `;
             
@@ -3242,27 +3746,35 @@
         // DELETE ALL DATA
         // ==========================================
         async function confirmDeleteAllData() {
-            if (!confirm('ATENCIÓ: Això eliminarà TOTES les dades de facturació i gastos de forma permanent. Aquesta acció NO es pot desfer.\n\nEstàs completament segur que vols continuar?')) {
+            if (!confirm('ATENCIÓ: Això eliminarà TOTES les dades de facturació, gastos i carreres de forma permanent. Aquesta acció NO es pot desfer.\n\nEstàs completament segur que vols continuar?')) {
                 return;
             }
-            
-            // Segunda confirmación
             if (!confirm('Última confirmació: Realment vols esborrar TOTES les dades? Aquesta acció és irreversible.')) {
                 return;
             }
-            
             try {
-                // Borrar datos de facturación
-                await saveToStorage([]);
-                
-                // Borrar datos de gastos
-                await saveGastosToStorage([]);
-                
-                // Recargar datos
-                await loadData();
-                await loadGastosData();
-                
-                // Actualizar todas las vistas
+                // Esborrar els tres stores en una sola transacció
+                await new Promise((resolve, reject) => {
+                    const tx = db.transaction([STORE_NAME, GASTOS_STORE_NAME, CARRERES_STORE_NAME], 'readwrite');
+                    tx.objectStore(STORE_NAME).clear();
+                    tx.objectStore(GASTOS_STORE_NAME).clear();
+                    tx.objectStore(CARRERES_STORE_NAME).clear();
+                    tx.oncomplete = () => resolve();
+                    tx.onerror = () => reject(tx.error);
+                    tx.onabort = () => reject(tx.error);
+                });
+
+                // Reset jornada
+                jornadaActiva = false;
+                carreresAvui = [];
+                localStorage.removeItem(JORNADA_KEY);
+                updateJornadaUI();
+
+                // Reset cache local
+                allData = [];
+                filteredData = [];
+                gastosData = [];
+
                 populateYearFilters();
                 updateDashboard();
                 updateDiesView();
@@ -3271,14 +3783,12 @@
                 updateComparisonView();
                 updateBeneficisView();
                 updateAllDaysTable();
-                
+
                 alert('Totes les dades han estat esborrades correctament.');
-                
-                // Cerrar el menú
                 toggleMenu();
             } catch (error) {
                 console.error('Error deleting all data:', error);
-                alert('Error en esborrar les dades. Si us plau, torna-ho a intentar.');
+                alert('Error en esborrar les dades: ' + (error && error.message ? error.message : error));
             }
         }
 
@@ -3287,7 +3797,15 @@
         // ==========================================
         async function exportJSON() {
             const storedData = await getStoredData();
-            const dataStr = JSON.stringify(storedData, null, 2);
+            const storedGastos = await getStoredGastos();
+            const storedCarreres = await getAllCarreres();
+            const exportObj = {
+                version: 3,
+                facturacio: storedData,
+                gastos: storedGastos,
+                carreres: storedCarreres
+            };
+            const dataStr = JSON.stringify(exportObj, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
@@ -3303,23 +3821,51 @@
             const reader = new FileReader();
             reader.onload = async function(e) {
                 try {
-                    const importedData = JSON.parse(e.target.result);
-                    if (!Array.isArray(importedData)) throw new Error('Format invàlid');
-                    const saved = await saveToStorage(importedData);
-                    if (saved) {
-                        await loadData();
-                        populateYearFilters();
-                        updateDashboard();
-                        updateMesosView();
-                        updateHistoricView();
-                        updateAllDaysTable();
-                        alert(`Dades importades: ${importedData.length} registres`);
+                    const parsed = JSON.parse(e.target.result);
+
+                    // Suporta format antic (array) i nou (objecte amb version)
+                    let facturacioData, gastosDataImport, carreresDataImport;
+                    if (Array.isArray(parsed)) {
+                        // Format antic: només facturació
+                        facturacioData = parsed;
+                        gastosDataImport = null;
+                        carreresDataImport = null;
+                    } else if (parsed && parsed.facturacio) {
+                        facturacioData = parsed.facturacio || [];
+                        gastosDataImport = parsed.gastos || null;
+                        carreresDataImport = parsed.carreres || null;
                     } else {
-                        alert('Error en desar les dades');
+                        throw new Error('Format invàlid');
                     }
+
+                    // Desar facturació
+                    const saved = await saveToStorage(facturacioData);
+                    if (!saved) { alert('Error en desar les dades de facturació'); return; }
+
+                    // Desar gastos si n'hi ha
+                    if (gastosDataImport && gastosDataImport.length > 0) {
+                        await saveGastosToStorage(gastosDataImport);
+                    }
+
+                    // Desar carreres si n'hi ha
+                    if (carreresDataImport && carreresDataImport.length > 0) {
+                        await clearCarreresStorage();
+                        await bulkSaveCarreres(carreresDataImport);
+                    }
+
+                    await loadData();
+                    await loadGastosData();
+                    populateYearFilters();
+                    updateDashboard();
+                    updateMesosView();
+                    updateHistoricView();
+                    updateAllDaysTable();
+
+                    const numCarreres = carreresDataImport ? carreresDataImport.length : 0;
+                    alert(`Dades importades:\n• ${facturacioData.length} dies de facturació\n• ${numCarreres} carreres individuals`);
                 } catch (error) {
                     console.error('Error importing:', error);
-                    alert('Error en importar les dades');
+                    alert('Error en importar les dades. Comprova el format del fitxer.');
                 }
             };
             reader.readAsText(file);
@@ -3414,9 +3960,13 @@
             document.getElementById('fecha').valueAsDate = new Date();
             document.getElementById('fechaMonth').valueAsDate = new Date();
             
+            await loadJornadaState();
+            
             setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
-                document.getElementById('mainContent').style.display = 'block';
+                // Mostrar jornada com a vista inicial
+                mostrarJornadaRoot();
+                updateJornadaUI();
             }, 500);
         }
 
@@ -3576,7 +4126,402 @@
             track.style.top = '-24px';
         }
 
-        initApp();
+        // ==========================================
+        // JORNADA & CARRERES
+        // ==========================================
+        // localStorage: només flag jornadaActiva + data
+        // IndexedDB carreres_data: font de veritat permanent
+        // carreresAvui: cache en memòria de les carreres d'avui
+        // ==========================================
+        const JORNADA_KEY = 'jornadaActiva';
+        let jornadaActiva = false;
+        let tornIniciatAt = null;   // timestamp ms quan s'inicia el torn
+        let carreresAvui = [];
+        let carreraOrigenActual = '';
+        let cursaEditantIndex = -1;
+        let cursaEditantId = null;
+
+        function getTodayStr() {
+            const avui = new Date();
+            return `${avui.getFullYear()}-${String(avui.getMonth()+1).padStart(2,'0')}-${String(avui.getDate()).padStart(2,'0')}`;
+        }
+
+        function saveJornadaFlag() {
+            localStorage.setItem(JORNADA_KEY, JSON.stringify({
+                activa: jornadaActiva,
+                data: new Date().toDateString(),
+                iniciatAt: tornIniciatAt
+            }));
+        }
+
+        // Retorna true si cal considerar que és un nou torn
+        // (dia diferent O mateixa data però ja passades les 06:00)
+        function isTornExpired(savedDateStr, savedIniciatAt) {
+            const now = new Date();
+            const savedDate = new Date(savedDateStr);
+            const todayDate = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const savedDay  = new Date(savedDate.getFullYear(), savedDate.getMonth(), savedDate.getDate());
+            if (savedDay < todayDate) {
+                // Dia anterior: expirat si ja han passat les 6AM d'avui
+                const cutoff6AM = new Date(todayDate); cutoff6AM.setHours(6,0,0,0);
+                return now >= cutoff6AM;
+            }
+            return false; // mateix dia, torn vigent
+        }
+
+        async function loadJornadaState() {
+            try {
+                const j = localStorage.getItem(JORNADA_KEY);
+                if (j) {
+                    const data = JSON.parse(j);
+                    if (data.data === new Date().toDateString()) {
+                        jornadaActiva = data.activa;
+                        tornIniciatAt = data.iniciatAt || null;
+                    } else if (isTornExpired(data.data, data.iniciatAt)) {
+                        // Torn del dia anterior i ja passades les 6AM → reset
+                        jornadaActiva = false;
+                        tornIniciatAt = null;
+                        localStorage.removeItem(JORNADA_KEY);
+                    } else {
+                        // Torn nocturn del dia anterior, encara vigent (abans de les 6AM)
+                        jornadaActiva = data.activa;
+                        tornIniciatAt = data.iniciatAt || null;
+                    }
+                }
+            } catch(e) { jornadaActiva = false; tornIniciatAt = null; }
+            // Carreres: data d'avui O data del torn actiu si és nocturn
+            const tornDate = tornIniciatAt ? new Date(tornIniciatAt) : new Date();
+            const tornDateStr = `${tornDate.getFullYear()}-${String(tornDate.getMonth()+1).padStart(2,'0')}-${String(tornDate.getDate()).padStart(2,'0')}`;
+            carreresAvui = await getCarreresForDate(tornDateStr);
+            // Si el torn és nocturn i creua mitjanit, incloure també les de avui
+            if (tornDateStr !== getTodayStr()) {
+                const avuiCarreres = await getCarreresForDate(getTodayStr());
+                carreresAvui = [...carreresAvui, ...avuiCarreres];
+            }
+            carreresAvui.sort((a, b) => (a.id || '').localeCompare(b.id || ''));
+        }
+
+        function calcularTotalCarreres() {
+            return carreresAvui.reduce((sum, c) => sum + (parseFloat(c.import) || 0), 0);
+        }
+
+        function formatEur(v) {
+            return v.toLocaleString('ca-ES', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '€';
+        }
+
+        // Format per pantalla DSEG7: punt decimal (la font no té coma ben formada)
+        function formatEurDSEG(v) {
+            return v.toFixed(2).replace('.', '.') + '€';
+        }
+
+        function updateJornadaUI() {
+            const total = calcularTotalCarreres();
+            const disp = document.getElementById('jornadaTotalDisplay');
+            if (disp) disp.textContent = formatEur(total);
+            const btnStart = document.getElementById('btnIniciarJornada');
+            const btnEnd = document.getElementById('btnFinalitzarJornada');
+            // Comprovar si el torn ha expirat (6AM dia següent)
+            const tornExpirat = jornadaActiva && (() => {
+                try {
+                    const j = localStorage.getItem(JORNADA_KEY);
+                    if (!j) return false;
+                    const data = JSON.parse(j);
+                    return isTornExpired(data.data, data.iniciatAt);
+                } catch(e) { return false; }
+            })();
+            if (tornExpirat) {
+                jornadaActiva = false;
+                tornIniciatAt = null;
+                localStorage.removeItem(JORNADA_KEY);
+            }
+            if (jornadaActiva) {
+                if (btnStart) { btnStart.disabled = false; btnStart.textContent = '🚕 Carreres'; }
+                if (btnEnd) btnEnd.disabled = false;
+            } else {
+                if (btnStart) { btnStart.disabled = false; btnStart.textContent = '🟢 Iniciar Torn'; }
+                if (btnEnd) btnEnd.disabled = true;
+            }
+            // Data al títol
+            const dateEl = document.getElementById('tornDateDisplay');
+            if (dateEl) {
+                const now = new Date();
+                const mesos = ['gen.','febr.','març','abr.','maig','juny','jul.','ag.','set.','oct.','nov.','des.'];
+                dateEl.textContent = `${String(now.getDate()).padStart(2,'0')} ${mesos[now.getMonth()]} ${String(now.getFullYear()).slice(2)}`;
+            }
+        }
+
+        function iniciarJornada() {
+            if (!jornadaActiva) {
+                jornadaActiva = true;
+                tornIniciatAt = Date.now();
+                saveJornadaFlag();
+                updateJornadaUI();
+            }
+            mostrarPaginaCarreres();
+        }
+
+        async function finalitzarJornada() {
+            if (!jornadaActiva) return;
+            const total = calcularTotalCarreres();
+            if (carreresAvui.length === 0) {
+                alert('No hi ha carreres registrades. Afegeix almenys una carrera abans de finalitzar el torn.');
+                return;
+            }
+            const fechaStr = getTodayStr();
+            const dd = fechaStr.substring(8, 10);
+            const mm = fechaStr.substring(5, 7);
+            const yyyy = fechaStr.substring(2, 4);
+            const conf = confirm(`Finalitzar torn?\n\nTotal recaptat: ${formatEur(total)}\nCarreres: ${carreresAvui.length}\n\nS'afegirà com a recaptació d'avui. Pots continuar el torn en qualsevol moment.`);
+            if (!conf) return;
+
+            const mesAnio = fechaStr.substring(0, 7);
+            // Hores treballades: des de inici torn fins ara
+            let horasTreballades = null;
+            if (tornIniciatAt) {
+                const diffMs = Date.now() - tornIniciatAt;
+                horasTreballades = Math.round((diffMs / 3600000) * 100) / 100; // 2 decimals
+            }
+            const nouRegistre = {
+                mes_anio: mesAnio,
+                fecha: fechaStr,
+                dia_semana: null,
+                semana_num: null,
+                ingresos_dia: total,
+                servicios_dia: carreresAvui.length,
+                media_precio_servicio: carreresAvui.length > 0 ? total / carreresAvui.length : null,
+                horas_trabajadas: horasTreballades,
+                media_ingresos_hora: horasTreballades && total ? Math.round((total / horasTreballades) * 100) / 100 : null,
+                observacions: `Torn: ${carreresAvui.length} carreres · ${horasTreballades ? horasTreballades.toFixed(2) + 'h' : 'sense hora inici'}`
+            };
+
+            // Actualitzar o inserir al store
+            const storedData = await getStoredData();
+            const existingIdx = storedData.findIndex(d => d.fecha === fechaStr);
+            if (existingIdx >= 0) {
+                storedData[existingIdx] = nouRegistre;
+            } else {
+                storedData.push(nouRegistre);
+            }
+            storedData.sort((a, b) => a.fecha.localeCompare(b.fecha));
+            await saveToStorage(storedData);
+
+            // Actualitzar cache local i vistes (però NO reseteja jornadaActiva ni carreresAvui)
+            await loadData();
+            populateYearFilters();
+            updateDashboard();
+            updateDiesView();
+            updateMesosView();
+            updateHistoricView();
+
+            alert(`✅ Torn desat!\n${formatEur(total)} guardats per a ${dd}/${mm}/${yyyy}\n\nPots continuar afegint carreres.`);
+        }
+
+        // ---- NAVIGATE ----
+
+        // Amaga tot i mostra jornada-root (la "pantalla" sencera de jornada)
+        function mostrarJornadaRoot() {
+            document.getElementById('mainContent').style.display = 'none';
+            document.getElementById('jornada-root').style.display = 'block';
+            document.getElementById('jornada-home').style.display = 'block';
+            document.getElementById('carreres-page').style.display = 'none';
+            document.getElementById('carrera-form-page').style.display = 'none';
+            document.getElementById('carrera-detail-page').style.display = 'none';
+        }
+
+        // Torna a mainContent (qualsevol pàgina del sistema de facturació)
+        function mostrarMainContent() {
+            document.getElementById('jornada-root').style.display = 'none';
+            document.getElementById('mainContent').style.display = 'block';
+        }
+
+        // Mostra el llistat de carreres (dins jornada-root)
+        function mostrarPaginaCarreres() {
+            document.getElementById('jornada-home').style.display = 'none';
+            document.getElementById('carrera-form-page').style.display = 'none';
+            document.getElementById('carrera-detail-page').style.display = 'none';
+            document.getElementById('carreres-page').style.display = 'block';
+            renderCarreresLlista();
+        }
+
+        // Tornar a la pantalla principal de jornada (botons iniciar/finalitzar)
+        function tornarAJornadaHome() {
+            document.getElementById('carreres-page').style.display = 'none';
+            document.getElementById('carrera-form-page').style.display = 'none';
+            document.getElementById('carrera-detail-page').style.display = 'none';
+            document.getElementById('jornada-home').style.display = 'block';
+        }
+
+        function tornarACarreres() {
+            document.getElementById('carrera-form-page').style.display = 'none';
+            document.getElementById('carrera-detail-page').style.display = 'none';
+            document.getElementById('carreres-page').style.display = 'block';
+            renderCarreresLlista();
+        }
+
+        function renderCarreresLlista() {
+            const total = calcularTotalCarreres();
+            const totalEl = document.getElementById('carreresTotalValue');
+            if (totalEl) totalEl.textContent = formatEurDSEG(total);
+            const llista = document.getElementById('carreresLlista');
+            if (carreresAvui.length === 0) {
+                llista.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:2rem 0;">Cap carrera registrada. Prem Iniciar Carrera per començar.</div>';
+                return;
+            }
+            llista.innerHTML = carreresAvui.map((c, i) => `
+                <div class="carrera-item" onclick="mostrarDetallCarrera(${i})">
+                    <span class="carrera-item-num">#${i + 1}</span>
+                    <span class="carrera-item-amount">${formatEur(parseFloat(c.import) || 0)}</span>
+                    <span class="carrera-item-arrow">›</span>
+                </div>
+            `).join('');
+        }
+
+        // ---- GEOCODE ----
+        async function getAddressFromCoords(lat, lon) {
+            try {
+                const resp = await fetch(`https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}&accept-language=ca`, {
+                    headers: { 'User-Agent': 'TaxiControlApp/1.0' }
+                });
+                if (!resp.ok) return null;
+                const data = await resp.json();
+                if (data && data.address) {
+                    const a = data.address;
+                    const road = a.road || a.pedestrian || a.footway || '';
+                    const num = a.house_number ? `, ${a.house_number}` : '';
+                    const city = a.city || a.town || a.village || a.municipality || '';
+                    return road ? `${road}${num}${city ? ', ' + city : ''}` : (data.display_name || null);
+                }
+                return data.display_name || null;
+            } catch(e) { return null; }
+        }
+
+        async function detectarUbicacio(displayId) {
+            const el = document.getElementById(displayId);
+            if (!el) return '';
+            el.innerHTML = '<span class="carrera-location-loading">Detectant ubicació...</span>';
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) {
+                    el.textContent = 'Geolocalització no disponible';
+                    resolve('Ubicació desconeguda');
+                    return;
+                }
+                navigator.geolocation.getCurrentPosition(
+                    async (pos) => {
+                        const addr = await getAddressFromCoords(pos.coords.latitude, pos.coords.longitude);
+                        const text = addr || `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+                        el.textContent = text;
+                        resolve(text);
+                    },
+                    () => {
+                        el.textContent = 'No s\'ha pogut obtenir la ubicació';
+                        resolve('Ubicació desconeguda');
+                    },
+                    { timeout: 10000, enableHighAccuracy: true }
+                );
+            });
+        }
+
+        // ---- FORM CARRERA ----
+        async function mostrarFormCarrera() {
+            document.getElementById('carreres-page').style.display = 'none';
+            document.getElementById('carrera-detail-page').style.display = 'none';
+            document.getElementById('carrera-form-page').style.display = 'block';
+            document.getElementById('carreraImport').value = '';
+            document.getElementById('btnFiCarrera').disabled = false;
+            document.getElementById('btnFiCarrera').textContent = '🔴 Fi Carrera';
+            carreraOrigenActual = await detectarUbicacio('origenDisplay');
+            setTimeout(() => { document.getElementById('carreraImport').focus(); }, 300);
+        }
+
+        async function finalitzarCarrera() {
+            const importVal = parseFloat(document.getElementById('carreraImport').value);
+            if (isNaN(importVal) || importVal <= 0) {
+                alert('Introdueix un import vàlid.');
+                return;
+            }
+            const btn = document.getElementById('btnFiCarrera');
+            btn.disabled = true;
+            btn.textContent = '🔴 Detectant destí...';
+
+            let destiAddr = 'Destí desconegut';
+            try {
+                destiAddr = await new Promise((resolve) => {
+                    if (!navigator.geolocation) { resolve('Destí desconegut'); return; }
+                    navigator.geolocation.getCurrentPosition(
+                        async (pos) => {
+                            const addr = await getAddressFromCoords(pos.coords.latitude, pos.coords.longitude);
+                            resolve(addr || `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`);
+                        },
+                        () => resolve('Destí desconegut'),
+                        { timeout: 8000, enableHighAccuracy: true }
+                    );
+                });
+            } catch(e) {}
+
+            const novaCarrera = {
+                id: `${getTodayStr()}_${Date.now()}`,
+                fecha: getTodayStr(),
+                origen: carreraOrigenActual,
+                desti: destiAddr,
+                import: importVal,
+                hora: new Date().toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' })
+            };
+            await saveCarreraToStorage(novaCarrera);
+            carreresAvui.push(novaCarrera);
+            updateJornadaUI();
+            tornarACarreres();
+        }
+
+        // ---- DETALL CARRERA ----
+        function mostrarDetallCarrera(idx) {
+            cursaEditantIndex = idx;
+            cursaEditantId = carreresAvui[idx].id;
+            const c = carreresAvui[idx];
+            document.getElementById('carreres-page').style.display = 'none';
+            document.getElementById('carrera-form-page').style.display = 'none';
+            document.getElementById('carrera-detail-page').style.display = 'block';
+
+            document.getElementById('carreraDetailImport').value = c.import;
+            document.getElementById('carreraDetailRoute').innerHTML = `
+                <div class="carrera-detail-stop">
+                    <div class="carrera-detail-dot dot-green"></div>
+                    <div>
+                        <div class="carrera-detail-stop-label">Origen · ${c.hora || ''}</div>
+                        <div class="carrera-detail-stop-addr">${c.origen || 'Desconegut'}</div>
+                    </div>
+                </div>
+                <div class="carrera-detail-stop">
+                    <div class="carrera-detail-dot dot-red"></div>
+                    <div>
+                        <div class="carrera-detail-stop-label">Destí</div>
+                        <div class="carrera-detail-stop-addr">${c.desti || 'Desconegut'}</div>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function guardarEdicioCursa() {
+            if (cursaEditantIndex < 0) return;
+            const val = parseFloat(document.getElementById('carreraDetailImport').value);
+            if (isNaN(val) || val <= 0) { alert('Import invàlid.'); return; }
+            carreresAvui[cursaEditantIndex].import = val;
+            await updateCarreraInStorage(carreresAvui[cursaEditantIndex]);
+            updateJornadaUI();
+            tornarACarreres();
+        }
+
+        async function eliminarCursa() {
+            if (cursaEditantIndex < 0) return;
+            if (!confirm('Eliminar aquesta carrera?')) return;
+            await deleteCarreraFromStorage(cursaEditantId);
+            carreresAvui.splice(cursaEditantIndex, 1);
+            cursaEditantIndex = -1;
+            cursaEditantId = null;
+            updateJornadaUI();
+            tornarACarreres();
+        }
+
+                initApp();
     </script>
 </body>
 </html>
