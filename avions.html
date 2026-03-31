@@ -412,7 +412,7 @@
                     const fromLocal = `${formatDateForAPI(ahora)}T${formatTimeForAPI(ahora)}`;
                     const toLocal = `${formatDateForAPI(dentro1h)}T${formatTimeForAPI(dentro1h)}`;
                     
-                    const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${fromLocal}/${toLocal}/arrivals`;
+                    const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${fromLocal}/${toLocal}?direction=Arrival`;
                     
                     const response = await fetch(url, {
                         headers: {
@@ -452,7 +452,7 @@
                     const fromLocal = `${formatDateForAPI(ahora)}T${formatTimeForAPI(ahora)}`;
                     const toLocal = `${formatDateForAPI(dentro10h)}T${formatTimeForAPI(dentro10h)}`;
                     
-                    const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${fromLocal}/${toLocal}/arrivals`;
+                    const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${fromLocal}/${toLocal}?direction=Arrival`;
                     
                     const response = await fetch(url, {
                         headers: {
