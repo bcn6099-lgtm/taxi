@@ -158,7 +158,9 @@
                     </div>
                     <div style="display:flex; gap:0.4rem; flex-wrap:wrap;">
                         <button class="dia-filter-btn" id="gcfAero-tots" onclick="setGlobalCarreraFilter('aeroport','tots')">Tots</button>
-                        <button class="dia-filter-btn" id="gcfAero-si" onclick="setGlobalCarreraFilter('aeroport','si')"><i class="fa-solid fa-plane"></i> Aeroport</button>
+                        <button class="dia-filter-btn" id="gcfAero-entrada" onclick="setGlobalCarreraFilter('aeroport','entrada')"><i class="fa-solid fa-plane" style="transform:rotate(-45deg);display:inline-block;font-size:1rem;"></i> Entrada</button>
+                        <button class="dia-filter-btn" id="gcfAero-sortida" onclick="setGlobalCarreraFilter('aeroport','sortida')"><i class="fa-solid fa-plane" style="transform:rotate(135deg);display:inline-block;font-size:1rem;"></i> Sortida</button>
+                        <button class="dia-filter-btn" id="gcfAero-si" onclick="setGlobalCarreraFilter('aeroport','si')"><i class="fa-solid fa-plane" style="font-size:1rem;"></i> Tots aero</button>
                         <button class="dia-filter-btn" id="gcfAero-no" onclick="setGlobalCarreraFilter('aeroport','no')"><i class="fa-solid fa-city"></i> Ciutat</button>
                     </div>
                 </div>
@@ -402,21 +404,15 @@
         <div id="jornada-home" class="main-content" style="padding-top:4rem;">
             <h1 class="page-title">🚕 Torn <span id="tornDateDisplay" style="font-size:1.75rem;font-weight:700;color:var(--accent);margin-left:0.4rem;"></span></h1>
 
-            <!-- Camp Km Inici - col·lapsable -->
-            <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;">
+            <!-- Camp Km Inici - visible fins que s'introdueixi -->
+            <div id="kmIniciBlock" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;">
                 <div style="font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">🛣️ Km Comptador Inici</div>
-                <!-- Vista input -->
                 <div id="kmIniciInputWrap">
                     <input type="number" id="kmIniciInput" placeholder="000000" min="0" max="999999" inputmode="numeric"
                         style="width:100%;background:var(--bg-secondary);border:2px solid var(--border);border-radius:8px;color:var(--accent);font-size:2rem;font-weight:700;text-align:center;padding:0.5rem;font-family:inherit;letter-spacing:0.12em;transition:border-color 0.15s;"
-                        onfocus="this.style.borderColor='var(--accent)'" onblur="confirmarKmInici(this)"
-                        onchange="saveJornadaFlag()">
+                        onfocus="this.style.borderColor='var(--accent)'" onblur="confirmarKmInici(this)" onchange="saveJornadaFlag()">
                 </div>
-                <!-- Vista col·lapsada: valor ocult, només botó editar -->
-                <div id="kmIniciCollapsed" style="display:none;align-items:center;gap:0.75rem;">
-                    <span style="font-size:0.8rem;color:var(--text-secondary);">🛣️ Km inici desat</span>
-                    <button onclick="editarKmInici()" style="background:none;border:none;cursor:pointer;font-size:0.85rem;color:var(--text-secondary);padding:0.2rem 0.5rem;border-radius:6px;border:1px solid var(--border);">✏️ editar</button>
-                </div>
+                <div id="kmIniciCollapsed" style="display:none;"></div>
             </div>
 
             <div class="jornada-bar">
@@ -428,15 +424,15 @@
             <div id="tornHorariBlock" style="display:none; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:0.85rem 1rem; margin-top:0.75rem;">
                 <div id="tornHoraIniciRow" style="display:none; display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
                     <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; min-width:68px;">🟢 Inici</span>
-                    <span id="tornHoraIniciVal" style="font-size:1.1rem; font-weight:700; color:var(--accent); font-family:'DSEG7Classic','Courier New',monospace; letter-spacing:0.08em;"></span>
+                    <span id="tornHoraIniciVal" style="font-size:1.4rem; font-weight:700; color:var(--accent); font-family:'DSEG7Classic','Courier New',monospace; letter-spacing:0.08em;"></span>
                 </div>
                 <div id="tornHoraFiRow" style="display:none; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
                     <span id="tornHoraFiLabel" style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; min-width:68px;">🔴 Fi</span>
-                    <span id="tornHoraFiVal" style="font-size:1.1rem; font-weight:700; color:#ff6b6b; font-family:'DSEG7Classic','Courier New',monospace; letter-spacing:0.08em;"></span>
+                    <span id="tornHoraFiVal" style="font-size:1.4rem; font-weight:700; color:#ff6b6b; font-family:'DSEG7Classic','Courier New',monospace; letter-spacing:0.08em;"></span>
                 </div>
                 <div id="tornHoresRow" style="display:none; align-items:center; gap:0.5rem;">
                     <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; min-width:68px;">⏱ Hores</span>
-                    <span id="tornHoresVal" style="font-size:1.1rem; font-weight:700; color:var(--text-primary); font-family:'DSEG7Classic','Courier New',monospace; letter-spacing:0.08em;"></span>
+                    <span id="tornHoresVal" style="font-size:1.4rem; font-weight:700; color:var(--text-primary); font-family:'DSEG7Classic','Courier New',monospace; letter-spacing:0.08em;"></span>
                 </div>
             </div>
 
@@ -458,7 +454,7 @@
                 </div>
 
             </div>
-            <button class="btn-nova-carrera" onclick="mostrarFormCarrera()">🟢 Iniciar Carrera</button>
+            <button class="btn-nova-carrera" id="btnIniciarCarrera" onclick="mostrarFormCarrera()">🟢 Iniciar Carrera</button>
             <div id="carreresLlista"></div>
         </div>
 
@@ -512,11 +508,14 @@
                     </button>
                 </div>
                 <div class="pagament-selector">
-                    <button class="btn-pagament" id="aeroportNo" onclick="selectAeroport(false)" type="button">
+                    <button class="btn-pagament" id="aeroportNo" onclick="selectAeroport('ciutat')" type="button">
                         <i class="fa-solid fa-city" style="font-size:1.1rem;"></i><span class="label">Ciutat</span>
                     </button>
-                    <button class="btn-pagament" id="aeroportSi" onclick="selectAeroport(true)" type="button">
-                        <i class="fa-solid fa-plane" style="font-size:1.1rem;"></i><span class="label">Aeroport</span>
+                    <button class="btn-pagament" id="aeroportEntrada" onclick="selectAeroport('entrada')" type="button">
+                        <i class="fa-solid fa-plane" style="font-size:1.4rem;transform:rotate(-45deg);display:inline-block;"></i><span class="label">Aero ↑</span>
+                    </button>
+                    <button class="btn-pagament" id="aeroportSortida" onclick="selectAeroport('sortida')" type="button">
+                        <i class="fa-solid fa-plane" style="font-size:1.4rem;transform:rotate(135deg);display:inline-block;"></i><span class="label">Aero ↓</span>
                     </button>
                 </div>
                 <button class="btn-fi-carrera" id="btnFiCarrera" onclick="finalitzarCarrera()">💾 Guardar Carrera</button>
@@ -564,11 +563,14 @@
                 </div>
                 <!-- Aeroport -->
                 <div class="pagament-selector">
-                    <button class="btn-pagament" id="detailAeroportNo" onclick="selectAeroportDetail(false)" type="button">
+                    <button class="btn-pagament" id="detailAeroportNo" onclick="selectAeroportDetail('ciutat')" type="button">
                         <i class="fa-solid fa-city" style="font-size:1.1rem;"></i><span class="label">Ciutat</span>
                     </button>
-                    <button class="btn-pagament" id="detailAeroportSi" onclick="selectAeroportDetail(true)" type="button">
-                        <i class="fa-solid fa-plane" style="font-size:1.1rem;"></i><span class="label">Aeroport</span>
+                    <button class="btn-pagament" id="detailAeroportEntrada" onclick="selectAeroportDetail('entrada')" type="button">
+                        <i class="fa-solid fa-plane" style="font-size:1.4rem;transform:rotate(-45deg);display:inline-block;"></i><span class="label">Aero ↑</span>
+                    </button>
+                    <button class="btn-pagament" id="detailAeroportSortida" onclick="selectAeroportDetail('sortida')" type="button">
+                        <i class="fa-solid fa-plane" style="font-size:1.4rem;transform:rotate(135deg);display:inline-block;"></i><span class="label">Aero ↓</span>
                     </button>
                 </div>
                 <label class="form-label" style="text-align:center;display:block;font-size:0.875rem;margin-bottom:0.5rem;">Import (€)</label>
@@ -757,7 +759,9 @@
                 <!-- Filtre aeroport -->
                 <div style="display:flex; gap:0.4rem; margin-bottom:0.9rem; flex-wrap:wrap;">
                     <button class="dia-filter-btn" id="dfAero-tots" onclick="setDiaFilter('aeroport','tots')">Tots</button>
-                    <button class="dia-filter-btn" id="dfAero-si" onclick="setDiaFilter('aeroport','si')"><i class="fa-solid fa-plane"></i> Aeroport</button>
+                    <button class="dia-filter-btn" id="dfAero-entrada" onclick="setDiaFilter('aeroport','entrada')"><i class="fa-solid fa-plane" style="transform:rotate(-45deg);display:inline-block;font-size:1rem;"></i> Entrada</button>
+                    <button class="dia-filter-btn" id="dfAero-sortida" onclick="setDiaFilter('aeroport','sortida')"><i class="fa-solid fa-plane" style="transform:rotate(135deg);display:inline-block;font-size:1rem;"></i> Sortida</button>
+                    <button class="dia-filter-btn" id="dfAero-si" onclick="setDiaFilter('aeroport','si')"><i class="fa-solid fa-plane" style="font-size:1rem;"></i> Tots aero</button>
                     <button class="dia-filter-btn" id="dfAero-no" onclick="setDiaFilter('aeroport','no')"><i class="fa-solid fa-city"></i> Ciutat</button>
                 </div>
                 <div id="diaCarreresLlista"></div>
@@ -3184,7 +3188,7 @@
                 const b = document.getElementById('gcfPag-' + v);
                 if (b) b.className = 'dia-filter-btn' + (gcfPagament.has(v) ? ' active' : '');
             });
-            ['tots','si','no'].forEach(v => {
+            ['tots','entrada','sortida','si','no'].forEach(v => {
                 const b = document.getElementById('gcfAero-' + v);
                 if (b) b.className = 'dia-filter-btn' + (gcfAeroport === v ? ' active' : '');
             });
@@ -3195,7 +3199,11 @@
             if (gcfTarifa !== 'tots')   filtered = filtered.filter(c => (c.tarifa || 'taxímetre') === gcfTarifa);
             if (gcfOrigen !== 'tots')   filtered = filtered.filter(c => c.origenCarrera === gcfOrigen);
             if (gcfPagament.size > 0)   filtered = filtered.filter(c => gcfPagament.has(c.pagament));
-            if (gcfAeroport !== 'tots') filtered = filtered.filter(c => gcfAeroport === 'si' ? !!c.aeroport : !c.aeroport);
+            if (gcfAeroport !== 'tots') {
+                if (gcfAeroport === 'si') filtered = filtered.filter(c => !!c.aeroport && c.aeroport !== 'ciutat');
+                else if (gcfAeroport === 'no') filtered = filtered.filter(c => !c.aeroport || c.aeroport === 'ciutat');
+                else filtered = filtered.filter(c => c.aeroport === gcfAeroport);
+            }
 
             // Sort: more recent first (id = fecha_timestamp)
             filtered.sort((a, b) => (b.id || '').localeCompare(a.id || ''));
@@ -3237,14 +3245,14 @@
                 dayCarreres.forEach(c => {
                     const imp = parseFloat(c.import) || 0;
                     const color = getCarreraColor(imp);
-                    const aeroportIcon = c.aeroport ? '<span class="pagament-badge"><i class="fa-solid fa-plane" style="font-size:0.7rem;color:#b0b0b0;"></i></span>' : '';
+                    const _aIcon2 = aeroportIcon(c.aeroport,'0.7rem'); const _aeroportBadge2 = _aIcon2 ? `<span class="pagament-badge" style="color:#b0b0b0;">${_aIcon2}</span>` : '';
                     html += `
                     <div class="carrera-item" style="padding:0.65rem 0.85rem;margin-bottom:0.4rem;cursor:pointer;" onclick="mostrarDetallCarreraGlobal('${c.id}')">
                         <span class="carrera-item-hora" style="min-width:2.8rem;font-size:0.7rem;">${c.horaInici || c.hora || ''}</span>
                         <span class="pagament-badge">${TARIFA_ICONS[c.tarifa||'taxímetre']||''}</span>
                         <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera]||''}</span>
                         <span class="pagament-badge">${PAGAMENT_ICONS[c.pagament]||''}</span>
-                        ${aeroportIcon}
+                        ${_aeroportBadge2}
                         <span style="flex:1;text-align:right;font-weight:700;color:${color};font-size:1rem;">${formatEur(imp)}</span>
                         <span style="color:var(--text-secondary);font-size:0.9rem;margin-left:0.5rem;">›</span>
                     </div>`;
@@ -3288,7 +3296,11 @@
             origenCarreraDetailSeleccionat = c.origenCarrera || 'carrer';
             selectOrigenCarreraDetail(origenCarreraDetailSeleccionat);
 
-            aeroportDetailSeleccionat = c.aeroport || false;
+            // Normalitzar valor legacy (true/false) a string
+            let _aeroVal = c.aeroport;
+            if (_aeroVal === true) _aeroVal = 'entrada';
+            if (!_aeroVal || _aeroVal === false) _aeroVal = 'ciutat';
+            aeroportDetailSeleccionat = _aeroVal;
             selectAeroportDetail(aeroportDetailSeleccionat);
 
             const DIES_SETMANA_DET = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
@@ -3569,6 +3581,7 @@
         // carreresAvui: cache en memòria de les carreres d'avui
         // ==========================================
         const JORNADA_KEY = 'jornadaActiva';
+        const CARRERA_PENDENT_KEY = 'carreraPendent';
         let jornadaActiva = false;
         let tornIniciatAt = null;   // timestamp ms quan s'inicia el torn
         let tornFinalitzatAt = null; // timestamp ms quan es finalitza el torn
@@ -3585,7 +3598,7 @@
         let origenCarreraDetailSeleccionat = 'carrer';
         let tarifaSeleccionada = 'taxímetre';
         let tarifaDetailSeleccionada = 'taxímetre';
-        let aeroportSeleccionat = false;
+        let aeroportSeleccionat = 'ciutat';
         let aeroportDetailSeleccionat = false;
 
         const TARIFA_ICONS = {
@@ -3603,6 +3616,14 @@
             app_client: '<i class="fa-solid fa-route"></i>'
         };
 
+        function aeroportIcon(val, size) {
+            // val pot ser: false/null/'ciutat' → res | true/'entrada' → avió amunt | 'sortida' → avió avall
+            size = size || '0.75rem';
+            if (!val || val === 'ciutat' || val === false) return '';
+            const rot = (val === 'sortida') ? 'rotate(135deg)' : 'rotate(-45deg)';
+            return `<i class="fa-solid fa-plane" style="font-size:${size};transform:${rot};display:inline-block;"></i>`;
+        }
+
         function selectTarifa(tipus) {
             tarifaSeleccionada = tipus;
             document.getElementById('tarifaTaximetre').className = 'btn-pagament' + (tipus === 'taxímetre' ? ' selected' : '');
@@ -3618,9 +3639,13 @@
         }
 
         function selectAeroport(val) {
+            // val: 'ciutat' | 'entrada' | 'sortida'   (legacy: false→'ciutat', true→'entrada')
+            if (val === false || val === null || val === undefined) val = 'ciutat';
+            if (val === true) val = 'entrada';
             aeroportSeleccionat = val;
-            document.getElementById('aeroportNo').className = 'btn-pagament' + (!val ? ' selected' : '');
-            document.getElementById('aeroportSi').className = 'btn-pagament' + ( val ? ' selected' : '');
+            document.getElementById('aeroportNo').className      = 'btn-pagament' + (val === 'ciutat'  ? ' selected' : '');
+            document.getElementById('aeroportEntrada').className = 'btn-pagament' + (val === 'entrada' ? ' selected' : '');
+            document.getElementById('aeroportSortida').className = 'btn-pagament' + (val === 'sortida' ? ' selected' : '');
         }
 
         function selectTarifaDetail(tipus) {
@@ -3638,9 +3663,12 @@
         }
 
         function selectAeroportDetail(val) {
+            if (val === false || val === null || val === undefined) val = 'ciutat';
+            if (val === true) val = 'entrada';
             aeroportDetailSeleccionat = val;
-            document.getElementById('detailAeroportNo').className = 'btn-pagament' + (!val ? ' selected' : '');
-            document.getElementById('detailAeroportSi').className = 'btn-pagament' + ( val ? ' selected' : '');
+            document.getElementById('detailAeroportNo').className      = 'btn-pagament' + (val === 'ciutat'  ? ' selected' : '');
+            document.getElementById('detailAeroportEntrada').className = 'btn-pagament' + (val === 'entrada' ? ' selected' : '');
+            document.getElementById('detailAeroportSortida').className = 'btn-pagament' + (val === 'sortida' ? ' selected' : '');
         }
 
         function selectPagament(tipus) {
@@ -3685,6 +3713,63 @@
                 finalitzatAt: tornFinalitzatAt,
                 kmInici: kmInici
             }));
+        }
+
+        function saveCarreraPendent() {
+            // Desa l'estat de la carrera en curs al localStorage
+            localStorage.setItem(CARRERA_PENDENT_KEY, JSON.stringify({
+                horaInici: carreraHoraInici ? carreraHoraInici.toISOString() : null,
+                origen: carreraOrigenActual,
+                origenLat: carreraOrigenCoords?.lat ?? null,
+                origenLon: carreraOrigenCoords?.lon ?? null,
+                pannellActiu: document.getElementById('importPanel')?.style.display === 'block' ? 'import' : 'cronòmetre',
+                import: document.getElementById('carreraImport')?.value || '',
+                tarifa: tarifaSeleccionada,
+                pagament: pagamentSeleccionat,
+                origenCarrera: origenCarreraSeleccionat,
+                aeroport: aeroportSeleccionat
+            }));
+        }
+
+        function clearCarreraPendent() {
+            localStorage.removeItem(CARRERA_PENDENT_KEY);
+        }
+
+        function restoreCarreraPendent() {
+            const raw = localStorage.getItem(CARRERA_PENDENT_KEY);
+            if (!raw) return false;
+            try {
+                const d = JSON.parse(raw);
+                if (!d.horaInici) return false;
+                // Restaurar estat
+                carreraHoraInici = new Date(d.horaInici);
+                carreraOrigenActual = d.origen || '';
+                carreraOrigenCoords = (d.origenLat != null && d.origenLon != null)
+                    ? { lat: d.origenLat, lon: d.origenLon } : null;
+
+                const origenEl = document.getElementById('origenDisplay');
+                if (origenEl) origenEl.textContent = carreraOrigenActual || 'Origen desconegut';
+
+                if (d.pannellActiu === 'import') {
+                    // Ja estava al panell de pagament
+                    stopCronòmetre();
+                    document.getElementById('cronometrePanel').style.display = 'none';
+                    document.getElementById('importPanel').style.display = 'block';
+                    if (d.import) document.getElementById('carreraImport').value = d.import;
+                    selectTarifa(d.tarifa || 'taxímetre');
+                    selectPagament(d.pagament || 'efectiu');
+                    selectOrigenCarrera(d.origenCarrera || 'carrer');
+                    selectAeroport(d.aeroport || 'ciutat');
+                } else {
+                    // Estava al cronòmetre
+                    document.getElementById('cronometrePanel').style.display = 'block';
+                    document.getElementById('importPanel').style.display = 'none';
+                    startCronòmetre();
+                }
+                return true;
+            } catch(e) {
+                return false;
+            }
         }
 
         // Retorna true si cal considerar que és un nou torn
@@ -3834,7 +3919,7 @@
                         const h = Math.floor(totalMins / 60);
                         const m = totalMins % 60;
                         document.getElementById('tornHoresVal').textContent =
-                            String(h).padStart(2,'0') + 'h ' + String(m).padStart(2,'0') + 'm';
+                            String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
                     }
                 } else {
                     // Torn actiu: mostrar comptador en viu a la fila Fi
@@ -3852,7 +3937,7 @@
                         const h = Math.floor(totalMins / 60);
                         const m = totalMins % 60;
                         const el = document.getElementById('tornHoraFiVal');
-                        if (el) el.textContent = String(h).padStart(2,'0') + 'h ' + String(m).padStart(2,'0') + 'm';
+                        if (el) el.textContent = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
                     }
                     updateElapsed();
                     if (tornElapsedInterval) clearInterval(tornElapsedInterval);
@@ -4069,6 +4154,10 @@
 
         // Tornar a la pantalla principal de jornada (botons iniciar/finalitzar)
         function tornarAJornadaHome() {
+            if (carreraHoraInici) {
+                saveCarreraPendent();
+                stopCronòmetre();
+            }
             document.getElementById('carreres-page').style.display = 'none';
             document.getElementById('carrera-form-page').style.display = 'none';
             document.getElementById('carrera-detail-page').style.display = 'none';
@@ -4076,6 +4165,10 @@
         }
 
         function tornarACarreres() {
+            // Si hi ha carrera en curs, la guardem pendent (no la perdem)
+            if (carreraHoraInici) {
+                saveCarreraPendent();
+            }
             stopCronòmetre();
             document.getElementById('carrera-form-page').style.display = 'none';
             document.getElementById('carrera-detail-page').style.display = 'none';
@@ -4105,6 +4198,29 @@
             const totalEl = document.getElementById('carreresTotalValue');
             if (totalEl) totalEl.textContent = formatEurDSEG(total);
 
+            // (hores calculades al peu de la llista)
+
+            // Indicador carrera pendent
+            const btnInici = document.getElementById('btnIniciarCarrera');
+            if (btnInici) {
+                const pendent = localStorage.getItem(CARRERA_PENDENT_KEY);
+                if (pendent) {
+                    try {
+                        const pd = JSON.parse(pendent);
+                        if (pd.horaInici) {
+                            const elapsed = Math.floor((Date.now() - new Date(pd.horaInici).getTime()) / 60000);
+                            btnInici.innerHTML = `⏳ Reprendre Carrera <span style="font-size:0.75rem;opacity:0.8;">(${elapsed}min)</span>`;
+                            btnInici.style.background = 'var(--accent)';
+                            btnInici.style.color = '#000';
+                        } else { btnInici.textContent = '🟢 Iniciar Carrera'; btnInici.style.background = ''; btnInici.style.color = ''; }
+                    } catch(e) { btnInici.textContent = '🟢 Iniciar Carrera'; btnInici.style.background = ''; btnInici.style.color = ''; }
+                } else {
+                    btnInici.textContent = '🟢 Iniciar Carrera';
+                    btnInici.style.background = '';
+                    btnInici.style.color = '';
+                }
+            }
+
             const llista = document.getElementById('carreresLlista');
 
             if (carreresAvui.length === 0) {
@@ -4120,14 +4236,14 @@
                 const hora = horaStr(c);
                 const imp = parseFloat(c.import) || 0;
                 const color = getCarreraColor(imp);
-                const aeroportIcon = c.aeroport ? '<span class="pagament-badge"><i class="fa-solid fa-plane" style="font-size:0.75rem;color:#b0b0b0;"></i></span>' : '';
+                const _aIcon = aeroportIcon(c.aeroport,'0.75rem'); const _aeroportBadge = _aIcon ? `<span class="pagament-badge" style="color:#b0b0b0;">${_aIcon}</span>` : '';
                 const kmCarrera = haversineKm(c.origenLat, c.origenLon, c.destiLat, c.destiLon);
                 const kmTag = kmCarrera > 0.1 ? `<span style="font-size:0.7rem;color:var(--text-secondary);margin-left:0.3rem;">${kmCarrera.toFixed(1)}km</span>` : '';
                 return `
                 <div class="carrera-item" onclick="mostrarDetallCarrera(${origIdx})">
                     <span class="carrera-item-num">#${carreresAvui.length - i}</span>
                     ${hora ? `<span class="carrera-item-hora">${hora}</span>` : ''}
-                    <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera] || 'CAR'}</span><span class="pagament-badge">${PAGAMENT_ICONS[c.pagament] || 'EFE'}</span>${aeroportIcon}
+                    <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera] || 'CAR'}</span><span class="pagament-badge">${PAGAMENT_ICONS[c.pagament] || 'EFE'}</span>${_aeroportBadge}
                     <span class="carrera-item-amount" style="flex:1;text-align:right;color:${color};">${formatEur(imp)}${kmTag}</span>
                     <span class="carrera-item-arrow">›</span>
                 </div>`;
@@ -4206,6 +4322,20 @@
                 </div>
             </div>`;
             llista.innerHTML += kmBarHtml;
+
+            // ── Hores treballades al peu ──
+            if (tornIniciatAt) {
+                const diffMs = Date.now() - tornIniciatAt;
+                const totalMins = Math.floor(diffMs / 60000);
+                const hh = Math.floor(totalMins / 60);
+                const mm = totalMins % 60;
+                const horesStr = String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
+                const horesFootHtml = `
+                <div style="margin-top:0.75rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;text-align:center;">
+                    <span style="font-size:1.9rem;font-weight:700;color:#ff6b6b;font-family:'DSEG7Classic','Courier New',monospace;letter-spacing:0.08em;">${horesStr}</span>
+                </div>`;
+                llista.innerHTML += horesFootHtml;
+            }
         }
 
         // ---- GEOCODE ----
@@ -4329,7 +4459,7 @@
                 if (btn) btn.className = 'dia-filter-btn' + (diaFilterPagament.has(v) ? ' active' : '');
             });
             // Bottons aeroport
-            ['tots','si','no'].forEach(v => {
+            ['tots','entrada','sortida','si','no'].forEach(v => {
                 const btn = document.getElementById('dfAero-' + v);
                 if (btn) btn.className = 'dia-filter-btn' + (diaFilterAeroport === v ? ' active' : '');
             });
@@ -4345,7 +4475,7 @@
                 filtered = filtered.filter(c => diaFilterPagament.has(c.pagament));
             }
             if (diaFilterAeroport !== 'tots') {
-                filtered = filtered.filter(c => diaFilterAeroport === 'si' ? !!c.aeroport : !c.aeroport);
+                filtered = filtered.filter(c => diaFilterAeroport === 'si' ? (!!c.aeroport && c.aeroport !== 'ciutat') : (!c.aeroport || c.aeroport === 'ciutat'));
             }
             filtered.sort((a, b) => (a.id || '').localeCompare(b.id || ''));
             diaCarreresFiltered = filtered;
@@ -4363,14 +4493,14 @@
                 const imp = parseFloat(c.import) || 0;
                 const color = getCarreraColor(imp);
                 const tarifaIcon = TARIFA_ICONS[c.tarifa || 'taxímetre'] || '';
-                const aeroportIcon = c.aeroport ? '<i class="fa-solid fa-plane" style="font-size:0.75rem;color:var(--text-secondary);"></i>' : '';
+                const _aIcon3 = aeroportIcon(c.aeroport,'0.75rem');
                 return `
                 <div class="carrera-item" onclick="mostrarDiaCarreraDetail(${i})" style="padding:0.7rem 0.85rem; margin-bottom:0.4rem;">
                     <span class="carrera-item-hora" style="min-width:2.5rem;">${c.horaInici || c.hora || ''}</span>
                     <span class="pagament-badge">${tarifaIcon}</span>
                     <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera] || ''}</span>
                     <span class="pagament-badge">${PAGAMENT_ICONS[c.pagament] || ''}</span>
-                    ${aeroportIcon ? `<span class="pagament-badge">${aeroportIcon}</span>` : ''}
+                    ${_aIcon3 ? `<span class="pagament-badge" style="color:var(--text-secondary);">${_aIcon3}</span>` : ''}
                     <span style="flex:1;text-align:right;font-weight:700;color:${color};font-size:1.05rem;">${formatEur(imp)}</span>
                     <span class="carrera-item-arrow" style="margin-left:0.5rem;">›</span>
                 </div>`;
@@ -4388,7 +4518,8 @@
             const origenLabel = c.origenCarrera === 'app_client' ? 'App' : 'Carrer';
             const pagamentLabel = { efectiu: 'Efectiu', targeta: 'Targeta', app: 'App' }[c.pagament] || c.pagament;
             const tarifaLabel = c.tarifa === 'tarifa3' ? 'Tarifa 3' : 'Taxímetre';
-            const aeroportLabel = c.aeroport ? 'Aeroport' : null;
+            const _aeroportLabel = (!c.aeroport || c.aeroport === 'ciutat') ? null : (c.aeroport === 'sortida' ? 'Aeroport Sortida' : 'Aeroport Entrada');
+            const aeroportLabel = _aeroportLabel;
             document.getElementById('diaCarreraDetailContent').innerHTML = `
                 <div style="display:flex;gap:0.5rem;margin-bottom:0.85rem;flex-wrap:wrap;">
                     <span style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.7rem;font-size:0.8rem;">
@@ -4400,7 +4531,7 @@
                     <span style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.7rem;font-size:0.8rem;">
                         ${PAGAMENT_ICONS[c.pagament]||''} ${pagamentLabel}
                     </span>
-                    ${aeroportLabel ? `<span style="background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:0.3rem 0.7rem;font-size:0.8rem;color:var(--accent);"><i class="fa-solid fa-plane"></i> ${aeroportLabel}</span>` : ''}
+                    ${aeroportLabel ? `<span style="background:var(--bg-card);border:1px solid var(--accent);border-radius:8px;padding:0.3rem 0.7rem;font-size:0.8rem;color:var(--accent);">${aeroportIcon(c.aeroport,'0.8rem')} ${aeroportLabel}</span>` : ''}
                 </div>
                 <div style="display:flex;align-items:flex-start;gap:0.6rem;margin-bottom:0.5rem;">
                     <span style="width:9px;height:9px;border-radius:50%;background:#4caf50;flex-shrink:0;margin-top:4px;"></span>
@@ -4429,6 +4560,7 @@
             if (!display) return;
             const startMs = carreraHoraInici ? carreraHoraInici.getTime() : Date.now();
             if (cronometreInterval) clearInterval(cronometreInterval);
+            let _lastSaveSec = 0;
             const tick = () => {
                 const elapsed = Date.now() - startMs;
                 const totalSecs = Math.floor(elapsed / 1000);
@@ -4437,6 +4569,8 @@
                 const s = totalSecs % 60;
                 const pad = n => String(n).padStart(2, '0');
                 display.textContent = h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+                // Desa pendent cada 60s
+                if (totalSecs - _lastSaveSec >= 60) { _lastSaveSec = totalSecs; saveCarreraPendent(); }
             };
             tick();
             cronometreInterval = setInterval(tick, 1000);
@@ -4456,8 +4590,9 @@
             selectPagament('efectiu');
             origenCarreraSeleccionat = 'carrer';
             selectOrigenCarrera('carrer');
-            aeroportSeleccionat = false;
-            selectAeroport(false);
+            aeroportSeleccionat = 'ciutat';
+            selectAeroport('ciutat');
+            saveCarreraPendent();
             scrollToFormTop();
             setTimeout(() => {
                 document.getElementById('carreraImport').focus();
@@ -4469,10 +4604,18 @@
             document.getElementById('carreres-page').style.display = 'none';
             document.getElementById('carrera-detail-page').style.display = 'none';
             document.getElementById('carrera-form-page').style.display = 'block';
-            document.getElementById('carreraImport').value = '';
-            carreraHoraInici = new Date();
             document.getElementById('btnFiCarrera').disabled = false;
             document.getElementById('btnFiCarrera').textContent = '💾 Guardar Carrera';
+
+            // Si hi ha carrera pendent, restaurar-la
+            if (restoreCarreraPendent()) {
+                scrollToFormTop();
+                return;
+            }
+
+            // Nova carrera
+            document.getElementById('carreraImport').value = '';
+            carreraHoraInici = new Date();
 
             // Mostrar panell cronòmetre, amagar import
             document.getElementById('cronometrePanel').style.display = 'block';
@@ -4496,12 +4639,14 @@
                     const addr = await getAddressFromCoords(pos.coords.latitude, pos.coords.longitude);
                     carreraOrigenActual = addr || `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
                     if (origenEl) origenEl.textContent = carreraOrigenActual;
+                    saveCarreraPendent();
                 };
 
                 const onGPSErr = () => {
                     if (!gpsOk) {
                         carreraOrigenActual = 'Ubicació desconeguda';
                         if (origenEl) origenEl.textContent = carreraOrigenActual;
+                        saveCarreraPendent();
                     }
                 };
 
@@ -4576,6 +4721,10 @@
             };
             await saveCarreraToStorage(novaCarrera);
             carreresAvui.push(novaCarrera);
+            clearCarreraPendent();
+            carreraHoraInici = null;
+            carreraOrigenActual = '';
+            carreraOrigenCoords = null;
             updateJornadaUI();
             tornarACarreres();
         }
@@ -4601,7 +4750,11 @@
             origenCarreraDetailSeleccionat = c.origenCarrera || 'carrer';
             selectOrigenCarreraDetail(origenCarreraDetailSeleccionat);
 
-            aeroportDetailSeleccionat = c.aeroport || false;
+            // Normalitzar valor legacy (true/false) a string
+            let _aeroVal = c.aeroport;
+            if (_aeroVal === true) _aeroVal = 'entrada';
+            if (!_aeroVal || _aeroVal === false) _aeroVal = 'ciutat';
+            aeroportDetailSeleccionat = _aeroVal;
             selectAeroportDetail(aeroportDetailSeleccionat);
 
             document.getElementById('carreraDetailRoute').innerHTML = `
@@ -4930,16 +5083,18 @@
         }
 
         function colapsarKmInici(val) {
-            document.getElementById('kmIniciInputWrap').style.display = 'none';
-            document.getElementById('kmIniciCollapsed').style.display = 'flex';
+            // Amagar tot el bloc km inici un cop introduït
+            const bloc = document.getElementById('kmIniciBlock');
+            if (bloc) bloc.style.display = 'none';
         }
 
         function editarKmInici() {
+            const bloc = document.getElementById('kmIniciBlock');
+            if (bloc) bloc.style.display = 'block';
             document.getElementById('kmIniciCollapsed').style.display = 'none';
             document.getElementById('kmIniciInputWrap').style.display = 'block';
             const inp = document.getElementById('kmIniciInput');
-            inp.focus();
-            inp.select();
+            if (inp) { inp.focus(); inp.select(); }
         }
 
         // Parsejar import acceptant tant punt com coma decimal
@@ -5183,7 +5338,7 @@
                 const ingressosColor = getDailyRevenueColor(ingresos);
 
                 const horesStr = hores != null
-                    ? (() => { const h = Math.floor(hores); const m = Math.round((hores - h) * 60); return `${h}h${m > 0 ? '\u00a0' + String(m).padStart(2,'0') + 'm' : ''}`; })()
+                    ? (() => { const h = Math.floor(hores); const m = Math.round((hores - h) * 60); return String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0'); })()
                     : '–';
                 const kmStr = kmTotal != null ? `${kmTotal} km` : (kmOcupat != null ? `~${kmOcupat} km` : '–');
 
