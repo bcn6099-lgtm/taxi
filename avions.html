@@ -1,59 +1,60 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BCN ARRIBADES</title>
-    
-    <link rel="icon" type="image/png" href="avions.png">
-    <link rel="apple-touch-icon" href="avions.png">
-    <meta name="theme-color" content="#ffc107">
-    
-    <link rel="stylesheet" href="style2.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BCN ARRIBADES</title>
+
+<link rel="icon" type="image/png" href="avions.png">
+<link rel="apple-touch-icon" href="avions.png">
+<meta name="theme-color" content="#ffc107">
+
+<link rel="stylesheet" href="style2.css">
 </head>
 
 <body>
 <div class="container">
-    
-    <div class="header-block">
-        <div class="top-bar">
-            <div class="config-icon" id="configBtn">⚙️</div>
-        </div>
-        
-        <h1>✈ BCN ARRIBADES</h1>
-        <div class="current-time" id="currentTime">--:--</div>
+
+<div class="header-block">
+    <div class="top-bar">
+        <div class="config-icon" id="configBtn">⚙️</div>
     </div>
-    
-    <div class="config-panel" id="configPanel">
-        <input type="text" id="apiKeyInput" placeholder="RapidAPI Key">
-        
-        <div class="config-buttons">
-            <button class="primary-button" id="loadFlightsBtn">CARGAR VUELOS</button>
-            <button class="secondary-button" id="testApiBtn">PROBAR API</button>
-            <button class="secondary-button" id="clearCacheBtn">LIMPIAR CACHÉ</button>
-            <button class="secondary-button" id="debugBtn">DEBUG</button>
-        </div>
-        
-        <div class="status-message" id="apiStatus">
-            Introduce tu API Key
-        </div>
-        
-        <div id="debugPanel" class="debug-info" style="display:none;"></div>
+
+    <h1>✈ BCN ARRIBADES</h1>
+    <div class="current-time" id="currentTime">--:--</div>
+</div>
+
+<div class="config-panel" id="configPanel">
+    <input type="text" id="apiKeyInput" placeholder="RapidAPI Key">
+
+    <div class="config-buttons">
+        <button class="primary-button" id="loadFlightsBtn">CARGAR VUELOS</button>
+        <button class="secondary-button" id="testApiBtn">PROBAR API</button>
+        <button class="secondary-button" id="clearCacheBtn">LIMPIAR CACHÉ</button>
+        <button class="secondary-button" id="debugBtn">DEBUG</button>
     </div>
-    
-    <div class="stats-bar" id="statsBar" style="display:none;">
-        <span class="cache-badge" id="cacheBadge" style="display:none;">📦 CACHÉ</span>
+
+    <div class="status-message" id="apiStatus">
+        Introduce tu API Key
     </div>
-    
-    <div id="flightsContainer">
-        <div class="empty-state">
-            <p>⏳ Cargando vuelos...</p>
-        </div>
+
+    <div id="debugPanel" class="debug-info" style="display:none;"></div>
+</div>
+
+<div class="stats-bar" id="statsBar" style="display:none;">
+    <span class="cache-badge" id="cacheBadge" style="display:none;">📦 CACHÉ</span>
+</div>
+
+<div id="flightsContainer">
+    <div class="empty-state">
+        <p>⏳ Cargando vuelos...</p>
     </div>
-    
-    <div class="footer">
-        <p id="cacheInfo" style="font-size:10px; color:#aaaaaa;"></p>
-    </div>
+</div>
+
+<div class="footer">
+    <p id="cacheInfo" style="font-size:10px; color:#aaaaaa;"></p>
+</div>
+
 </div>
 
 <script>
@@ -146,7 +147,41 @@ function extractTerminal(f){
     return (f.movement.terminal||'1').toString().includes('2')?'t2':'t1';
 }
 
+/* ✅ FILTRO CODESHARE RESTAURADO */
+function removeCodeshareDuplicates(flights){
+    if(!flights || flights.length===0) return [];
+
+    const map=new Map();
+
+    flights.forEach(f=>{
+        try{
+            const origin=f.movement?.airport?.iata || 'XXX';
+            const time=f.movement?.scheduledTime?.local || f.movement?.scheduledTime;
+
+            if(!time) return;
+
+            const d=new Date(time);
+            if(isNaN(d)) return;
+
+            d.setSeconds(0,0);
+
+            const key=origin+'_'+d.getTime();
+
+            if(!map.has(key)){
+                map.set(key,f);
+            }
+        }catch{}
+    });
+
+    return Array.from(map.values());
+}
+
 function display(flights,fromCache=false){
+
+    /* 🔥 AQUI ESTÁ EL FIX */
+    flights = removeCodeshareDuplicates(flights);
+    lastProcessedData = flights;
+
     if(!flights.length){
         flightsContainer.innerHTML='<p>No hay datos</p>';
         return;
@@ -223,10 +258,17 @@ function showDebug(){
     let txt='=== DEBUG ===\n\n';
 
     if(lastRawData){
-        txt+='TOTAL:'+lastRawData.length+'\n';
+        txt+='TOTAL API:'+lastRawData.length+'\n';
+    }
+    if(lastProcessedData){
+        txt+='TRAS FILTRO:'+lastProcessedData.length+'\n\n';
+    }
+
+    txt+='FROM:'+formatDateTimeForAPI(new Date())+'\n';
+    txt+='TO:'+formatDateTimeForAPI(new Date(Date.now()+10*60*60*1000))+'\n\n';
+
+    if(lastRawData){
         txt+=JSON.stringify(lastRawData.slice(0,2),null,2);
-    }else{
-        txt+='Sin datos';
     }
 
     debugPanel.textContent=txt;
