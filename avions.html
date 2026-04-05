@@ -2,161 +2,105 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>BCN ARRIBADES</title>
+<title>Vuelos BCN</title>
 
-<link rel="icon" type="image/png" href="avions.png">
-<link rel="apple-touch-icon" href="avions.png">
-<meta name="theme-color" content="#ffc107">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
-<link rel="stylesheet" href="style2.css">
+<style>
+body{
+    margin:0;
+    background:#000;
+    color:#fff;
+    font-family:Arial;
+}
+
+.container{
+    padding:10px;
+}
+
+.terminal-header,.table-row{
+    display:grid;
+    grid-template-columns:80px 1fr 1fr 1fr;
+    text-align:center;
+    padding:6px 0;
+}
+
+.terminal-header{
+    font-weight:bold;
+    border-bottom:1px solid #444;
+}
+
+.table-row{
+    border-bottom:1px solid #222;
+}
+
+button{
+    margin:5px;
+    padding:10px;
+    font-size:16px;
+}
+
+.footer{
+    color:#ccc;
+    font-size:12px;
+    margin-top:10px;
+}
+</style>
 </head>
 
 <body>
-<div class="container">
 
-<div class="header-block">
-    <div class="top-bar">
-        <div class="config-icon" id="configBtn">⚙️</div>
+<div class="container" id="capture">
+
+    <div style="margin-bottom:10px;">
+        <button onclick="loadFlights()">Actualizar</button>
+        <button onclick="shareWhatsApp()">Compartir</button>
     </div>
 
-    <h1>✈ BCN ARRIBADES</h1>
-    <div class="current-time" id="currentTime">--:--</div>
-</div>
+    <div id="table"></div>
 
-<div class="config-panel" id="configPanel">
-    <input type="text" id="apiKeyInput" placeholder="RapidAPI Key">
-
-    <div class="config-buttons">
-        <button class="primary-button" id="loadFlightsBtn">CARGAR VUELOS</button>
-        <button class="secondary-button" id="testApiBtn">PROBAR API</button>
-        <button class="secondary-button" id="clearCacheBtn">LIMPIAR CACHÉ</button>
-        <button class="secondary-button" id="debugBtn">DEBUG</button>
+    <div class="footer" id="footer">
+        Datos de llegadas en tiempo real.<br>
+        Puede haber pequeñas desviaciones por retrasos o datos incompletos de la API.<br>
+        EasyJet separado en T2C.<br>
+        Última actualización: <span id="time"></span>
     </div>
 
-    <div class="status-message" id="apiStatus">
-        Introduce tu API Key
-    </div>
-
-    <div id="debugPanel" class="debug-info" style="display:none;"></div>
-</div>
-
-<div class="stats-bar" id="statsBar" style="display:none;">
-    <span class="cache-badge" id="cacheBadge" style="display:none;">📦 CACHÉ</span>
-</div>
-
-<div id="flightsContainer">
-    <div class="empty-state">
-        <p>⏳ Cargando vuelos...</p>
-    </div>
-</div>
-
-<div class="footer">
-    <p id="cacheInfo" style="font-size:10px; color:#aaaaaa;"></p>
-</div>
+    <div id="debug" class="footer"></div>
 
 </div>
 
 <script>
-(function(){
 
-const configBtn = document.getElementById('configBtn');
-const configPanel = document.getElementById('configPanel');
-const apiKeyInput = document.getElementById('apiKeyInput');
-const loadBtn = document.getElementById('loadFlightsBtn');
-const testBtn = document.getElementById('testApiBtn');
-const clearCacheBtn = document.getElementById('clearCacheBtn');
-const debugBtn = document.getElementById('debugBtn');
-const apiStatus = document.getElementById('apiStatus');
-const statsBar = document.getElementById('statsBar');
-const flightsContainer = document.getElementById('flightsContainer');
-const cacheBadge = document.getElementById('cacheBadge');
-const cacheInfo = document.getElementById('cacheInfo');
-const debugPanel = document.getElementById('debugPanel');
-const currentTimeEl = document.getElementById('currentTime');
+const API_KEY = "TU_API_KEY";
 
-const RAPIDAPI_HOST = 'aerodatabox.p.rapidapi.com';
-const CACHE_KEY = 'aerodatabox_flights_cache';
-const CACHE_DURATION = 5 * 60 * 1000;
-
-let lastRawData = null;
-let lastProcessedData = null;
 let currentTimeSlots = [];
+let lastProcessedData = [];
 
-configBtn.onclick = () => configPanel.classList.toggle('visible');
-
-function updateCurrentTime(){
-    const d=new Date();
-    currentTimeEl.textContent=d.toTimeString().slice(0,5);
-}
-setInterval(updateCurrentTime,60000);
-updateCurrentTime();
-
-function formatDateTimeForAPI(date){
-    return date.toISOString().slice(0,19)+'Z';
+// ===== UTIL =====
+function getLocalHHMM(date){
+    return date.toLocaleTimeString('es-ES',{
+        hour:'2-digit',
+        minute:'2-digit',
+        hour12:false
+    });
 }
 
-function generateTimeSlots(){
-    const now=new Date();
-    let h=now.getHours();
-    let arr=[];
-    for(let i=0;i<=10;i++){
-        arr.push(((h+i)%24).toString().padStart(2,'0')+':00');
-    }
-    currentTimeSlots=arr;
-}
-generateTimeSlots();
-
-function saveCache(data){
-    localStorage.setItem(CACHE_KEY,JSON.stringify({
-        t:Date.now(),
-        d:data,
-        slots:currentTimeSlots
-    }));
+// ===== EASYJET =====
+function isEasyJet(f){
+    const name = f.airline?.name?.toLowerCase() || '';
+    const iata = f.airline?.iata || '';
+    return name.includes('easyjet') || iata === 'U2';
 }
 
-function getCache(){
-    let c=localStorage.getItem(CACHE_KEY);
-    if(!c) return null;
-    try{
-        let j=JSON.parse(c);
-        if(Date.now()-j.t<CACHE_DURATION){
-            currentTimeSlots=j.slots;
-            return j.d;
-        }
-    }catch{}
-    return null;
-}
-
-function updateCacheInfo(){
-    let c=getCache();
-    if(!c){ cacheInfo.textContent=''; return;}
-    let raw=JSON.parse(localStorage.getItem(CACHE_KEY));
-    let m=Math.round((CACHE_DURATION-(Date.now()-raw.t))/60000);
-    cacheInfo.textContent=m>0?`CACHÉ EXPIRA EN ${m} MIN`:'';
-}
-setInterval(updateCacheInfo,60000);
-
-function extractHour(f){
-    try{
-        return new Date(f.movement.scheduledTime.local||f.movement.scheduledTime).getHours();
-    }catch{return null;}
-}
-
-function extractTerminal(f){
-    return (f.movement.terminal||'1').toString().includes('2')?'t2':'t1';
-}
-
-/* ✅ FILTRO CODESHARE RESTAURADO */
+// ===== DEDUP =====
 function removeCodeshareDuplicates(flights){
-    if(!flights || flights.length===0) return [];
-
     const map=new Map();
 
     flights.forEach(f=>{
         try{
             const origin=f.movement?.airport?.iata || 'XXX';
-            const time=f.movement?.scheduledTime?.local || f.movement?.scheduledTime;
+            const time=f.movement?.scheduledTime?.local;
 
             if(!time) return;
 
@@ -176,158 +120,163 @@ function removeCodeshareDuplicates(flights){
     return Array.from(map.values());
 }
 
-function display(flights,fromCache=false){
+// ===== TERMINAL =====
+function extractTerminal(f){
+    const t = f.movement?.terminal || '';
+    if(t.includes('1')) return 't1';
+    return 't2';
+}
 
-    /* 🔥 AQUI ESTÁ EL FIX */
+// ===== TIME SLOTS =====
+function generateTimeSlots(){
+    const now = new Date();
+    now.setMinutes(0,0,0);
+
+    currentTimeSlots=[];
+
+    for(let i=0;i<8;i++){
+        let d=new Date(now);
+        d.setHours(now.getHours()+i);
+        currentTimeSlots.push(getLocalHHMM(d));
+    }
+}
+
+// ===== LOAD =====
+async function loadFlights(){
+
+    document.getElementById('debug').innerText='Cargando...';
+
+    try{
+
+        generateTimeSlots();
+
+        const now = new Date();
+        const end = new Date();
+        end.setHours(end.getHours()+8);
+
+        const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${now.toISOString()}/${end.toISOString()}`;
+
+        const res = await fetch(url,{
+            headers:{
+                "X-RapidAPI-Key":API_KEY,
+                "X-RapidAPI-Host":"aerodatabox.p.rapidapi.com"
+            }
+        });
+
+        if(!res.ok){
+            throw new Error("HTTP "+res.status);
+        }
+
+        const data = await res.json();
+
+        // 💾 guardar cache
+        localStorage.setItem("flights_cache", JSON.stringify({
+            time: Date.now(),
+            data: data.arrivals
+        }));
+
+        display(data.arrivals);
+
+        document.getElementById('debug').innerText=
+            `OK API (${data.arrivals.length} vuelos)`;
+
+    }catch(e){
+
+        const cache = localStorage.getItem("flights_cache");
+
+        if(cache){
+            const parsed = JSON.parse(cache);
+
+            display(parsed.data,true);
+
+            document.getElementById('debug').innerText =
+                `ERROR API (${e.message}) → usando cache (${Math.round((Date.now()-parsed.time)/60000)} min)`;
+        }else{
+            document.getElementById('debug').innerText=
+                'ERROR: '+e.message;
+        }
+    }
+}
+
+// ===== DISPLAY =====
+function display(flights, fromCache=false){
+
     flights = removeCodeshareDuplicates(flights);
     lastProcessedData = flights;
 
-    if(!flights.length){
-        flightsContainer.innerHTML='<p>No hay datos</p>';
-        return;
-    }
-
-    let slots={};
-    currentTimeSlots.forEach(s=>slots[s]={t1:0,t2:0});
+    const slots={};
+    currentTimeSlots.forEach(s=>slots[s]={t1:0,t2:0,t2c:0});
 
     flights.forEach(f=>{
-        let h=extractHour(f);
-        if(h===null) return;
-        let key=h.toString().padStart(2,'0')+':00';
-        if(slots[key]){
-            slots[key][extractTerminal(f)]++;
-        }
+        try{
+            const time = f.movement?.scheduledTime?.local;
+            if(!time) return;
+
+            const d = new Date(time);
+            if(isNaN(d)) return;
+
+            const key = getLocalHHMM(d);
+
+            if(slots[key]){
+
+                if(isEasyJet(f)){
+                    slots[key].t2c++;
+                }else{
+                    slots[key][extractTerminal(f)]++;
+                }
+
+            }
+
+        }catch{}
     });
 
-    let html='<div class="terminal-header"><div>🕐</div><div>T1</div><div>T2</div></div>';
+    let html='<div class="terminal-header"><div>🕐</div><div>T1</div><div>T2</div><div>T2C</div></div>';
 
     currentTimeSlots.forEach(s=>{
         html+=`<div class="table-row">
         <div>${s}</div>
         <div>${slots[s].t1}</div>
         <div>${slots[s].t2}</div>
+        <div>${slots[s].t2c}</div>
         </div>`;
     });
 
-    flightsContainer.innerHTML=html;
+    document.getElementById('table').innerHTML=html;
 
-    statsBar.style.display='flex';
-    cacheBadge.style.display=fromCache?'inline-block':'none';
+    document.getElementById('time').innerText =
+        new Date().toLocaleTimeString() + (fromCache ? ' (cache)' : '');
 }
 
-async function loadFlights(){
-    const key=apiKeyInput.value.trim();
-    if(!key){ apiStatus.textContent='❌ API Key'; return;}
+// ===== SHARE =====
+async function shareWhatsApp(){
 
-    try{
-        let now=new Date();
-        let later=new Date(now.getTime()+10*60*60*1000);
+    const element = document.getElementById("capture");
 
-        let from=formatDateTimeForAPI(now);
-        let to=formatDateTimeForAPI(later);
+    const canvas = await html2canvas(element,{
+        backgroundColor:"#000"
+    });
 
-        let url=`https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${encodeURIComponent(from)}/${encodeURIComponent(to)}?direction=Arrival`;
+    const blob = await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.9));
 
-        let r=await fetch(url,{
-            headers:{
-                'X-RapidAPI-Key':key,
-                'X-RapidAPI-Host':RAPIDAPI_HOST
-            }
-        });
+    const file = new File([blob],"vuelos.jpg",{type:"image/jpeg"});
 
-        if(!r.ok) throw new Error(r.status);
-
-        let d=await r.json();
-        let arr=d.arrivals||d;
-
-        lastRawData=arr;
-
-        generateTimeSlots();
-        saveCache(arr);
-        display(arr);
-
-        apiStatus.textContent='✅ OK';
-        configPanel.classList.remove('visible');
-
-    }catch(e){
-        apiStatus.textContent='❌ '+e.message;
+    if(navigator.share){
+        try{
+            await navigator.share({
+                files:[file],
+                title:"Vuelos BCN"
+            });
+        }catch(e){
+            alert("No se pudo compartir");
+        }
+    }else{
+        alert("Tu navegador no soporta compartir archivos");
     }
 }
 
-function showDebug(){
-    let txt='=== DEBUG ===\n\n';
+// AUTO LOAD
+loadFlights();
 
-    if(lastRawData){
-        txt+='TOTAL API:'+lastRawData.length+'\n';
-    }
-    if(lastProcessedData){
-        txt+='TRAS FILTRO:'+lastProcessedData.length+'\n\n';
-    }
-
-    txt+='FROM:'+formatDateTimeForAPI(new Date())+'\n';
-    txt+='TO:'+formatDateTimeForAPI(new Date(Date.now()+10*60*60*1000))+'\n\n';
-
-    if(lastRawData){
-        txt+=JSON.stringify(lastRawData.slice(0,2),null,2);
-    }
-
-    debugPanel.textContent=txt;
-    debugPanel.style.display='block';
-}
-
-function clearCache(){
-    localStorage.removeItem(CACHE_KEY);
-    location.reload();
-}
-
-async function testApi(){
-    const key=apiKeyInput.value.trim();
-    if(!key){ apiStatus.textContent='❌ API Key'; return;}
-
-    try{
-        let now=new Date();
-        let later=new Date(now.getTime()+3600000);
-
-        let url=`https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${encodeURIComponent(formatDateTimeForAPI(now))}/${encodeURIComponent(formatDateTimeForAPI(later))}?direction=Arrival`;
-
-        let r=await fetch(url,{
-            headers:{
-                'X-RapidAPI-Key':key,
-                'X-RapidAPI-Host':RAPIDAPI_HOST
-            }
-        });
-
-        if(!r.ok) throw new Error(r.status);
-
-        apiStatus.textContent='✅ API OK';
-
-    }catch(e){
-        apiStatus.textContent='❌ '+e.message;
-    }
-}
-
-loadBtn.onclick=loadFlights;
-testBtn.onclick=testApi;
-clearCacheBtn.onclick=clearCache;
-debugBtn.onclick=showDebug;
-
-function init(){
-    let key=localStorage.getItem('aerodatabox_key');
-    if(key) apiKeyInput.value=key;
-
-    let cache=getCache();
-
-    if(cache){
-        display(cache,true);
-        apiStatus.textContent='📦 Caché';
-    }else if(key){
-        loadFlights();
-    }
-}
-
-init();
-
-})();
 </script>
 
 </body>
