@@ -881,8 +881,8 @@ body {
         </div>
       </div>
       <div class="nav-selector">
-        <button class="nav-btn active" id="nav-btn-gmaps" onclick="setNavApp('gmaps')">🗺 Google Maps</button>
-        <button class="nav-btn" id="nav-btn-waze" onclick="setNavApp('waze')">🔵 Waze</button>
+        <button class="nav-btn" id="nav-btn-gmaps" onclick="setNavApp('gmaps')">🗺 Google Maps</button>
+        <button class="nav-btn active" id="nav-btn-waze" onclick="setNavApp('waze')">🔵 Waze</button>
       </div>
     </div>
     <div class="menu-item" onclick="clearCityCache()">
@@ -4496,7 +4496,7 @@ let cityTariff     = 'day';
 let apSelectedTown = null;
 let citySelectedTown = null;
 let gpsCoords      = null;   // {lat, lng}
-let navApp         = 'gmaps';
+let navApp         = 'waze';
 let db             = null;
 
 // ─── DB ──────────────────────────────────────────────────────────────────────
