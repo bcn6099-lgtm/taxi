@@ -234,7 +234,8 @@
         document.getElementById('searchInput').value = airline.n;
         
         const terminalDB = airline.t;
-        showResult(airline.n, terminalDB, `Terminal ${terminalDB}`);
+        const accessGate = airline.g ? ` · Porta accés: ${airline.g}` : '';
+        showResult(airline.n, terminalDB, `Terminal ${terminalDB}${accessGate}`);
         
         document.getElementById('flightInfoGrid').innerHTML = '';
         const upcomingContainer = document.getElementById('upcomingFlights');
