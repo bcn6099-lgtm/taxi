@@ -98,6 +98,7 @@ body {
 .result-meta { font-family: 'Share Tech Mono'; color: #888; font-size: 14px; }
 
 .flight-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.flight-info-grid .detail-card { grid-column: 1 / -1; }
 .info-pill { background: #111; padding: 12px; border: 1px solid #222; }
 .info-pill-label { font-size: 9px; color: #555; display: block; margin-bottom: 4px; }
 .info-pill-value { color: var(--gold); font-family: 'Share Tech Mono'; font-size: 16px; }
@@ -234,6 +235,27 @@ body {
 .detail-cell:nth-child(3n) { border-right: none; }
 .detail-cell-label { font-size: 9px; color: #555; font-family: 'Orbitron'; letter-spacing: 1px; margin-bottom: 7px; }
 .detail-cell-value { font-family: 'Share Tech Mono'; color: var(--gold); font-size: 18px; }
+
+/* Aircraft pill */
+.aircraft-pill {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 14px 18px;
+    background: rgba(255,193,7,0.04);
+    border-top: 1px solid rgba(255,193,7,0.15);
+}
+.aircraft-pill-icon {
+    font-size: 28px;
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+.aircraft-pill-model {
+    font-family: 'Share Tech Mono';
+    color: var(--gold);
+    font-size: 20px;
+    letter-spacing: 1px;
+}
 
 .hamburger { position: fixed; top: 15px; left: 15px; z-index: 1000; background: #000; border: 1px solid var(--gold); padding: 8px; cursor: pointer; }
 .hamburger span { width: 18px; height: 2px; background: var(--gold); display: block; margin: 3px; }

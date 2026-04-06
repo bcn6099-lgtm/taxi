@@ -434,8 +434,14 @@
                 <div class="detail-grid">
                     <div class="detail-cell"><div class="detail-cell-label">TERMINAL</div><div class="detail-cell-value">${escapeHtml(terminalDisplay)}</div></div>
                     <div class="detail-cell"><div class="detail-cell-label">PUERTA</div><div class="detail-cell-value">${escapeHtml(gate)}</div></div>
-                    <div class="detail-cell"><div class="detail-cell-label">AVIÓN</div><div class="detail-cell-value">${escapeHtml(aircraftModel)}</div></div>
-                    <div class="detail-cell" style="grid-column: span 3;"><div class="detail-cell-label">FACTURACIÓN</div><div class="detail-cell-value">${escapeHtml(checkinInfo)}</div></div>
+                    <div class="detail-cell" style="grid-column: span 1;"><div class="detail-cell-label">FACTURACIÓ</div><div class="detail-cell-value">${escapeHtml(checkinInfo)}</div></div>
+                </div>
+                <div class="aircraft-pill">
+                    <span class="aircraft-pill-icon">✈</span>
+                    <div>
+                        <div class="detail-cell-label" style="margin-bottom:3px;">TIPUS D'AVIÓ</div>
+                        <div class="aircraft-pill-model">${escapeHtml(aircraftModel)}</div>
+                    </div>
                 </div>
             </div>
         `;
