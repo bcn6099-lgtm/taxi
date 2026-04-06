@@ -271,10 +271,10 @@
                 div.style.alignItems = 'center';
                 div.style.gap = '10px';
                 div.innerHTML = `
-                    <strong style="min-width: 60px;">${formattedHour}</strong>
-                    <span style="min-width: 80px;">${flightNum}</span>
-                    <span style="flex:2; text-align:left;">➔ ${destination}</span>
-                    <small style="min-width: 70px;">Puerta: ${gate}</small>
+                    <strong style="min-width: 60px; color: #fff;">${formattedHour}</strong>
+                    <span style="min-width: 80px; color: var(--gold);">${flightNum}</span>
+                    <span style="flex:2; text-align:left; color: var(--gold);">➔ ${destination}</span>
+                    <small style="min-width: 70px; color: var(--gold);">✈ ${gate}</small>
                 `;
                 upcomingContainer.appendChild(div);
             });
@@ -398,19 +398,46 @@
         const metaText = `${flightNumber} ➔ ${destCity} ${destIATA ? '('+destIATA+')' : ''}`;
         showResult(airlineName, terminalDisplay, metaText);
         
+        // Determinar clase de estado
+        const statusOk = ['Embarcando','Despegado','En vuelo','Puerta abierta','Programado','Previsto'];
+        const statusDelay = ['Retrasado','Cancelado','Desviado'];
+        let statusClass = 'neutral';
+        if (statusOk.includes(status)) statusClass = 'ok';
+        if (statusDelay.includes(status)) statusClass = 'delay';
+
+        // Detectar si hay retraso real (hora estimada > programada)
+        const hasDelay = estimatedLocal && scheduledLocal && estimatedLocal !== scheduledLocal;
+
         const grid = document.getElementById('flightInfoGrid');
         grid.innerHTML = `
-            <div class="info-pill"><span class="info-pill-label">AEROLÍNEA</span><span class="info-pill-value">${escapeHtml(airlineName)}</span></div>
-            <div class="info-pill"><span class="info-pill-label">VUELO</span><span class="info-pill-value">${flightNumber}</span></div>
-            <div class="info-pill"><span class="info-pill-label">DESTINO</span><span class="info-pill-value">${escapeHtml(destCity)} (${destIATA || '--'})</span></div>
-            <div class="info-pill"><span class="info-pill-label">HORA PROG.</span><span class="info-pill-value">${scheduledLocal ? formatTime(scheduledLocal) : '--:--'}</span></div>
-            ${estimatedLocal ? `<div class="info-pill"><span class="info-pill-label">HORA EST.</span><span class="info-pill-value">${formatTime(estimatedLocal)}</span></div>` : ''}
-            <div class="info-pill"><span class="info-pill-label">ESTADO</span><span class="info-pill-value">${escapeHtml(status)}</span></div>
-            <div class="info-pill"><span class="info-pill-label">TERMINAL</span><span class="info-pill-value">${terminalDisplay}</span></div>
-            <div class="info-pill"><span class="info-pill-label">PUERTA</span><span class="info-pill-value">${escapeHtml(gate)}</span></div>
-            <div class="info-pill"><span class="info-pill-label">AVIÓN</span><span class="info-pill-value">${escapeHtml(aircraftModel)}</span></div>
-            <div class="info-pill"><span class="info-pill-label">FACTURACIÓN</span><span class="info-pill-value">${escapeHtml(checkinInfo)}</span></div>
-            <div class="info-pill"><span class="info-pill-label">EQUIPAJE</span><span class="info-pill-value">${escapeHtml(baggageInfo)}</span></div>
+            <div class="detail-card">
+                <div class="detail-header">
+                    <div class="detail-header-row">
+                        <div class="detail-flight-num">${flightNumber}</div>
+                        <div class="status-badge ${statusClass}">${escapeHtml(status).toUpperCase()}</div>
+                    </div>
+                    <div class="detail-airline-name">${escapeHtml(airlineName)}</div>
+                </div>
+                <div class="detail-board">
+                    <div class="detail-board-time-row">
+                        <div class="detail-board-time ${hasDelay ? 'has-delay' : ''}">
+                            ${hasDelay
+                                ? `<span class="sched-struck">${formatTime(scheduledLocal)}</span><span class="revised-time">${formatTime(estimatedLocal)}</span>`
+                                : `${scheduledLocal ? formatTime(scheduledLocal) : '--:--'}`}
+                        </div>
+                        <div class="detail-board-dest">
+                            <div class="detail-board-city">${escapeHtml(destCity)}</div>
+                            <div class="detail-board-iata">${destIATA || ''}</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="detail-grid">
+                    <div class="detail-cell"><div class="detail-cell-label">TERMINAL</div><div class="detail-cell-value">${escapeHtml(terminalDisplay)}</div></div>
+                    <div class="detail-cell"><div class="detail-cell-label">PUERTA</div><div class="detail-cell-value">${escapeHtml(gate)}</div></div>
+                    <div class="detail-cell"><div class="detail-cell-label">AVIÓN</div><div class="detail-cell-value">${escapeHtml(aircraftModel)}</div></div>
+                    <div class="detail-cell" style="grid-column: span 3;"><div class="detail-cell-label">FACTURACIÓN</div><div class="detail-cell-value">${escapeHtml(checkinInfo)}</div></div>
+                </div>
+            </div>
         `;
         
         document.getElementById('upcomingFlights').innerHTML = '';
@@ -449,7 +476,11 @@
     
     // --- Manejadores de menú y modal
     function toggleMenu() { 
-        document.getElementById('sideMenu').classList.toggle('open'); 
+        document.getElementById('sideMenu').classList.toggle('open');
+        // Mostrar la key guardada al obrir el menú
+        if (document.getElementById('sideMenu').classList.contains('open')) {
+            document.getElementById('apiKeyInput').value = apiKey || '';
+        }
     }
     
     function saveApiKey() { 

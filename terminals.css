@@ -23,18 +23,22 @@ body {
 }
 
 .header-block { 
-    height: 120px; 
+    height: 140px; 
     display: flex; 
     align-items: center; 
     justify-content: center; 
-    border-bottom: 2px solid rgba(255,193,7,0.2); 
+    border-bottom: 2px solid rgba(255,193,7,0.3);
+    background: linear-gradient(rgba(0,0,0,0.62), rgba(0,0,0,0.72)),
+                url('taxiterminal.jpg') center center / cover no-repeat;
+    position: relative;
 }
 
 .header-block h1 { 
     font-family: 'Orbitron'; 
     color: var(--gold); 
-    letter-spacing: 3px; 
-    font-size: 24px;
+    letter-spacing: 4px; 
+    font-size: 26px;
+    text-shadow: 0 0 18px rgba(255,193,7,0.5);
 }
 
 .search-block { padding: 15px 20px; border-bottom: 1px solid #222; }
@@ -47,9 +51,9 @@ body {
     background: transparent; 
     border: none; 
     color: #fff; 
-    padding: 12px; 
+    padding: 14px; 
     font-family: 'Share Tech Mono'; 
-    font-size: 16px;
+    font-size: 18px;
     outline: none; 
 }
 
@@ -58,7 +62,7 @@ body {
     padding: 0 15px; 
     cursor: pointer; 
     font-weight: bold; 
-    font-size: 18px; 
+    font-size: 20px; 
     transition: opacity 0.2s;
 }
 .clear-btn:hover { opacity: 0.6; }
@@ -66,7 +70,7 @@ body {
 .suggestions-container { 
     background: #0a0a0a; 
     border: 1px solid rgba(255,193,7,0.3); 
-    max-height: 250px; 
+    max-height: 280px; 
     overflow-y: auto; 
     display: none; 
     position: relative; 
@@ -74,12 +78,14 @@ body {
 }
 .suggestions-container.visible { display: block; }
 .suggestion-item { 
-    padding: 12px; 
+    padding: 14px; 
     border-bottom: 1px solid #222; 
     cursor: pointer; 
     display: flex; 
     justify-content: space-between; 
+    align-items: center;
     font-family: 'Share Tech Mono'; 
+    font-size: 16px;
 }
 .suggestion-item:hover { background: #111; }
 
@@ -99,11 +105,135 @@ body {
 .flight-row-item { 
     display: flex; 
     justify-content: space-between; 
-    padding: 10px; 
+    padding: 12px 10px; 
     border-bottom: 1px solid #111; 
     font-family: 'Share Tech Mono'; 
-    font-size: 14px; 
+    font-size: 16px;
 }
+
+/* Detail flight card - flight board design */
+.detail-card {
+    border: 1px solid rgba(255,193,7,0.25);
+    margin-bottom: 15px;
+    overflow: hidden;
+}
+.detail-header {
+    background: rgba(255,193,7,0.06);
+    padding: 18px 20px 14px;
+    border-bottom: 1px solid rgba(255,193,7,0.15);
+}
+.detail-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.detail-flight-num {
+    font-family: 'Orbitron';
+    color: var(--gold);
+    font-size: 26px;
+    letter-spacing: 3px;
+    line-height: 1;
+}
+.detail-airline-name {
+    font-family: 'Share Tech Mono';
+    color: #777;
+    font-size: 13px;
+    margin-top: 7px;
+    letter-spacing: 1px;
+}
+.status-badge {
+    font-family: 'Orbitron';
+    font-size: 12px;
+    padding: 8px 14px;
+    border-radius: 2px;
+    letter-spacing: 1px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+.status-badge.ok { background: rgba(0,200,80,0.15); color: #00c850; border: 1px solid rgba(0,200,80,0.4); }
+.status-badge.delay { background: rgba(255,50,50,0.15); color: #ff4444; border: 1px solid rgba(255,50,50,0.4); }
+.status-badge.neutral { background: rgba(255,193,7,0.1); color: var(--gold); border: 1px solid rgba(255,193,7,0.3); }
+
+/* Flight board: big time + destination block */
+.detail-board {
+    padding: 0;
+    border-bottom: 1px solid #1a1a1a;
+    background: #050505;
+}
+.detail-board-time-row {
+    display: flex;
+    align-items: stretch;
+    border-bottom: 1px solid #1a1a1a;
+}
+.detail-board-time {
+    font-family: 'Orbitron';
+    font-size: 64px;
+    font-weight: 900;
+    color: var(--gold);
+    line-height: 1;
+    padding: 20px 24px;
+    letter-spacing: 2px;
+    border-right: 1px solid #1a1a1a;
+    text-shadow: 0 0 30px rgba(255,193,7,0.35);
+    min-width: 190px;
+    display: flex;
+    align-items: center;
+}
+.detail-board-time.has-delay {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+}
+.detail-board-time .sched-struck {
+    font-size: 28px;
+    color: #ff4444;
+    text-decoration: line-through;
+    opacity: 0.7;
+    letter-spacing: 1px;
+}
+.detail-board-time .revised-time {
+    font-size: 64px;
+    color: #ff4444;
+    text-shadow: 0 0 20px rgba(255,50,50,0.4);
+}
+.detail-board-dest {
+    flex: 1;
+    padding: 20px 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+}
+.detail-board-city {
+    font-family: 'Orbitron';
+    font-size: 22px;
+    color: #fff;
+    line-height: 1.1;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+.detail-board-iata {
+    font-family: 'Share Tech Mono';
+    font-size: 32px;
+    color: rgba(255,255,255,0.15);
+    letter-spacing: 4px;
+    margin-top: 4px;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    border-top: 1px solid #111;
+}
+.detail-cell {
+    padding: 16px 18px;
+    border-right: 1px solid #111;
+    border-bottom: 1px solid #111;
+}
+.detail-cell:nth-child(3n) { border-right: none; }
+.detail-cell-label { font-size: 9px; color: #555; font-family: 'Orbitron'; letter-spacing: 1px; margin-bottom: 7px; }
+.detail-cell-value { font-family: 'Share Tech Mono'; color: var(--gold); font-size: 18px; }
 
 .hamburger { position: fixed; top: 15px; left: 15px; z-index: 1000; background: #000; border: 1px solid var(--gold); padding: 8px; cursor: pointer; }
 .hamburger span { width: 18px; height: 2px; background: var(--gold); display: block; margin: 3px; }
