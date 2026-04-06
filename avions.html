@@ -1,282 +1,978 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<title>Vuelos BCN</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCN ARRIBADES</title>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <link rel="icon" type="image/png" href="avions.png">
+    <link rel="apple-touch-icon" href="avions.png">
+    <meta name="theme-color" content="#ffc107">
 
-<style>
-body{
-    margin:0;
-    background:#000;
-    color:#fff;
-    font-family:Arial;
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Orbitron:wght@400;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+    <style>
+/* ============================================
+   STYLE 2 — NEON CYBER
+   Estética cyberpunk: fondo negro, acento
+   amarillo/dorado (#ffc107), tipografía
+   angular y efectos de glow/neón.
+   ============================================ */
+
+
+/* --------------------------------------------------
+   RESET GLOBAL
+   Elimina márgenes y paddings por defecto del
+   navegador. box-sizing: border-box hace que el
+   padding y el borde se incluyan dentro del ancho
+   total del elemento (más predecible).
+-------------------------------------------------- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
 }
 
-.container{
-    padding:10px;
+
+/* --------------------------------------------------
+   BODY — Fondo principal
+   - font-family: fuente base de todo el texto
+   - background: color de fondo negro puro
+   - padding: espacio entre el borde de pantalla
+     y el contenedor (aumentar para más margen)
+   - display flex + justify-content: centra el
+     .container horizontalmente en la página
+   - min-height: ocupa al menos toda la pantalla
+   - background-image: patrón de líneas sutiles
+     amarillas (efecto scanlines/CRT). Aumentar
+     el valor rgba(255,193,7, X) para hacerlas
+     más visibles. Cambiar 4px por más px para
+     líneas más separadas.
+-------------------------------------------------- */
+body {
+    font-family: 'Rajdhani', sans-serif;
+    background: #000000;
+    padding: 20px;
+    display: flex;
+    justify-content: center;
+    min-height: 100vh;
+    background-image:
+        repeating-linear-gradient(
+            0deg,
+            transparent,
+            transparent 2px,
+            rgba(255,193,7,0.015) 2px, /* opacidad de las líneas: 0=invisible, 0.05=visible */
+            rgba(255,193,7,0.015) 4px  /* cada cuántos px se repite la línea */
+        );
 }
 
-.terminal-header,.table-row{
-    display:grid;
-    grid-template-columns:80px 1fr 1fr 1fr;
-    text-align:center;
-    padding:6px 0;
+
+/* --------------------------------------------------
+   CONTAINER — Caja principal que envuelve todo
+   - max-width: ancho máximo. Aumentar para pantallas
+     más grandes (ej: 800px)
+   - background: fondo negro del contenedor
+   - padding: espacio interior (arriba/abajo izq/der)
+   - border: borde amarillo semitransparente.
+     Cambiar la opacidad (0.4) para más/menos brillo
+   - box-shadow: sombra exterior (glow amarillo) +
+     sombra interior oscura. El primer valor 30px
+     es el radio del glow exterior.
+   - position relative: necesario para el ::before
+-------------------------------------------------- */
+.container {
+    max-width: 600px;
+    width: 100%;
+    background: #000000;
+    padding: 24px;
+    border: 1px solid rgba(255,193,7,0.4);
+    box-shadow: 0 0 30px rgba(255,193,7,0.08), inset 0 0 30px rgba(0,0,0,0.8);
+    position: relative;
 }
 
-.terminal-header{
-    font-weight:bold;
-    border-bottom:1px solid #444;
+/* Línea superior decorativa con glow (neón)
+   Es un pseudo-elemento que crea una línea de 2px
+   en la parte superior del contenedor.
+   - height: grosor de la línea (px)
+   - background: gradiente de transparente → amarillo → transparente
+   - box-shadow: resplandor/glow de la línea
+   Para eliminarla: borrar todo este bloque */
+.container::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;                                                /* grosor de la línea superior */
+    background: linear-gradient(90deg, transparent, #ffc107, transparent);
+    box-shadow: 0 0 12px #ffc107;                               /* radio del glow de la línea */
 }
 
-.table-row{
-    border-bottom:1px solid #222;
+
+/* --------------------------------------------------
+   TOP BAR — Barra con el botón de configuración ⚙️
+   Alineada a la derecha dentro del header.
+   - z-index 2: asegura que queda por encima de la
+     imagen de fondo del header
+-------------------------------------------------- */
+.top-bar {
+    display: flex;
+    justify-content: flex-end; /* empuja el icono a la derecha */
+    margin-bottom: 0;
+    position: relative;
+    z-index: 2;
 }
 
-button{
-    margin:5px;
-    padding:10px;
-    font-size:16px;
+
+/* --------------------------------------------------
+   HEADER BLOCK — Bloque con imagen de fondo,
+   título y reloj grande
+   - background-image: imagen de fondo del header.
+     Cambiar 'taxiaero.jpg' por cualquier otra imagen
+     (debe estar en el mismo directorio que el HTML)
+   - background-size cover: la imagen cubre todo
+     el bloque sin deformarse
+   - background-position: "center 40%" desplaza la
+     imagen verticalmente (0%=arriba, 100%=abajo)
+   - border-bottom: línea amarilla debajo del header.
+     Cambiar opacidad (0.6) o grosor (2px)
+   - box-shadow: glow amarillo bajo el header
+-------------------------------------------------- */
+.header-block {
+    position: relative;
+    margin-bottom: 30px;              /* espacio entre el header y el panel/tabla */
+    background-image: url('taxiaero.jpg');
+    background-size: cover;
+    background-position: center 40%; /* subir o bajar el encuadre de la foto */
+    border-bottom: 2px solid rgba(255,193,7,0.6);
+    box-shadow: 0 4px 30px rgba(255,193,7,0.2);
 }
 
-.footer{
-    color:#ccc;
-    font-size:12px;
-    margin-top:10px;
+/* Overlay oscuro sobre la imagen de fondo.
+   Gradiente de negro semitransparente para que
+   el texto sea legible sobre la foto.
+   - Primer valor (0.55): opacidad en la parte superior
+   - Segundo valor (0.45): opacidad en el centro
+   - Tercer valor (0.75): opacidad en la parte inferior
+   Aumentar los valores para oscurecer más la imagen. */
+.header-block::before {
+    content: '';
+    position: absolute;
+    inset: 0; /* cubre todo el header */
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.55) 0%,   /* oscuridad arriba */
+        rgba(0,0,0,0.45) 60%,  /* oscuridad centro */
+        rgba(0,0,0,0.75) 100%  /* oscuridad abajo */
+    );
+    z-index: 0;
 }
-</style>
+
+/* El top-bar, h1 y el reloj deben estar por
+   encima del overlay oscuro (z-index > 0) */
+.header-block .top-bar,
+.header-block h1,
+.header-block .current-time {
+    position: relative;
+    z-index: 1;
+}
+
+
+/* --------------------------------------------------
+   ICONO DE CONFIGURACIÓN ⚙️
+   - width/height: tamaño del botón cuadrado
+   - border: borde amarillo semitransparente
+   - font-size: tamaño del emoji ⚙️
+   - box-shadow: glow suave alrededor del botón
+-------------------------------------------------- */
+.config-icon {
+    width: 34px;
+    height: 34px;
+    background: transparent;
+    border: 1px solid rgba(255,193,7,0.6);
+    color: #ffc107;
+    font-size: 16px;               /* tamaño del icono ⚙️ */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;          /* suaviza la animación al pasar el ratón */
+    box-shadow: 0 0 8px rgba(255,193,7,0.2);
+}
+
+/* Al pasar el ratón: fondo amarillo tenue + glow más intenso */
+.config-icon:hover {
+    background: rgba(255,193,7,0.15);
+    box-shadow: 0 0 16px rgba(255,193,7,0.5);
+}
+
+
+/* --------------------------------------------------
+   TÍTULO H1 — "✈ BCN ARRIBADES"
+   - font-family: Orbitron, fuente futurista/angular.
+     Cambiar por 'Rajdhani' para algo más suave, o
+     cualquier Google Font cargada arriba.
+   - font-size: tamaño del título (px)
+   - letter-spacing: separación entre letras.
+     Aumentar para efecto más espaciado/militar
+   - text-shadow: capas de glow amarillo + sombra
+     negra para dar profundidad. Los primeros dos
+     valores son el glow (radio en px), el tercero
+     es la sombra de apoyo.
+-------------------------------------------------- */
+h1 {
+    font-family: 'Orbitron', monospace;
+    font-size: 20px;               /* tamaño del título */
+    font-weight: 700;
+    color: #ffc107;                /* color del texto del título */
+    margin-bottom: 6px;
+    padding-top: 10px;
+    letter-spacing: 5px;           /* separación entre letras */
+    text-align: center;
+    text-transform: uppercase;
+    text-shadow:
+        0 0 20px rgba(255,193,7,0.9),  /* glow cercano, muy brillante */
+        0 0 40px rgba(255,193,7,0.5),  /* glow lejano, más suave */
+        0 2px 4px rgba(0,0,0,0.9);     /* sombra negra de apoyo */
+}
+
+
+/* --------------------------------------------------
+   RELOJ GRANDE — Hora actual HH:MM
+   - font-family: Share Tech Mono, fuente monoespaciada
+     estilo terminal. Cambiar por 'Orbitron' para otro
+     estilo futurista.
+   - font-size: tamaño del reloj. 72px = muy grande.
+     Reducir a 48px o 36px si ocupa demasiado espacio.
+   - letter-spacing: separación entre los dígitos.
+     10px da el efecto "display de aeropuerto"
+   - padding: espacio encima y debajo del reloj
+   - text-shadow: glow blanco brillante + sombra negra
+-------------------------------------------------- */
+.current-time {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 72px;               /* tamaño del reloj. Reducir si es muy grande */
+    font-weight: 400;
+    color: #ffffff;                /* color de los dígitos del reloj */
+    margin-bottom: 0;
+    padding: 10px 0 20px;          /* espacio arriba y abajo del reloj */
+    text-align: center;
+    letter-spacing: 10px;          /* separación entre dígitos */
+    text-shadow:
+        0 0 10px rgba(255,255,255,0.9),  /* glow blanco cercano */
+        0 0 30px rgba(255,255,255,0.4),  /* glow blanco lejano */
+        0 2px 6px rgba(0,0,0,0.9);       /* sombra negra de apoyo */
+    background: transparent;
+    border: none;
+    position: relative;
+}
+
+
+/* --------------------------------------------------
+   PANEL DE CONFIGURACIÓN — Se muestra/oculta con ⚙️
+   Por defecto está oculto (display: none).
+   Al añadir la clase .visible se muestra (display: block).
+   - background: fondo casi negro del panel
+   - border: borde amarillo muy suave
+   - padding: espacio interior del panel
+   - margin-bottom: espacio debajo del panel
+-------------------------------------------------- */
+.config-panel {
+    display: none;                 /* oculto por defecto */
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #050505;           /* fondo del panel de configuración */
+    border: 1px solid rgba(255,193,7,0.3);
+}
+
+/* Cuando el JS añade la clase 'visible', se muestra */
+.config-panel.visible { display: block; }
+
+/* Campo de texto para la API Key */
+.config-panel input {
+    width: 100%;
+    padding: 12px;
+    background: #000;              /* fondo del input */
+    border: 1px solid rgba(255,193,7,0.3);
+    color: #ffffff;                /* color del texto escrito */
+    font-size: 13px;
+    font-family: 'Rajdhani', sans-serif;
+    margin-bottom: 12px;
+    letter-spacing: 1px;
+}
+
+/* Efecto al hacer clic en el input */
+.config-panel input:focus {
+    outline: none;
+    border-color: #ffc107;                      /* borde amarillo brillante al enfocar */
+    box-shadow: 0 0 10px rgba(255,193,7,0.3);   /* glow al enfocar */
+}
+
+
+/* --------------------------------------------------
+   BOTONES DEL PANEL DE CONFIGURACIÓN
+   Contenedor flex que agrupa los botones en fila
+   con salto de línea si no caben (flex-wrap: wrap)
+-------------------------------------------------- */
+.config-buttons {
+    display: flex;
+    gap: 10px;        /* espacio entre botones */
+    flex-wrap: wrap;  /* los botones saltan de línea si no caben */
+}
+
+/* Botón principal: "CARGAR VUELOS"
+   Fondo amarillo sólido con texto negro */
+.primary-button {
+    background: #ffc107;           /* color de fondo del botón principal */
+    color: #000;                   /* color del texto */
+    border: none;
+    padding: 10px 20px;            /* tamaño del botón (vertical horizontal) */
+    font-size: 13px;
+    cursor: pointer;
+    font-weight: 700;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    box-shadow: 0 0 10px rgba(255,193,7,0.4); /* glow del botón */
+}
+
+/* Al pasar el ratón: fondo más claro + glow más intenso */
+.primary-button:hover {
+    background: #ffd54f;                       /* color al hacer hover */
+    box-shadow: 0 0 20px rgba(255,193,7,0.7);  /* glow intensificado */
+}
+
+/* Botones secundarios: "PROBAR API", "LIMPIAR CACHÉ", "COMPARTIR"
+   Fondo transparente con borde gris */
+.secondary-button {
+    background: transparent;
+    color: #888;                   /* color del texto en reposo (gris) */
+    border: 1px solid #333;        /* borde gris oscuro */
+    padding: 10px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: 'Rajdhani', sans-serif;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+}
+
+/* Al pasar el ratón: borde y texto amarillo con glow */
+.secondary-button:hover {
+    border-color: rgba(255,193,7,0.6);
+    color: #ffc107;
+    box-shadow: 0 0 8px rgba(255,193,7,0.2);
+}
+
+
+/* --------------------------------------------------
+   MENSAJE DE ESTADO — Texto de feedback bajo los botones
+   ("✅ API Key válida", "❌ Error...", etc.)
+   - border-left: línea amarilla a la izquierda (acento)
+   - background: fondo amarillo muy tenue
+   - color: color del texto del mensaje
+-------------------------------------------------- */
+.status-message {
+    margin-top: 12px;
+    padding: 10px 14px;
+    font-size: 13px;
+    background: rgba(255,193,7,0.05); /* fondo amarillo casi invisible */
+    border-left: 3px solid #ffc107;   /* línea amarilla de acento a la izquierda */
+    color: #cccccc;                   /* color del texto de estado */
+    letter-spacing: 1px;
+}
+
+
+/* --------------------------------------------------
+   CABECERA DE LA TABLA — Fila HORA / T1 / T2 / T2C
+   - grid-template-columns: define el ancho de cada
+     columna. "1fr 1fr 1fr 1fr" = 4 columnas iguales.
+     Para dar más espacio a HORA: "1.5fr 1fr 1fr 1fr"
+   - font-size: tamaño del texto de la cabecera
+   - color: color amarillo del encabezado
+   - letter-spacing: separación entre letras
+   - text-shadow: glow amarillo en los títulos
+   - border-bottom: línea separadora bajo la cabecera
+-------------------------------------------------- */
+.terminal-header {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr; /* 4 columnas iguales: HORA T1 T2 T2C */
+    padding: 12px 0;
+    border-bottom: 1px solid rgba(255,193,7,0.6); /* línea bajo la cabecera */
+    font-weight: 700;
+    font-size: 22px;               /* tamaño del texto de cabecera */
+    color: #ffc107;                /* color de los títulos de columna */
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-top: 8px;
+    font-family: 'Share Tech Mono', monospace;
+    text-shadow: 0 0 12px rgba(255,193,7,0.6); /* glow de los títulos */
+}
+
+/* Primera columna (HORA) alineada a la izquierda */
+.terminal-header div:first-child { text-align: left; }
+/* Resto de columnas (T1, T2, T2C) alineadas a la derecha */
+.terminal-header div:not(:first-child) { text-align: right; }
+
+
+/* --------------------------------------------------
+   FILAS DE DATOS — Cada franja horaria
+   - grid-template-columns: debe coincidir SIEMPRE
+     con el de .terminal-header (mismas 4 columnas)
+   - padding: espacio interior de cada fila
+   - border-bottom: línea divisoria entre filas
+     (muy sutil, casi invisible: opacidad 0.04)
+   - transition: suaviza el efecto hover
+-------------------------------------------------- */
+.table-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr 1fr; /* igual que .terminal-header */
+    padding: 10px 0;                          /* altura de cada fila */
+    border-bottom: 1px solid rgba(255,255,255,0.04); /* separador entre filas */
+    font-size: 17px;
+    color: #ffffff;
+    transition: all 0.15s;
+}
+
+/* Efecto al pasar el ratón sobre una fila */
+.table-row:hover {
+    background: rgba(255,193,7,0.04); /* fondo amarillo muy suave al hacer hover */
+}
+
+/* Primera celda de cada fila: la hora (ej: "14:00")
+   Estilo diferente al resto: gris, más pequeña */
+.table-row div:first-child {
+    text-align: left;
+    color: #b0b0b0;                /* color de la hora (gris claro) */
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 25px;               /* tamaño de la hora */
+    letter-spacing: 3px;           /* separación entre dígitos de la hora */
+}
+
+/* Celdas de conteo: T1, T2, T2C
+   Números grandes y brillantes en amarillo */
+.table-row div:not(:first-child) {
+    text-align: right;
+    color: #ffc107;                /* color de los números de vuelos */
+    font-weight: 700;
+    font-size: 30px;               /* tamaño de los números. Reducir si son muy grandes */
+    text-shadow: 0 0 12px rgba(255,193,7,0.6); /* glow de los números */
+    font-family: 'Share Tech Mono', monospace;
+    letter-spacing: 2px;
+}
+
+
+/* --------------------------------------------------
+   BARRA DE STATS — Aparece cuando hay datos cargados
+   Contiene el badge "📦 CACHÉ" si los datos son
+   de caché. Normalmente casi invisible (color #444)
+-------------------------------------------------- */
+.stats-bar {
+    margin: 14px 0 6px;
+    font-size: 12px;
+    color: #444;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+}
+
+/* Badge "📦 CACHÉ" — Solo visible cuando los datos
+   provienen del localStorage en vez de la API */
+.cache-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    background: rgba(255,193,7,0.1);   /* fondo amarillo muy suave */
+    border: 1px solid rgba(255,193,7,0.4);
+    color: #ffc107;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+
+/* --------------------------------------------------
+   NOTA PIE DE TABLA — "✔ FILTRE CODESHARE ACTIU..."
+   Texto pequeño que aparece al final de la tabla
+   - color: muy oscuro (#333), casi invisible
+   - border-top: línea separadora muy sutil
+-------------------------------------------------- */
+.footer-note {
+    margin-top: 20px;
+    font-size: 11px;
+    color: #333;                               /* color del texto (muy oscuro) */
+    border-top: 1px solid rgba(255,193,7,0.1); /* línea superior muy suave */
+    padding-top: 12px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+
+/* --------------------------------------------------
+   PANEL DE DEBUG — Texto técnico que aparece
+   al pulsar el botón DEBUG (si se añade).
+   Estilo terminal: fondo casi negro, texto verde.
+-------------------------------------------------- */
+.debug-info {
+    background: #040404;
+    border: 1px solid #222;
+    padding: 10px;
+    margin: 10px 0;
+    font-family: monospace;
+    font-size: 11px;
+    max-height: 200px;   /* altura máxima antes de scroll */
+    overflow: auto;
+    white-space: pre-wrap;
+    color: #666;         /* color del texto de debug (gris) */
+}
+
+
+/* --------------------------------------------------
+   ESTADO VACÍO / ERROR / CARGANDO
+   Mensaje centrado que aparece cuando no hay datos
+   - padding: espacio interior del bloque
+   - color: color base del texto
+-------------------------------------------------- */
+.loading, .error, .empty-state {
+    text-align: center;
+    padding: 40px;
+    background: #000;
+    color: #555;
+}
+
+/* Primer párrafo del empty state: más claro */
+.empty-state p:first-child { color: #888; }
+/* Segundo párrafo (nota técnica): más oscuro */
+.empty-state p:last-child  { color: #333; }
+
+
+/* --------------------------------------------------
+   FOOTER — Texto final con créditos y expiración caché
+   Muy discreto, casi invisible sobre fondo negro
+   - color: gris muy oscuro (#2a2a2a)
+   - margin-top: espacio encima del footer
+-------------------------------------------------- */
+.footer {
+    margin-top: 24px;
+    font-size: 11px;
+    color: #2a2a2a;      /* color del texto del footer (casi negro) */
+    text-align: center;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+}
+
+/* Enlace dentro del footer */
+.footer a { color: rgba(255,193,7,0.5); text-decoration: none; }
+.footer a:hover { color: #ffc107; }
+
+    </style>
 </head>
-
 <body>
 
 <div class="container" id="capture">
 
-    <div style="margin-bottom:10px;">
-        <button onclick="loadFlights()">Actualizar</button>
-        <button onclick="shareWhatsApp()">Compartir</button>
+    <div class="header-block">
+        <div class="top-bar">
+            <div class="config-icon" id="configBtn" title="Configuración">⚙️</div>
+        </div>
+        <h1>✈ BCN ARRIBADES</h1>
+        <div class="current-time" id="currentTime">--:--</div>
     </div>
 
-    <div id="table"></div>
-
-    <div class="footer" id="footer">
-        Datos de llegadas en tiempo real.<br>
-        Puede haber pequeñas desviaciones por retrasos o datos incompletos de la API.<br>
-        EasyJet separado en T2C.<br>
-        Última actualización: <span id="time"></span>
+    <!-- Panel de configuració -->
+    <div class="config-panel" id="configPanel">
+        <input type="text" id="apiKeyInput" placeholder="RapidAPI Key" autocomplete="off">
+        <div class="config-buttons">
+            <button class="primary-button" id="loadFlightsBtn">CARGAR VUELOS</button>
+            <button class="secondary-button" id="testApiBtn">PROBAR API</button>
+            <button class="secondary-button" id="clearCacheBtn">LIMPIAR CACHÉ</button>
+            <button class="secondary-button" id="shareBtn">COMPARTIR</button>
+        </div>
+        <div class="status-message" id="apiStatus">Introduce tu API Key en configuración</div>
+        <div id="debugPanel" class="debug-info" style="display:none;"></div>
     </div>
 
-    <div id="debug" class="footer"></div>
+    <!-- Stats bar -->
+    <div class="stats-bar" id="statsBar" style="display:none;">
+        <span class="cache-badge" id="cacheBadge" style="display:none;">📦 CACHÉ</span>
+    </div>
+
+    <!-- Taula de vols -->
+    <div id="flightsContainer">
+        <div class="empty-state">
+            <p>✈ Carga los datos para ver el split de terminales</p>
+            <p style="font-size:12px; margin-top:10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>AeroDataBox via RapidAPI · Plan gratuito: 500/mes</p>
+        <p id="cacheInfo" style="margin-top:4px;"></p>
+    </div>
 
 </div>
 
 <script>
+(function(){
 
-const API_KEY = "TU_API_KEY";
+    // ===== DOM =====
+    const configBtn        = document.getElementById('configBtn');
+    const configPanel      = document.getElementById('configPanel');
+    const apiKeyInput      = document.getElementById('apiKeyInput');
+    const loadBtn          = document.getElementById('loadFlightsBtn');
+    const testBtn          = document.getElementById('testApiBtn');
+    const clearCacheBtn    = document.getElementById('clearCacheBtn');
+    const shareBtn         = document.getElementById('shareBtn');
+    const apiStatus        = document.getElementById('apiStatus');
+    const statsBar         = document.getElementById('statsBar');
+    const flightsContainer = document.getElementById('flightsContainer');
+    const cacheBadge       = document.getElementById('cacheBadge');
+    const cacheInfo        = document.getElementById('cacheInfo');
+    const debugPanel       = document.getElementById('debugPanel');
+    const currentTimeEl    = document.getElementById('currentTime');
 
-let currentTimeSlots = [];
-let lastProcessedData = [];
+    // ===== CONSTANTS =====
+    const RAPIDAPI_HOST  = 'aerodatabox.p.rapidapi.com';
+    const CACHE_KEY      = 'aerodatabox_flights_cache';
+    const API_KEY_STORE  = 'aerodatabox_key';
+    const CACHE_DURATION = 10 * 60 * 1000; // 10 minuts
 
-// ===== UTIL =====
-function getLocalHHMM(date){
-    return date.toLocaleTimeString('es-ES',{
-        hour:'2-digit',
-        minute:'2-digit',
-        hour12:false
-    });
-}
+    let currentTimeSlots  = [];
+    let lastRawData       = null;
+    let lastProcessedData = null;
 
-// ===== EASYJET =====
-function isEasyJet(f){
-    const name = f.airline?.name?.toLowerCase() || '';
-    const iata = f.airline?.iata || '';
-    return name.includes('easyjet') || iata === 'U2';
-}
-
-// ===== DEDUP =====
-function removeCodeshareDuplicates(flights){
-    const map=new Map();
-
-    flights.forEach(f=>{
-        try{
-            const origin=f.movement?.airport?.iata || 'XXX';
-            const time=f.movement?.scheduledTime?.local;
-
-            if(!time) return;
-
-            const d=new Date(time);
-            if(isNaN(d)) return;
-
-            d.setSeconds(0,0);
-
-            const key=origin+'_'+d.getTime();
-
-            if(!map.has(key)){
-                map.set(key,f);
-            }
-        }catch{}
-    });
-
-    return Array.from(map.values());
-}
-
-// ===== TERMINAL =====
-function extractTerminal(f){
-    const t = f.movement?.terminal || '';
-    if(t.includes('1')) return 't1';
-    return 't2';
-}
-
-// ===== TIME SLOTS =====
-function generateTimeSlots(){
-    const now = new Date();
-    now.setMinutes(0,0,0);
-
-    currentTimeSlots=[];
-
-    for(let i=0;i<8;i++){
-        let d=new Date(now);
-        d.setHours(now.getHours()+i);
-        currentTimeSlots.push(getLocalHHMM(d));
+    // ===== RELLOTGE =====
+    function updateCurrentTime(){
+        const now = new Date();
+        const h = now.getHours().toString().padStart(2,'0');
+        const m = now.getMinutes().toString().padStart(2,'0');
+        currentTimeEl.textContent = `${h}:${m}`;
     }
-}
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 30000);
 
-// ===== LOAD =====
-async function loadFlights(){
+    // ===== CONFIG TOGGLE =====
+    configBtn.addEventListener('click', () => configPanel.classList.toggle('visible'));
 
-    document.getElementById('debug').innerText='Cargando...';
+    // ===== FORMAT DATA per API: "YYYY-MM-DDTHH:mm" local (sense Z) =====
+    function formatAPIDate(date){
+        const p = n => String(n).padStart(2,'0');
+        return `${date.getFullYear()}-${p(date.getMonth()+1)}-${p(date.getDate())}T${p(date.getHours())}:${p(date.getMinutes())}`;
+    }
 
-    try{
+    // ===== TIME SLOTS 8h =====
+    function generateTimeSlots(){
+        const now = new Date();
+        currentTimeSlots = [];
+
+        // Primera franja: hora actual exacta (HH:MM)
+        const hNow = now.getHours().toString().padStart(2,'0');
+        const mNow = now.getMinutes().toString().padStart(2,'0');
+        currentTimeSlots.push(`${hNow}:${mNow}`);
+
+        // Resto de franjas: horas en punto siguientes
+        const base = new Date(now);
+        base.setMinutes(0,0,0);
+        for(let i = 1; i < 8; i++){
+            const d = new Date(base);
+            d.setHours(base.getHours() + i);
+            currentTimeSlots.push(`${d.getHours().toString().padStart(2,'0')}:00`);
+        }
+    }
+
+    // ===== EASYJET → T2C =====
+    function isEasyJet(f){
+        const name = (f.airline?.name || '').toLowerCase();
+        const iata = f.airline?.iata || '';
+        return name.includes('easyjet') || iata === 'U2';
+    }
+
+    // ===== BUCKET: t1 / t2 / t2c =====
+    function extractBucket(f){
+        if(isEasyJet(f)) return 't2c';
+        const t = String(f.movement?.terminal || '').trim();
+        if(t.includes('1')) return 't1';
+        return 't2';
+    }
+
+    // ===== DEDUP CODESHARE =====
+    function removeCodeshareDuplicates(flights){
+        const map = new Map();
+        let duplicateCount = 0;
+
+        flights.forEach(f => {
+            try{
+                const origin  = f.movement?.airport?.iata || 'XXX';
+                const timeStr = f.movement?.scheduledTime?.local || f.movement?.scheduledTime?.utc;
+                if(!timeStr) return;
+
+                const clean = timeStr.replace(/\+\d{2}:\d{2}$/, '').replace('Z','');
+                const d = new Date(clean);
+                if(isNaN(d)) return;
+                d.setSeconds(0,0);
+
+                const key = `${origin}_${d.getTime()}`;
+                if(!map.has(key)) map.set(key, f);
+                else duplicateCount++;
+            }catch{}
+        });
+
+        return { unique: Array.from(map.values()), duplicateCount };
+    }
+
+    // ===== CACHE =====
+    function saveToCache(data){
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+            timestamp: Date.now(),
+            flights: data,
+            timeSlots: currentTimeSlots
+        }));
+        updateCacheInfo();
+    }
+
+    function getFromCache(){
+        const raw = localStorage.getItem(CACHE_KEY);
+        if(!raw) return null;
+        try{
+            const parsed = JSON.parse(raw);
+            if(Date.now() - parsed.timestamp < CACHE_DURATION){
+
+                return parsed.flights;
+            }
+            localStorage.removeItem(CACHE_KEY);
+            return null;
+        }catch{
+            localStorage.removeItem(CACHE_KEY);
+            return null;
+        }
+    }
+
+    function updateCacheInfo(){
+        const raw = localStorage.getItem(CACHE_KEY);
+        if(!raw){ cacheInfo.textContent = ''; return; }
+        try{
+            const parsed = JSON.parse(raw);
+            const exp = Math.round((CACHE_DURATION - (Date.now() - parsed.timestamp)) / 60000);
+            cacheInfo.textContent = exp > 0 ? `CACHÉ EXPIRA EN ${exp} MIN` : '';
+        }catch{ cacheInfo.textContent = ''; }
+    }
+
+    function clearCache(){
+        localStorage.removeItem(CACHE_KEY);
+        cacheBadge.style.display = 'none';
+        cacheInfo.textContent = '';
+        apiStatus.textContent = '🗑️ Caché limpiado';
+        flightsContainer.innerHTML = `
+            <div class="empty-state">
+                <p>✈ Carga los datos para ver el split de terminales</p>
+                <p style="font-size:12px; margin-top:10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
+            </div>`;
+        statsBar.style.display = 'none';
+        debugPanel.style.display = 'none';
+    }
+
+    // ===== DISPLAY =====
+    function displayTimeSlots(flights, fromCache=false){
+        if(!flights || flights.length === 0){
+            flightsContainer.innerHTML = `
+                <div class="empty-state">
+                    <p>No hay vuelos programados</p>
+                    <p style="font-size:12px; margin-top:10px;">FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</p>
+                </div>`;
+            statsBar.style.display = 'flex';
+            return;
+        }
+
+        const { unique } = removeCodeshareDuplicates(flights);
+        lastProcessedData = unique;
+
+        // Inicialitzar slots
+        const slots = {};
+        currentTimeSlots.forEach(s => slots[s] = { t1:0, t2:0, t2c:0 });
+
+        unique.forEach(f => {
+            try{
+                const timeStr = f.movement?.scheduledTime?.local || f.movement?.scheduledTime?.utc;
+                if(!timeStr) return;
+
+                const clean = timeStr.replace(/\+\d{2}:\d{2}$/, '').replace('Z','');
+                const d = new Date(clean);
+                if(isNaN(d)) return;
+
+                // La primera franja (HH:MM actual) recoge todos los vuelos
+                // de esa hora en punto, igual que las demás franjas.
+                // Así los vuelos anteriores al minuto actual pero de la misma
+                // hora también quedan agrupados correctamente.
+                const slotKey = `${d.getHours().toString().padStart(2,'0')}:00`;
+
+                // Buscar si hay una franja que corresponda a esta hora.
+                // La primera franja tiene formato HH:MM (no HH:00), así que
+                // la comparamos por hora, no por string exacto.
+                const firstSlot = currentTimeSlots[0]; // ej: "14:37"
+                const firstSlotHour = firstSlot.split(':')[0]; // "14"
+                const flightHour = d.getHours().toString().padStart(2,'0'); // "14"
+
+                let matchedSlot = null;
+                if(flightHour === firstSlotHour){
+                    matchedSlot = firstSlot; // asignar al slot HH:MM
+                } else if(slots[slotKey] !== undefined){
+                    matchedSlot = slotKey;
+                }
+
+                if(!matchedSlot) return;
+                slots[matchedSlot][extractBucket(f)]++;
+            }catch{}
+        });
+
+        statsBar.style.display = 'flex';
+        cacheBadge.style.display = fromCache ? 'inline-block' : 'none';
+
+        let html = `
+            <div class="terminal-header">
+                <div>HORA</div>
+                <div>T1</div>
+                <div>T2</div>
+                <div>T2C</div>
+            </div>`;
+
+        currentTimeSlots.forEach(s => {
+            const c = slots[s] || { t1:0, t2:0, t2c:0 };
+            html += `
+                <div class="table-row">
+                    <div>${s}</div>
+                    <div>${c.t1}</div>
+                    <div>${c.t2}</div>
+                    <div>${c.t2c}</div>
+                </div>`;
+        });
+
+        html += `<div class="footer-note">✔ FILTRE CODESHARE ACTIU · MÀXIM 100 VDLS PER API</div>`;
+        flightsContainer.innerHTML = html;
+    }
+
+    // ===== LOAD FLIGHTS =====
+    async function loadFlights(){
+        const apiKey = apiKeyInput.value.trim();
+        if(!apiKey){ apiStatus.textContent = '❌ Introduce API Key'; return; }
+
+        apiStatus.textContent = '⏳ Cargando vuelos...';
+        generateTimeSlots();
+
+        try{
+            const now = new Date();
+            const end = new Date(now.getTime() + 8 * 60 * 60 * 1000);
+
+            const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${formatAPIDate(now)}/${formatAPIDate(end)}?withLeg=false&direction=Arrival&withCancelled=false&withCodeshared=false&withCargo=false&withPrivate=false`;
+
+            const res = await fetch(url, {
+                headers:{
+                    'X-RapidAPI-Key': apiKey,
+                    'X-RapidAPI-Host': RAPIDAPI_HOST
+                }
+            });
+
+            if(res.status === 401) throw new Error('API Key inválida');
+            if(res.status === 429) throw new Error('Límite alcanzado (429)');
+            if(!res.ok) throw new Error(`Error ${res.status}`);
+
+            const data = await res.json();
+            const arrivals = Array.isArray(data) ? data : (data.arrivals || []);
+            lastRawData = arrivals;
+
+            localStorage.setItem(API_KEY_STORE, apiKey);
+            saveToCache(arrivals);
+            displayTimeSlots(arrivals, false);
+
+            apiStatus.textContent = `✅ ${arrivals.length} vuelos cargados`;
+            configPanel.classList.remove('visible');
+
+        }catch(e){
+            apiStatus.textContent = `❌ ${e.message}`;
+        }
+    }
+
+    // ===== TEST API =====
+    async function testApiKey(){
+        const apiKey = apiKeyInput.value.trim();
+        if(!apiKey){ apiStatus.textContent = '❌ Introduce API Key'; return; }
+
+        apiStatus.textContent = '⏳ Verificando...';
+
+        try{
+            const now = new Date();
+            const end = new Date(now.getTime() + 60 * 60 * 1000);
+
+            const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${formatAPIDate(now)}/${formatAPIDate(end)}`;
+
+            const res = await fetch(url, {
+                headers:{
+                    'X-RapidAPI-Key': apiKey,
+                    'X-RapidAPI-Host': RAPIDAPI_HOST
+                }
+            });
+
+            if(res.status === 401) throw new Error('API Key inválida');
+            if(res.status === 429) throw new Error('Límite alcanzado (429)');
+            if(!res.ok) throw new Error(`Error ${res.status}`);
+
+            apiStatus.textContent = '✅ API Key válida';
+            localStorage.setItem(API_KEY_STORE, apiKey);
+
+        }catch(e){
+            apiStatus.textContent = `❌ ${e.message}`;
+        }
+    }
+
+    // ===== SHARE =====
+    async function shareCapture(){
+        try{
+            configPanel.classList.remove('visible');
+            await new Promise(r => setTimeout(r, 250));
+
+            const canvas = await html2canvas(document.getElementById('capture'), { backgroundColor:'#000' });
+            const blob   = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+            const file   = new File([blob], 'vuelos-bcn.jpg', { type:'image/jpeg' });
+
+            if(navigator.share){
+                await navigator.share({ files:[file], title:'BCN Arribades' });
+            } else {
+                alert('El teu navegador no suporta compartir fitxers');
+            }
+        }catch(e){
+            if(e.name !== 'AbortError') alert('No s\'ha pogut compartir');
+        }
+    }
+
+    // ===== INIT =====
+    function init(){
+        const savedKey = localStorage.getItem(API_KEY_STORE);
+        if(savedKey) apiKeyInput.value = savedKey;
 
         generateTimeSlots();
 
-        const now = new Date();
-        const end = new Date();
-        end.setHours(end.getHours()+8);
-
-        const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${now.toISOString()}/${end.toISOString()}`;
-
-        const res = await fetch(url,{
-            headers:{
-                "X-RapidAPI-Key":API_KEY,
-                "X-RapidAPI-Host":"aerodatabox.p.rapidapi.com"
-            }
-        });
-
-        if(!res.ok){
-            throw new Error("HTTP "+res.status);
+        const cached = getFromCache();
+        if(cached && cached.length > 0){
+            displayTimeSlots(cached, true);
+            apiStatus.textContent = '📦 Datos cargados de caché';
+        } else if(savedKey){
+            apiStatus.textContent = 'API Key cargada. Usa "CARGAR VUELOS" para obtener datos.';
         }
 
-        const data = await res.json();
-
-        // 💾 guardar cache
-        localStorage.setItem("flights_cache", JSON.stringify({
-            time: Date.now(),
-            data: data.arrivals
-        }));
-
-        display(data.arrivals);
-
-        document.getElementById('debug').innerText=
-            `OK API (${data.arrivals.length} vuelos)`;
-
-    }catch(e){
-
-        const cache = localStorage.getItem("flights_cache");
-
-        if(cache){
-            const parsed = JSON.parse(cache);
-
-            display(parsed.data,true);
-
-            document.getElementById('debug').innerText =
-                `ERROR API (${e.message}) → usando cache (${Math.round((Date.now()-parsed.time)/60000)} min)`;
-        }else{
-            document.getElementById('debug').innerText=
-                'ERROR: '+e.message;
-        }
+        updateCacheInfo();
     }
-}
 
-// ===== DISPLAY =====
-function display(flights, fromCache=false){
+    // ===== EVENTS =====
+    loadBtn.addEventListener('click', loadFlights);
+    testBtn.addEventListener('click', testApiKey);
+    clearCacheBtn.addEventListener('click', clearCache);
+    shareBtn.addEventListener('click', shareCapture);
+    setInterval(updateCacheInfo, 60000);
 
-    flights = removeCodeshareDuplicates(flights);
-    lastProcessedData = flights;
-
-    const slots={};
-    currentTimeSlots.forEach(s=>slots[s]={t1:0,t2:0,t2c:0});
-
-    flights.forEach(f=>{
-        try{
-            const time = f.movement?.scheduledTime?.local;
-            if(!time) return;
-
-            const d = new Date(time);
-            if(isNaN(d)) return;
-
-            const key = getLocalHHMM(d);
-
-            if(slots[key]){
-
-                if(isEasyJet(f)){
-                    slots[key].t2c++;
-                }else{
-                    slots[key][extractTerminal(f)]++;
-                }
-
-            }
-
-        }catch{}
-    });
-
-    let html='<div class="terminal-header"><div>🕐</div><div>T1</div><div>T2</div><div>T2C</div></div>';
-
-    currentTimeSlots.forEach(s=>{
-        html+=`<div class="table-row">
-        <div>${s}</div>
-        <div>${slots[s].t1}</div>
-        <div>${slots[s].t2}</div>
-        <div>${slots[s].t2c}</div>
-        </div>`;
-    });
-
-    document.getElementById('table').innerHTML=html;
-
-    document.getElementById('time').innerText =
-        new Date().toLocaleTimeString() + (fromCache ? ' (cache)' : '');
-}
-
-// ===== SHARE =====
-async function shareWhatsApp(){
-
-    const element = document.getElementById("capture");
-
-    const canvas = await html2canvas(element,{
-        backgroundColor:"#000"
-    });
-
-    const blob = await new Promise(resolve=>canvas.toBlob(resolve,"image/jpeg",0.9));
-
-    const file = new File([blob],"vuelos.jpg",{type:"image/jpeg"});
-
-    if(navigator.share){
-        try{
-            await navigator.share({
-                files:[file],
-                title:"Vuelos BCN"
-            });
-        }catch(e){
-            alert("No se pudo compartir");
-        }
-    }else{
-        alert("Tu navegador no soporta compartir archivos");
-    }
-}
-
-// AUTO LOAD
-loadFlights();
-
+    init();
+})();
 </script>
 
 </body>
