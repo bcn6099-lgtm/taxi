@@ -198,12 +198,14 @@
     }
 
     // --- Mostrar tarjeta principal (terminal + compañía)
-    function showResult(title, terminal, meta) {
+    function showResult(title, terminal, meta, hideTerminal = false) {
         const resultDiv = document.getElementById('resultDisplay');
         resultDiv.style.display = 'block';
         document.getElementById('terminalValue').textContent = terminal;
         document.getElementById('companyName').textContent = title;
         document.getElementById('resultMeta').textContent = meta;
+        const resultCard = document.querySelector('.result-card');
+        resultCard.style.display = hideTerminal ? 'none' : '';
     }
 
     // --- FORMULARIO 1: Seleccionar aerolínea -> mostrar vuelos futuros (>=20min) por nombre de compañía
@@ -265,7 +267,7 @@
                 const formattedHour = formatTime(timeLocal);
                 
                 const div = document.createElement('div');
-                div.className = 'flight-row-item';
+                div.className = 'flight-row-item flight-row-clickable';
                 div.style.display = 'flex';
                 div.style.justifyContent = 'space-between';
                 div.style.alignItems = 'center';
@@ -275,7 +277,14 @@
                     <span style="min-width: 80px; color: var(--gold);">${flightNum}</span>
                     <span style="flex:2; text-align:left; color: var(--gold);">➔ ${destination}</span>
                     <small style="min-width: 70px; color: var(--gold);">✈ ${gate}</small>
+                    <small style="color:#444; font-size:16px;">›</small>
                 `;
+                div.addEventListener('click', () => {
+                    document.getElementById('flightInput').value = flight.number;
+                    displayFullFlightInfo(flight);
+                    document.getElementById('upcomingFlights').innerHTML = '';
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
                 upcomingContainer.appendChild(div);
             });
         }
@@ -396,7 +405,7 @@
         const baggageInfo  = mov.baggageClaim || flight.baggage || '--';
         
         const metaText = `${flightNumber} ➔ ${destCity} ${destIATA ? '('+destIATA+')' : ''}`;
-        showResult(airlineName, terminalDisplay, metaText);
+        showResult(airlineName, terminalDisplay, metaText, true);
         
         // Determinar clase de estado
         const statusOk = ['Embarcando','Despegado','En vuelo','Puerta abierta','Programado','Previsto'];

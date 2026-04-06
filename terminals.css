@@ -111,6 +111,13 @@ body {
     font-family: 'Share Tech Mono'; 
     font-size: 16px;
 }
+.flight-row-clickable {
+    cursor: pointer;
+    transition: background 0.15s;
+}
+.flight-row-clickable:hover {
+    background: #111;
+}
 
 /* Detail flight card - flight board design */
 .detail-card {
