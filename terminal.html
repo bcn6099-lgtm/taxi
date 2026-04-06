@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BCN RADAR 2026</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="terminals.css">
+</head>
+<body>
+
+<button class="hamburger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+</button>
+
+<nav id="sideMenu" class="side-menu">
+    <button class="menu-close" onclick="toggleMenu()">✕</button>
+    <h3 style="font-family: 'Orbitron'; color: var(--gold); font-size: 12px; margin-bottom: 20px;">SYSTEM CONFIG</h3>
+    <label style="font-size: 10px; color: #777;">API KEY AERODATABOX</label>
+    <input type="password" id="apiKeyInput" class="menu-input" placeholder="Ingresar Key...">
+    <button class="menu-btn" onclick="saveApiKey()">GUARDAR KEY</button>
+    <button class="menu-btn outline" onclick="openManager()">EDITAR AEROLÍNEAS</button>
+</nav>
+
+<div class="container">
+    <header class="header-block">
+        <div class="header-content">
+            <h1>BCN TERMINAL</h1>
+            <p style="font-family: 'Share Tech Mono'; color: #aaa; letter-spacing: 3px;">EL PRAT RADAR v3.0</p>
+        </div>
+    </header>
+
+    <div class="search-block">
+        <span class="block-label">01. BÚSQUEDA POR COMPAÑÍA</span>
+        <div class="search-row">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" class="search-input" placeholder="Ej: Vueling..." autocomplete="off">
+            <span class="clear-btn" onclick="clearSearch('searchInput', 'suggestions')">✕</span>
+        </div>
+        <div id="suggestions" class="suggestions-container"></div>
+    </div>
+
+    <div class="search-block">
+        <span class="block-label">02. ESTADO DE VUELO (Nº VUELO)</span>
+        <div class="search-row">
+            <span class="search-icon">✈</span>
+            <input type="text" id="flightInput" class="flight-input" placeholder="Ej: VY1234" autocomplete="off">
+            <span class="clear-btn" onclick="clearSearch('flightInput', 'flightSuggestions')">✕</span>
+        </div>
+        <div id="flightSuggestions" class="suggestions-container"></div>
+    </div>
+
+    <div id="loadingLine" class="loading-line">ACCEDIENDO A DATOS EN TIEMPO REAL...</div>
+
+    <div id="resultDisplay" class="result-section">
+        <div class="result-card">
+            <div id="terminalValue" class="terminal-huge">--</div>
+            <div id="companyName" class="result-airline">--</div>
+            <div id="resultMeta" class="result-meta"></div>
+        </div>
+        <div id="flightInfoGrid" class="flight-info-grid"></div>
+        <div id="upcomingFlights"></div>
+    </div>
+</div>
+
+<div id="managerModal" class="modal">
+    <div class="modal-box">
+        <h3 style="font-family: 'Orbitron'; color: var(--gold); margin-bottom: 15px; font-size: 14px;">DATABASE EDITOR</h3>
+        <div id="editorList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
+        <button class="menu-btn outline" onclick="addAirline()">+ AÑADIR NUEVA</button>
+        <button class="menu-btn" onclick="closeManager()">CERRAR Y GUARDAR</button>
+    </div>
+</div>
+
+<script>
+    let apiKey = localStorage.getItem('adb_apikey') || '';
+    
+    const defaultAirlines = [
+        // T1
+        {n:'Aegean Airlines', t:'T1', g:'A, B'}, {n:'Air Algerie', t:'T1', g:'B'}, {n:'Air Canada', t:'T1', g:'A'},
+        {n:'Air China', t:'T1', g:'A'}, {n:'Air Europa', t:'T1', g:'B, C'}, {n:'Air France', t:'T1', g:'B'},
+        {n:'Air Nostrum', t:'T1', g:'B, C'}, {n:'American Airlines', t:'T1', g:'A'}, {n:'Brussels Airlines', t:'T1', g:'B'},
+        {n:'British Airways', t:'T1', g:'B'}, {n:'Cathay Pacific', t:'T1', g:'A'}, {n:'China Eastern Airlines', t:'T1', g:'A'},
+        {n:'China Southern Airlines', t:'T1', g:'A'}, {n:'Croatia Airlines', t:'T1', g:'B'}, {n:'Delta Air Lines', t:'T1', g:'A'},
+        {n:'EgyptAir', t:'T1', g:'A'}, {n:'El Al', t:'T1', g:'A'}, {n:'Emirates', t:'T1', g:'A'},
+        {n:'Finnair', t:'T1', g:'B'}, {n:'Iberia', t:'T1', g:'B'}, {n:'Iberia Express', t:'T1', g:'B'},
+        {n:'ITA Airways', t:'T1', g:'B'}, {n:'Japan Airlines', t:'T1', g:'A'}, {n:'KLM Royal Dutch Airlines', t:'T1', g:'B'},
+        {n:'Korean Air', t:'T1', g:'A'}, {n:'LATAM Airlines', t:'T1', g:'A'}, {n:'LEVEL', t:'T1', g:'A'},
+        {n:'LOT Polish Airlines', t:'T1', g:'B'}, {n:'Lufthansa', t:'T1', g:'B'}, {n:'Luxair', t:'T1', g:'B'},
+        {n:'Qatar Airways', t:'T1', g:'A'}, {n:'Royal Air Maroc', t:'T1', g:'A'}, {n:'Royal Jordanian', t:'T1', g:'A'},
+        {n:'SAS Scandinavian Airlines', t:'T1', g:'B'}, {n:'Saudia', t:'T1', g:'A'}, {n:'Singapore Airlines', t:'T1', g:'A'},
+        {n:'SWISS', t:'T1', g:'B'}, {n:'TAP Air Portugal', t:'T1', g:'B'}, {n:'TAROM', t:'T1', g:'B'},
+        {n:'Thai Airways', t:'T1', g:'A'}, {n:'Turkish Airlines', t:'T1', g:'A'}, {n:'United Airlines', t:'T1', g:'A'},
+        {n:'Vueling', t:'T1', g:'B, C'},
+        // T2
+        {n:'Aer Lingus', t:'T2', g:'U, W'}, {n:'Air Arabia Maroc', t:'T2', g:'U, W'}, {n:'Air Moldova', t:'T2', g:'U, W'},
+        {n:'Air Transat', t:'T2', g:'U, W'}, {n:'Atlantic Airways', t:'T2', g:'U, W'}, {n:'Azur Air', t:'T2', g:'U, W'},
+        {n:'Belavia', t:'T2', g:'U, W'}, {n:'Blue Air', t:'T2', g:'U, W'}, {n:'Bulgaria Air', t:'T2', g:'U, W'},
+        {n:'Chalair Aviation', t:'T2', g:'U, W'}, {n:'Corendon Airlines', t:'T2', g:'U, W'}, {n:'Evelop Air', t:'T2', g:'U, W'},
+        {n:'I-Fly', t:'T2', g:'U, W'}, {n:'Icelandair', t:'T2', g:'U, W'}, {n:'Jet2.com', t:'T2', g:'U, W'},
+        {n:'Jetairfly', t:'T2', g:'U, W'}, {n:'Luxair', t:'T2', g:'U, W'}, {n:'Norwegian Air Shuttle', t:'T2', g:'U, W'},
+        {n:'Pakistan International Airlines', t:'T2', g:'U, W'}, {n:'Pegasus Airlines', t:'T2', g:'U, W'}, {n:'Ryanair', t:'T2', g:'U, W'},
+        {n:'Smartwings', t:'T2', g:'U, W'}, {n:'Transavia', t:'T2', g:'U, W'}, {n:'Ural Airlines', t:'T2', g:'U, W'},
+        {n:'UTair', t:'T2', g:'U, W'}, {n:'Volotea', t:'T2', g:'U, W'}, {n:'Wizz Air', t:'T2', g:'U, W'},
+        // T2C
+        {n:'Easyjet', t:'T2C', g:'R'}
+    ];
+
+    let airlines = JSON.parse(localStorage.getItem('adb_airlines')) || defaultAirlines;
+    let cachedFlights = [];
+
+    // --- Helper: formatear hora HH:MM desde ISO
+    function formatTime(iso) {
+        if (!iso) return "--:--";
+        // AerodataBox devuelve "2026-04-06 15:10+02:00" (espacio) o "2026-04-06T15:10..."
+        const sep = iso.includes('T') ? 'T' : ' ';
+        const timePart = iso.split(sep)[1];
+        if (!timePart) return "--:--";
+        return timePart.substring(0, 5);
+    }
+
+    function parseFlightDate(isoLike) {
+        if (!isoLike) return null;
+        // AerodataBox a veces devuelve "YYYY-MM-DD HH:MM" (con espacio) o sin zona horaria.
+        const normalized = typeof isoLike === 'string' ? isoLike.trim().replace(' ', 'T') : isoLike;
+        const d = new Date(normalized);
+        return Number.isNaN(d.getTime()) ? null : d;
+    }
+
+    function normalizeName(name) {
+        if (!name) return '';
+        return String(name)
+            .toLowerCase()
+            .normalize('NFD')
+            .replace(/[\u0300-\u036f]/g, '') // quitar tildes
+            .replace(/[^a-z0-9]/g, ''); // quitar espacios y signos
+    }
+
+    // --- Filtrar vuelos futuros (>= ahora + X minutos)
+    // AerodataBox: departure usa movement.scheduledTime.local / .utc
+    function getScheduledRaw(flight) {
+        return flight.movement?.scheduledTime?.local
+            || flight.movement?.scheduledTime?.utc
+            || flight.departure?.scheduledTimeLocal
+            || flight.departure?.scheduledTimeUtc
+            || null;
+    }
+    function filterFutureFlights(flights, minutesOffset = 20) {
+        const threshold = Date.now() + minutesOffset * 60 * 1000;
+        return flights.filter(flight => {
+            const scheduledRaw = getScheduledRaw(flight);
+            if (!scheduledRaw) return true; // sin fecha: incluir
+            const scheduled = parseFlightDate(scheduledRaw);
+            if (!scheduled) return true;
+            return scheduled.getTime() >= threshold;
+        });
+    }
+
+    // --- Obtener rango horario para la API (BCN local, próximas 12h)
+    function getBCNTime(plusHours = 0) {
+        const now = new Date();
+        now.setHours(now.getHours() + plusHours);
+        return now.toISOString().slice(0, 16);
+    }
+
+    // --- Cargar vuelos desde AerodataBox (con caché)
+    async function loadFlights() {
+        if (!apiKey) { 
+            alert("⚠️ Configura la API KEY en el menú lateral (llave de AerodataBox)."); 
+            return []; 
+        }
+        if (cachedFlights.length > 0) return cachedFlights;
+
+        const loadingLine = document.getElementById('loadingLine');
+        loadingLine.style.display = 'block';
+        try {
+            const from = getBCNTime(0);
+            const to = getBCNTime(12);
+            const url = `https://aerodatabox.p.rapidapi.com/flights/airports/iata/BCN/${from}/${to}?direction=Departure&withCancelled=false`;
+            const res = await fetch(url, {
+                headers: { 
+                    'x-rapidapi-key': apiKey, 
+                    'x-rapidapi-host': 'aerodatabox.p.rapidapi.com' 
+                }
+            });
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            const data = await res.json();
+            cachedFlights = data.departures || [];
+        } catch (e) { 
+            console.error("Error cargando API:", e);
+            alert("❌ Error al conectar con AerodataBox. Revisa tu API Key o conexión.");
+            cachedFlights = [];
+        }
+        loadingLine.style.display = 'none';
+        return cachedFlights;
+    }
+
+    // --- Mostrar tarjeta principal (terminal + compañía)
+    function showResult(title, terminal, meta) {
+        const resultDiv = document.getElementById('resultDisplay');
+        resultDiv.style.display = 'block';
+        document.getElementById('terminalValue').textContent = terminal;
+        document.getElementById('companyName').textContent = title;
+        document.getElementById('resultMeta').textContent = meta;
+    }
+
+    // --- FORMULARIO 1: Seleccionar aerolínea -> mostrar vuelos futuros (>=20min) por nombre de compañía
+    async function selectAirline(airline) {
+        const suggestionsBox = document.getElementById('suggestions');
+        suggestionsBox.classList.remove('visible');
+        document.getElementById('searchInput').value = airline.n;
+        
+        const terminalDB = airline.t;
+        const gates = airline.g || '--';
+        showResult(airline.n, terminalDB, `Terminal ${terminalDB} | Puertas: ${gates}`);
+        
+        document.getElementById('flightInfoGrid').innerHTML = '';
+        const upcomingContainer = document.getElementById('upcomingFlights');
+        
+        upcomingContainer.innerHTML = '';
+
+        const allFlights = await loadFlights();
+        if (!allFlights.length) {
+            upcomingContainer.innerHTML = `<h4 style="color:var(--gold); font-size:11px; margin-top:20px;">✈ PRÓXIMOS VUELOS DE ${airline.n.toUpperCase()}</h4>
+                                           <div class="flight-row-item">⚠️ No hay datos de vuelos disponibles.</div>`;
+            return;
+        }
+        
+        // Filtrar por aerolínea: matching tolerante (normalizado) para diferencias tipo "Vueling" vs "Vueling Airlines"
+        const needle = normalizeName(airline.n);
+        let airlineFlights = allFlights.filter(flight => {
+            const apiAirlineName = flight.airline?.name || '';
+            const hay = normalizeName(apiAirlineName);
+            if (!hay || !needle) return false;
+            return hay.includes(needle) || needle.includes(hay);
+        });
+        
+        // Aplicar filtro de futuro (>=20 minutos desde ahora)
+        airlineFlights = filterFutureFlights(airlineFlights, 20);
+        
+        // Ordenar por hora de salida
+        airlineFlights.sort((a, b) => {
+            const da = parseFlightDate(getScheduledRaw(a))?.getTime() || 0;
+            const db = parseFlightDate(getScheduledRaw(b))?.getTime() || 0;
+            return da - db;
+        });
+        
+        upcomingContainer.innerHTML = `<h4 style="color:var(--gold); font-size:11px; margin-top:20px;">✈ PRÓXIMOS VUELOS DE ${airline.n.toUpperCase()} (próximas 12h, salida +20min)</h4>`;
+        
+        if (airlineFlights.length === 0) {
+            // Diagnóstico útil en pantalla (sin romper UI)
+            const sample = allFlights.slice(0, 5).map(f => `${f.airline?.name || '¿?'} · ${f.number || '----'}`).join(' | ');
+            upcomingContainer.innerHTML += `<div class="flight-row-item">📭 No hay vuelos para esta aerolínea (salida >= 20 min).<br><small style="opacity:.7">Muestra API (5): ${escapeHtml(sample)}</small></div>`;
+        } else {
+            airlineFlights.slice(0, 30).forEach(flight => {
+                const flightNum = flight.number || '----';
+                const destination = flight.movement?.airport?.name
+                                 || flight.arrival?.airport?.municipalityName
+                                 || flight.arrival?.airport?.name
+                                 || 'Destino ?';
+                const gate = flight.movement?.gate || flight.departure?.gate || '--';
+                const timeLocal = getScheduledRaw(flight);
+                const formattedHour = formatTime(timeLocal);
+                
+                const div = document.createElement('div');
+                div.className = 'flight-row-item';
+                div.style.display = 'flex';
+                div.style.justifyContent = 'space-between';
+                div.style.alignItems = 'center';
+                div.style.gap = '10px';
+                div.innerHTML = `
+                    <strong style="min-width: 60px;">${formattedHour}</strong>
+                    <span style="min-width: 80px;">${flightNum}</span>
+                    <span style="flex:2; text-align:left;">➔ ${destination}</span>
+                    <small style="min-width: 70px;">Puerta: ${gate}</small>
+                `;
+                upcomingContainer.appendChild(div);
+            });
+        }
+    }
+    
+    // --- FORMULARIO 2: Sugerencias a partir de 3 caracteres
+    async function setupFlightSuggestions() {
+        const flightInput = document.getElementById('flightInput');
+        const suggestionsBox = document.getElementById('flightSuggestions');
+        
+        flightInput.addEventListener('input', async (e) => {
+            let rawValue = e.target.value.toUpperCase().replace(/\s/g, '');
+            const val = rawValue;
+            
+            if (val.length < 3) {
+                suggestionsBox.classList.remove('visible');
+                return;
+            }
+            
+            const flights = await loadFlights();
+            if (!flights.length) {
+                suggestionsBox.classList.remove('visible');
+                return;
+            }
+            
+            const matches = flights.filter(f => {
+                const flightNum = (f.number || '').replace(/\s/g, '').toUpperCase();
+                return flightNum.includes(val);
+            });
+            
+            suggestionsBox.innerHTML = '';
+            if (matches.length === 0) {
+                suggestionsBox.classList.remove('visible');
+                return;
+            }
+            
+            matches.slice(0, 12).forEach(flight => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                const dest = flight.movement?.airport?.name
+                          || flight.arrival?.airport?.name
+                          || flight.movement?.airport?.iata
+                          || 'Destino';
+                const time = formatTime(getScheduledRaw(flight));
+                div.innerHTML = `<div><strong>${flight.number}</strong><br><small>${time} · ${dest}</small></div>`;
+                div.onclick = () => {
+                    suggestionsBox.classList.remove('visible');
+                    flightInput.value = flight.number;
+                    displayFullFlightInfo(flight);
+                };
+                suggestionsBox.appendChild(div);
+            });
+            suggestionsBox.classList.add('visible');
+        });
+
+        // Permitir buscar por Enter aunque no se haga clic en sugerencia
+        flightInput.addEventListener('keydown', async (e) => {
+            if (e.key !== 'Enter') return;
+            const val = (flightInput.value || '').toUpperCase().replace(/\s/g, '');
+            if (!val) return;
+            e.preventDefault();
+
+            const flights = await loadFlights();
+            if (!flights.length) return;
+
+            const exact = flights.find(f => ((f.number || '').toUpperCase().replace(/\s/g, '')) === val);
+            if (exact) {
+                suggestionsBox.classList.remove('visible');
+                displayFullFlightInfo(exact);
+                return;
+            }
+
+            const partial = flights.find(f => ((f.number || '').toUpperCase().replace(/\s/g, '')).includes(val));
+            if (partial) {
+                suggestionsBox.classList.remove('visible');
+                displayFullFlightInfo(partial);
+                return;
+            }
+        });
+    }
+    
+    // --- Mostrar TODA la información disponible del vuelo (AerodataBox) con campos alternativos
+    function displayFullFlightInfo(flight) {
+        if (!flight) return;
+        try {
+        // Extraer datos — AerodataBox usa flight.movement.* para el destino/hora/puerta
+        const airlineName  = flight.airline?.name || 'Aerolínea';
+        const flightNumber = flight.number || '----';
+
+        // Destino: en búsqueda por vuelo viene en movement.airport; en lista de airport viene en arrival.airport
+        const destAirport  = flight.movement?.airport || flight.arrival?.airport || {};
+        const destCity     = destAirport.name || destAirport.municipalityName || destAirport.shortName || 'Desconocido';
+        const destIATA     = destAirport.iata || '';
+
+        // Terminal y puerta
+        const mov          = flight.movement || flight.departure || {};
+        const apiTerminal  = mov.terminal;
+        let terminalDisplay = apiTerminal ? `T${String(apiTerminal).replace(/^T/i, '')}` : '--';
+        const dbMatch      = airlines.find(a => airlineName.toUpperCase().includes(a.n.toUpperCase()));
+        if (terminalDisplay === '--' && dbMatch?.t) terminalDisplay = dbMatch.t;
+        const gate         = mov.gate || (dbMatch?.g || '--');
+
+        // Horas: scheduledTime.local / revisedTime.local
+        const scheduledLocal = mov.scheduledTime?.local || mov.scheduledTime?.utc
+                            || flight.departure?.scheduledTimeLocal || null;
+        const estimatedLocal = mov.revisedTime?.local  || mov.revisedTime?.utc
+                            || flight.departure?.estimatedTimeLocal || null;
+
+        // Estado, avión, facturación, equipaje
+        const statusRaw    = flight.status || 'Programado';
+        const statusMap    = { 'Expected':'Previsto','Scheduled':'Programado','Departed':'Despegado',
+                               'Landed':'Aterrizado','Delayed':'Retrasado','Cancelled':'Cancelado',
+                               'Diverted':'Desviado','InFlight':'En vuelo','Boarding':'Embarcando',
+                               'GateClosed':'Puerta cerrada','GateOpen':'Puerta abierta' };
+        const status       = statusMap[statusRaw] || statusRaw;
+        const aircraftModel = flight.aircraft?.model || 'No especificado';
+        const checkinInfo  = mov.checkInDesk || flight.checkin || flight.checkIn || '--';
+        const baggageInfo  = mov.baggageClaim || flight.baggage || '--';
+        
+        const metaText = `${flightNumber} ➔ ${destCity} ${destIATA ? '('+destIATA+')' : ''}`;
+        showResult(airlineName, terminalDisplay, metaText);
+        
+        const grid = document.getElementById('flightInfoGrid');
+        grid.innerHTML = `
+            <div class="info-pill"><span class="info-pill-label">AEROLÍNEA</span><span class="info-pill-value">${escapeHtml(airlineName)}</span></div>
+            <div class="info-pill"><span class="info-pill-label">VUELO</span><span class="info-pill-value">${flightNumber}</span></div>
+            <div class="info-pill"><span class="info-pill-label">DESTINO</span><span class="info-pill-value">${escapeHtml(destCity)} (${destIATA || '--'})</span></div>
+            <div class="info-pill"><span class="info-pill-label">HORA PROG.</span><span class="info-pill-value">${scheduledLocal ? formatTime(scheduledLocal) : '--:--'}</span></div>
+            ${estimatedLocal ? `<div class="info-pill"><span class="info-pill-label">HORA EST.</span><span class="info-pill-value">${formatTime(estimatedLocal)}</span></div>` : ''}
+            <div class="info-pill"><span class="info-pill-label">ESTADO</span><span class="info-pill-value">${escapeHtml(status)}</span></div>
+            <div class="info-pill"><span class="info-pill-label">TERMINAL</span><span class="info-pill-value">${terminalDisplay}</span></div>
+            <div class="info-pill"><span class="info-pill-label">PUERTA</span><span class="info-pill-value">${escapeHtml(gate)}</span></div>
+            <div class="info-pill"><span class="info-pill-label">AVIÓN</span><span class="info-pill-value">${escapeHtml(aircraftModel)}</span></div>
+            <div class="info-pill"><span class="info-pill-label">FACTURACIÓN</span><span class="info-pill-value">${escapeHtml(checkinInfo)}</span></div>
+            <div class="info-pill"><span class="info-pill-label">EQUIPAJE</span><span class="info-pill-value">${escapeHtml(baggageInfo)}</span></div>
+        `;
+        
+        document.getElementById('upcomingFlights').innerHTML = '';
+        } catch (err) {
+            console.error('displayFullFlightInfo error', err, flight);
+            const grid = document.getElementById('flightInfoGrid');
+            const raw = JSON.stringify(flight, null, 2);
+            grid.innerHTML = `<div class="info-pill" style="grid-column:1/-1;">
+                <span class="info-pill-label">ERROR MOSTRANDO VUELO</span>
+                <span class="info-pill-value" style="font-family:'Share Tech Mono'; white-space:pre-wrap; font-size:10px;">${escapeHtml(String(err))}\n\n${escapeHtml(raw)}</span>
+            </div>`;
+        }
+    }
+    
+    function escapeHtml(str) {
+        if (!str) return '--';
+        return String(str).replace(/[&<>]/g, function(m) {
+            if (m === '&') return '&amp;';
+            if (m === '<') return '&lt;';
+            if (m === '>') return '&gt;';
+            return m;
+        });
+    }
+    
+    // --- Limpieza de campos
+    function clearSearch(inputId, suggestionsId) {
+        const inputElem = document.getElementById(inputId);
+        if (inputElem) inputElem.value = '';
+        const suggBox = document.getElementById(suggestionsId);
+        if (suggBox) suggBox.classList.remove('visible');
+        const resultDiv = document.getElementById('resultDisplay');
+        if (resultDiv) resultDiv.style.display = 'none';
+        document.getElementById('flightInfoGrid').innerHTML = '';
+        document.getElementById('upcomingFlights').innerHTML = '';
+    }
+    
+    // --- Manejadores de menú y modal
+    function toggleMenu() { 
+        document.getElementById('sideMenu').classList.toggle('open'); 
+    }
+    
+    function saveApiKey() { 
+        const newKey = document.getElementById('apiKeyInput').value.trim();
+        if (newKey) {
+            apiKey = newKey;
+            localStorage.setItem('adb_apikey', apiKey);
+            cachedFlights = [];
+            alert("✅ API Key guardada. Los próximos vuelos se actualizarán.");
+        } else {
+            alert("Por favor ingresa una API Key válida.");
+        }
+        toggleMenu(); 
+    }
+    
+    function openManager() { 
+        document.getElementById('managerModal').classList.add('open'); 
+        toggleMenu(); 
+        renderEditor(); 
+    }
+    
+    function closeManager() { 
+        document.getElementById('managerModal').classList.remove('open'); 
+        localStorage.setItem('adb_airlines', JSON.stringify(airlines));
+    }
+    
+    function renderEditor() {
+        const list = document.getElementById('editorList'); 
+        list.innerHTML = '';
+        airlines.forEach((a, i) => {
+            const div = document.createElement('div'); 
+            div.className = 'editor-row';
+            div.style.display = 'flex';
+            div.style.gap = '6px';
+            div.style.marginBottom = '8px';
+            div.innerHTML = `
+                <input type="text" value="${escapeHtml(a.n)}" style="flex:3;" oninput="airlines[${i}].n=this.value">
+                <input type="text" value="${escapeHtml(a.t)}" style="flex:1;" oninput="airlines[${i}].t=this.value">
+                <input type="text" value="${escapeHtml(a.g)}" style="flex:1;" oninput="airlines[${i}].g=this.value">
+                <button onclick="airlines.splice(${i},1);renderEditor()" style="color:red; background:none; border:none; cursor:pointer; font-size:16px;">✕</button>
+            `;
+            list.appendChild(div);
+        });
+    }
+    
+    function addAirline() { 
+        airlines.push({ n: 'NUEVA AEROLÍNEA', t: 'T1', g: '' }); 
+        renderEditor(); 
+    }
+    
+    // --- Inicialización: buscador por compañía
+    function initCompanySearch() {
+        const searchInput = document.getElementById('searchInput');
+        const suggestionsBox = document.getElementById('suggestions');
+        
+        searchInput.addEventListener('input', (e) => {
+            const val = e.target.value.toUpperCase();
+            if (val.length < 2) {
+                suggestionsBox.classList.remove('visible');
+                return;
+            }
+            const matches = airlines.filter(a => a.n.toUpperCase().includes(val));
+            suggestionsBox.innerHTML = '';
+            if (matches.length === 0) {
+                suggestionsBox.classList.remove('visible');
+                return;
+            }
+            matches.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'suggestion-item';
+                div.innerHTML = `<span>${escapeHtml(m.n)}</span><span style="color:var(--gold)">${m.t}</span>`;
+                div.onclick = () => selectAirline(m);
+                suggestionsBox.appendChild(div);
+            });
+            suggestionsBox.classList.add('visible');
+        });
+    }
+    
+    // Cerrar sugerencias al hacer clic fuera
+    document.addEventListener('click', function(e) {
+        const suggestions1 = document.getElementById('suggestions');
+        const suggestions2 = document.getElementById('flightSuggestions');
+        const searchInput = document.getElementById('searchInput');
+        const flightInput = document.getElementById('flightInput');
+        if (suggestions1 && !searchInput.contains(e.target) && !suggestions1.contains(e.target)) {
+            suggestions1.classList.remove('visible');
+        }
+        if (suggestions2 && !flightInput.contains(e.target) && !suggestions2.contains(e.target)) {
+            suggestions2.classList.remove('visible');
+        }
+    });
+    
+    // --- Arranque
+    initCompanySearch();
+    setupFlightSuggestions();
+    
+    if (apiKey) {
+        loadFlights().catch(e => console.warn("Precarga silenciosa falló", e));
+    }
+    
+    // Exponer funciones globales
+    window.toggleMenu = toggleMenu;
+    window.saveApiKey = saveApiKey;
+    window.openManager = openManager;
+    window.closeManager = closeManager;
+    window.renderEditor = renderEditor;
+    window.addAirline = addAirline;
+    window.clearSearch = clearSearch;
+    window.selectAirline = selectAirline;
+    window.displayFullFlightInfo = displayFullFlightInfo;
+</script>
+</body>
+</html>

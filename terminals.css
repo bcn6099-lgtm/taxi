@@ -1,0 +1,136 @@
+:root { 
+    --gold: #ffc107; 
+    --danger: #ff4444; 
+    --bg: #000;
+    --surface: #0a0a0a;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body { 
+    font-family: 'Rajdhani', sans-serif; 
+    background: var(--bg); 
+    color: #fff; 
+}
+
+.container { 
+    max-width: 600px; 
+    margin: 0 auto; 
+    background: var(--surface); 
+    min-height: 100vh; 
+    border-left: 1px solid #222; 
+    border-right: 1px solid #222;
+}
+
+.header-block { 
+    height: 120px; 
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    border-bottom: 2px solid rgba(255,193,7,0.2); 
+}
+
+.header-block h1 { 
+    font-family: 'Orbitron'; 
+    color: var(--gold); 
+    letter-spacing: 3px; 
+    font-size: 24px;
+}
+
+.search-block { padding: 15px 20px; border-bottom: 1px solid #222; }
+.block-label { font-family: 'Orbitron'; font-size: 10px; color: var(--gold); margin-bottom: 8px; display: block; }
+
+.search-row { display: flex; align-items: center; background: #000; border: 1px solid #333; }
+.search-icon { padding: 0 15px; color: var(--gold); }
+.search-input, .flight-input { 
+    flex: 1; 
+    background: transparent; 
+    border: none; 
+    color: #fff; 
+    padding: 12px; 
+    font-family: 'Share Tech Mono'; 
+    font-size: 16px;
+    outline: none; 
+}
+
+.clear-btn { 
+    color: var(--danger); 
+    padding: 0 15px; 
+    cursor: pointer; 
+    font-weight: bold; 
+    font-size: 18px; 
+    transition: opacity 0.2s;
+}
+.clear-btn:hover { opacity: 0.6; }
+
+.suggestions-container { 
+    background: #0a0a0a; 
+    border: 1px solid rgba(255,193,7,0.3); 
+    max-height: 250px; 
+    overflow-y: auto; 
+    display: none; 
+    position: relative; 
+    z-index: 100; 
+}
+.suggestions-container.visible { display: block; }
+.suggestion-item { 
+    padding: 12px; 
+    border-bottom: 1px solid #222; 
+    cursor: pointer; 
+    display: flex; 
+    justify-content: space-between; 
+    font-family: 'Share Tech Mono'; 
+}
+.suggestion-item:hover { background: #111; }
+
+.result-section { display: none; padding: 20px; animation: fadeIn 0.4s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+.result-card { border: 1px solid rgba(255,193,7,0.3); padding: 30px; text-align: center; margin-bottom: 15px; }
+.terminal-huge { font-family: 'Orbitron'; font-size: 90px; color: var(--gold); line-height: 1; text-shadow: 0 0 20px rgba(255,193,7,0.4); }
+.result-airline { font-family: 'Orbitron'; margin: 10px 0; font-size: 20px; }
+.result-meta { font-family: 'Share Tech Mono'; color: #888; font-size: 14px; }
+
+.flight-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 15px; }
+.info-pill { background: #111; padding: 12px; border: 1px solid #222; }
+.info-pill-label { font-size: 9px; color: #555; display: block; margin-bottom: 4px; }
+.info-pill-value { color: var(--gold); font-family: 'Share Tech Mono'; font-size: 16px; }
+
+.flight-row-item { 
+    display: flex; 
+    justify-content: space-between; 
+    padding: 10px; 
+    border-bottom: 1px solid #111; 
+    font-family: 'Share Tech Mono'; 
+    font-size: 14px; 
+}
+
+.hamburger { position: fixed; top: 15px; left: 15px; z-index: 1000; background: #000; border: 1px solid var(--gold); padding: 8px; cursor: pointer; }
+.hamburger span { width: 18px; height: 2px; background: var(--gold); display: block; margin: 3px; }
+
+.side-menu { 
+    position: fixed; 
+    top: 0; 
+    left: -300px; 
+    width: 280px; 
+    height: 100%; 
+    background: #050505; 
+    transition: 0.3s; 
+    padding: 60px 20px; 
+    z-index: 999; 
+    border-right: 1px solid #222;
+}
+.side-menu.open { left: 0; }
+.menu-close { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--gold); font-size: 20px; cursor: pointer; }
+.menu-input { width: 100%; background: #000; border: 1px solid #333; color: #fff; padding: 10px; margin: 10px 0; font-family: 'Share Tech Mono'; }
+.menu-btn { width: 100%; padding: 12px; background: var(--gold); border: none; font-weight: bold; cursor: pointer; margin-bottom: 10px; font-family: 'Orbitron'; font-size: 12px; }
+.menu-btn.outline { background: transparent; border: 1px solid var(--gold); color: var(--gold); }
+
+.loading-line { display: none; text-align: center; padding: 15px; color: var(--gold); font-size: 11px; font-family: 'Share Tech Mono'; animation: blink 1s infinite; }
+@keyframes blink { 50% { opacity: 0.3; } }
+
+.modal { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 2000; }
+.modal.open { display: flex; }
+.modal-box { background: #111; padding: 25px; width: 95%; max-width: 500px; border: 1px solid var(--gold); }
+.editor-row { display: grid; grid-template-columns: 1fr 45px 70px 30px; gap: 5px; margin-bottom: 5px; }
+.editor-row input { background: #000; color: #fff; border: 1px solid #333; font-size: 11px; padding: 5px; }
