@@ -67,7 +67,13 @@
 
 <div id="managerModal" class="modal">
     <div class="modal-box">
-        <h3 style="font-family: 'Orbitron'; color: var(--gold); margin-bottom: 15px; font-size: 14px;">DATABASE EDITOR</h3>
+        <h3 style="font-family: 'Orbitron'; color: var(--gold); margin-bottom: 10px; font-size: 14px;">DATABASE EDITOR</h3>
+        <div style="display:flex; gap:6px; padding: 0 0 6px; font-family:'Orbitron'; font-size:9px; color:#555; letter-spacing:1px;">
+            <span style="flex:3;">COMPANYIA</span>
+            <span style="flex:1;">TERM.</span>
+            <span style="flex:1;">PORTA TAXI</span>
+            <span style="width:22px;"></span>
+        </div>
         <div id="editorList" style="max-height: 300px; overflow-y: auto; margin-bottom: 15px;"></div>
         <button class="menu-btn outline" onclick="addAirline()">+ AÑADIR NUEVA</button>
         <button class="menu-btn" onclick="closeManager()">CERRAR Y GUARDAR</button>
@@ -79,33 +85,33 @@
     
     const defaultAirlines = [
         // T1
-        {n:'Aegean Airlines', t:'T1', g:'A, B'}, {n:'Air Algerie', t:'T1', g:'B'}, {n:'Air Canada', t:'T1', g:'A'},
-        {n:'Air China', t:'T1', g:'A'}, {n:'Air Europa', t:'T1', g:'B, C'}, {n:'Air France', t:'T1', g:'B'},
-        {n:'Air Nostrum', t:'T1', g:'B, C'}, {n:'American Airlines', t:'T1', g:'A'}, {n:'Brussels Airlines', t:'T1', g:'B'},
-        {n:'British Airways', t:'T1', g:'B'}, {n:'Cathay Pacific', t:'T1', g:'A'}, {n:'China Eastern Airlines', t:'T1', g:'A'},
-        {n:'China Southern Airlines', t:'T1', g:'A'}, {n:'Croatia Airlines', t:'T1', g:'B'}, {n:'Delta Air Lines', t:'T1', g:'A'},
-        {n:'EgyptAir', t:'T1', g:'A'}, {n:'El Al', t:'T1', g:'A'}, {n:'Emirates', t:'T1', g:'A'},
-        {n:'Finnair', t:'T1', g:'B'}, {n:'Iberia', t:'T1', g:'B'}, {n:'Iberia Express', t:'T1', g:'B'},
-        {n:'ITA Airways', t:'T1', g:'B'}, {n:'Japan Airlines', t:'T1', g:'A'}, {n:'KLM Royal Dutch Airlines', t:'T1', g:'B'},
-        {n:'Korean Air', t:'T1', g:'A'}, {n:'LATAM Airlines', t:'T1', g:'A'}, {n:'LEVEL', t:'T1', g:'A'},
-        {n:'LOT Polish Airlines', t:'T1', g:'B'}, {n:'Lufthansa', t:'T1', g:'B'}, {n:'Luxair', t:'T1', g:'B'},
-        {n:'Qatar Airways', t:'T1', g:'A'}, {n:'Royal Air Maroc', t:'T1', g:'A'}, {n:'Royal Jordanian', t:'T1', g:'A'},
-        {n:'SAS Scandinavian Airlines', t:'T1', g:'B'}, {n:'Saudia', t:'T1', g:'A'}, {n:'Singapore Airlines', t:'T1', g:'A'},
-        {n:'SWISS', t:'T1', g:'B'}, {n:'TAP Air Portugal', t:'T1', g:'B'}, {n:'TAROM', t:'T1', g:'B'},
-        {n:'Thai Airways', t:'T1', g:'A'}, {n:'Turkish Airlines', t:'T1', g:'A'}, {n:'United Airlines', t:'T1', g:'A'},
-        {n:'Vueling', t:'T1', g:'B, C'},
+        {n:'Aegean Airlines', t:'T1', g:''}, {n:'Air Algerie', t:'T1', g:''}, {n:'Air Canada', t:'T1', g:''},
+        {n:'Air China', t:'T1', g:''}, {n:'Air Europa', t:'T1', g:''}, {n:'Air France', t:'T1', g:''},
+        {n:'Air Nostrum', t:'T1', g:''}, {n:'American Airlines', t:'T1', g:''}, {n:'Brussels Airlines', t:'T1', g:''},
+        {n:'British Airways', t:'T1', g:''}, {n:'Cathay Pacific', t:'T1', g:''}, {n:'China Eastern Airlines', t:'T1', g:''},
+        {n:'China Southern Airlines', t:'T1', g:''}, {n:'Croatia Airlines', t:'T1', g:''}, {n:'Delta Air Lines', t:'T1', g:''},
+        {n:'EgyptAir', t:'T1', g:''}, {n:'El Al', t:'T1', g:''}, {n:'Emirates', t:'T1', g:''},
+        {n:'Finnair', t:'T1', g:''}, {n:'Iberia', t:'T1', g:''}, {n:'Iberia Express', t:'T1', g:''},
+        {n:'ITA Airways', t:'T1', g:''}, {n:'Japan Airlines', t:'T1', g:''}, {n:'KLM Royal Dutch Airlines', t:'T1', g:''},
+        {n:'Korean Air', t:'T1', g:''}, {n:'LATAM Airlines', t:'T1', g:''}, {n:'LEVEL', t:'T1', g:''},
+        {n:'LOT Polish Airlines', t:'T1', g:''}, {n:'Lufthansa', t:'T1', g:''}, {n:'Luxair', t:'T1', g:''},
+        {n:'Qatar Airways', t:'T1', g:''}, {n:'Royal Air Maroc', t:'T1', g:''}, {n:'Royal Jordanian', t:'T1', g:''},
+        {n:'SAS Scandinavian Airlines', t:'T1', g:''}, {n:'Saudia', t:'T1', g:''}, {n:'Singapore Airlines', t:'T1', g:''},
+        {n:'SWISS', t:'T1', g:''}, {n:'TAP Air Portugal', t:'T1', g:''}, {n:'TAROM', t:'T1', g:''},
+        {n:'Thai Airways', t:'T1', g:''}, {n:'Turkish Airlines', t:'T1', g:''}, {n:'United Airlines', t:'T1', g:''},
+        {n:'Vueling', t:'T1', g:''},
         // T2
-        {n:'Aer Lingus', t:'T2', g:'U, W'}, {n:'Air Arabia Maroc', t:'T2', g:'U, W'}, {n:'Air Moldova', t:'T2', g:'U, W'},
-        {n:'Air Transat', t:'T2', g:'U, W'}, {n:'Atlantic Airways', t:'T2', g:'U, W'}, {n:'Azur Air', t:'T2', g:'U, W'},
-        {n:'Belavia', t:'T2', g:'U, W'}, {n:'Blue Air', t:'T2', g:'U, W'}, {n:'Bulgaria Air', t:'T2', g:'U, W'},
-        {n:'Chalair Aviation', t:'T2', g:'U, W'}, {n:'Corendon Airlines', t:'T2', g:'U, W'}, {n:'Evelop Air', t:'T2', g:'U, W'},
-        {n:'I-Fly', t:'T2', g:'U, W'}, {n:'Icelandair', t:'T2', g:'U, W'}, {n:'Jet2.com', t:'T2', g:'U, W'},
-        {n:'Jetairfly', t:'T2', g:'U, W'}, {n:'Luxair', t:'T2', g:'U, W'}, {n:'Norwegian Air Shuttle', t:'T2', g:'U, W'},
-        {n:'Pakistan International Airlines', t:'T2', g:'U, W'}, {n:'Pegasus Airlines', t:'T2', g:'U, W'}, {n:'Ryanair', t:'T2', g:'U, W'},
-        {n:'Smartwings', t:'T2', g:'U, W'}, {n:'Transavia', t:'T2', g:'U, W'}, {n:'Ural Airlines', t:'T2', g:'U, W'},
-        {n:'UTair', t:'T2', g:'U, W'}, {n:'Volotea', t:'T2', g:'U, W'}, {n:'Wizz Air', t:'T2', g:'U, W'},
+        {n:'Aer Lingus', t:'T2', g:''}, {n:'Air Arabia Maroc', t:'T2', g:''}, {n:'Air Moldova', t:'T2', g:''},
+        {n:'Air Transat', t:'T2', g:''}, {n:'Atlantic Airways', t:'T2', g:''}, {n:'Azur Air', t:'T2', g:''},
+        {n:'Belavia', t:'T2', g:''}, {n:'Blue Air', t:'T2', g:''}, {n:'Bulgaria Air', t:'T2', g:''},
+        {n:'Chalair Aviation', t:'T2', g:''}, {n:'Corendon Airlines', t:'T2', g:''}, {n:'Evelop Air', t:'T2', g:''},
+        {n:'I-Fly', t:'T2', g:''}, {n:'Icelandair', t:'T2', g:''}, {n:'Jet2.com', t:'T2', g:''},
+        {n:'Jetairfly', t:'T2', g:''}, {n:'Luxair', t:'T2', g:''}, {n:'Norwegian Air Shuttle', t:'T2', g:''},
+        {n:'Pakistan International Airlines', t:'T2', g:''}, {n:'Pegasus Airlines', t:'T2', g:''}, {n:'Ryanair', t:'T2', g:''},
+        {n:'Smartwings', t:'T2', g:''}, {n:'Transavia', t:'T2', g:''}, {n:'Ural Airlines', t:'T2', g:''},
+        {n:'UTair', t:'T2', g:''}, {n:'Volotea', t:'T2', g:''}, {n:'Wizz Air', t:'T2', g:''},
         // T2C
-        {n:'Easyjet', t:'T2C', g:'R'}
+        {n:'Easyjet', t:'T2C', g:''}
     ];
 
     let airlines = JSON.parse(localStorage.getItem('adb_airlines')) || defaultAirlines;
@@ -215,8 +221,7 @@
         document.getElementById('searchInput').value = airline.n;
         
         const terminalDB = airline.t;
-        const gates = airline.g || '--';
-        showResult(airline.n, terminalDB, `Terminal ${terminalDB} | Puertas: ${gates}`);
+        showResult(airline.n, terminalDB, `Terminal ${terminalDB}`);
         
         document.getElementById('flightInfoGrid').innerHTML = '';
         const upcomingContainer = document.getElementById('upcomingFlights');
@@ -385,7 +390,7 @@
         let terminalDisplay = apiTerminal ? `T${String(apiTerminal).replace(/^T/i, '')}` : '--';
         const dbMatch      = airlines.find(a => airlineName.toUpperCase().includes(a.n.toUpperCase()));
         if (terminalDisplay === '--' && dbMatch?.t) terminalDisplay = dbMatch.t;
-        const gate         = mov.gate || (dbMatch?.g || '--');
+        const gate         = mov.gate || '--';
 
         // Horas: scheduledTime.local / revisedTime.local
         const scheduledLocal = mov.scheduledTime?.local || mov.scheduledTime?.utc
