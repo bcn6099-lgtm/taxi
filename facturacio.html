@@ -472,7 +472,50 @@
                     <div class="carrera-location-label">🟢 Origen (detecció automàtica)</div>
                     <div class="carrera-location-value" id="origenDisplay"><span class="carrera-location-loading">Detectant ubicació...</span></div>
                 </div>
-                <div id="cronometreDisplay" style="text-align:center; font-size:4.5rem; font-weight:700; color:var(--accent); letter-spacing:0.08em; font-family:'DSEG7Classic','Courier New',monospace; margin:2.5rem 0; text-shadow:0 0 16px rgba(255,193,7,0.45); line-height:1;">00:00</div>
+                <div id="cronometreDisplay" style="text-align:center; font-size:4.5rem; font-weight:700; color:var(--accent); letter-spacing:0.08em; font-family:'DSEG7Classic','Courier New',monospace; margin:1.5rem 0; text-shadow:0 0 16px rgba(255,193,7,0.45); line-height:1;">00:00</div>
+
+                <!-- Categorització en curs -->
+                <div style="margin-bottom:0.75rem;">
+                    <div class="pagament-selector" style="margin-bottom:0.5rem;">
+                        <button class="btn-pagament" id="cronTarifaTaximetre" onclick="selectTarifa('taxímetre')" type="button">
+                            <i class="fa-solid fa-gauge-high" style="font-size:1.1rem;"></i><span class="label">Taxímetre</span>
+                        </button>
+                        <button class="btn-pagament" id="cronTarifaTarifa3" onclick="selectTarifa('tarifa3')" type="button">
+                            <span style="font-size:1.1rem;"><i class="fa-solid fa-mobile-screen" style="font-size:0.75rem;vertical-align:middle;margin-right:2px;"></i>T3</span><span class="label">Tarifa 3</span>
+                        </button>
+                    </div>
+                    <div class="pagament-selector" style="margin-bottom:0.5rem;">
+                        <button class="btn-pagament" id="cronOrigenCarrer" onclick="selectOrigenCarrera('carrer')" type="button">
+                            <i class="fa-solid fa-hand" style="font-size:1.1rem;"></i><span class="label">Carrer</span>
+                        </button>
+                        <button class="btn-pagament" id="cronOrigenApp" onclick="selectOrigenCarrera('app_client')" type="button">
+                            <i class="fa-solid fa-route" style="font-size:1.1rem;"></i><span class="label">App</span>
+                        </button>
+                    </div>
+                    <div class="pagament-selector" style="margin-bottom:0.5rem;">
+                        <button class="btn-pagament" id="cronPagEfectiu" onclick="selectPagament('efectiu')" type="button">
+                            <i class="fa-solid fa-money-bills" style="font-size:1.1rem;"></i><span class="label">Efectiu</span>
+                        </button>
+                        <button class="btn-pagament" id="cronPagTargeta" onclick="selectPagament('targeta')" type="button">
+                            <i class="fa-solid fa-credit-card" style="font-size:1.1rem;"></i><span class="label">Targeta</span>
+                        </button>
+                        <button class="btn-pagament" id="cronPagApp" onclick="selectPagament('app')" type="button">
+                            <i class="fa-solid fa-mobile-screen" style="font-size:1.1rem;"></i><span class="label">Cobro App</span>
+                        </button>
+                    </div>
+                    <div class="pagament-selector">
+                        <button class="btn-pagament" id="cronAeroportNo" onclick="selectAeroport('ciutat')" type="button">
+                            <i class="fa-solid fa-city" style="font-size:1.1rem;"></i><span class="label">Ciutat</span>
+                        </button>
+                        <button class="btn-pagament" id="cronAeroportEntrada" onclick="selectAeroport('entrada')" type="button">
+                            <i class="fa-solid fa-plane" style="font-size:1.4rem;transform:rotate(-45deg);display:inline-block;"></i><span class="label">Aero ↑</span>
+                        </button>
+                        <button class="btn-pagament" id="cronAeroportSortida" onclick="selectAeroport('sortida')" type="button">
+                            <i class="fa-solid fa-plane" style="font-size:1.4rem;transform:rotate(135deg);display:inline-block;"></i><span class="label">Aero ↓</span>
+                        </button>
+                    </div>
+                </div>
+
                 <button class="btn-fi-carrera" onclick="mostrarFormImport()">🔴 Fi Carrera</button>
             </div>
 
@@ -3626,15 +3669,17 @@
 
         function selectTarifa(tipus) {
             tarifaSeleccionada = tipus;
-            document.getElementById('tarifaTaximetre').className = 'btn-pagament' + (tipus === 'taxímetre' ? ' selected' : '');
-            document.getElementById('tarifaTarifa3').className   = 'btn-pagament' + (tipus === 'tarifa3'   ? ' selected' : '');
+            // Panell import
+            const t1 = document.getElementById('tarifaTaximetre'); if(t1) t1.className = 'btn-pagament' + (tipus === 'taxímetre' ? ' selected' : '');
+            const t2 = document.getElementById('tarifaTarifa3');   if(t2) t2.className = 'btn-pagament' + (tipus === 'tarifa3'   ? ' selected' : '');
+            // Panell cronòmetre
+            const cTax = document.getElementById('cronTarifaTaximetre'); if(cTax) cTax.className = 'btn-pagament' + (tipus === 'taxímetre' ? ' selected' : '');
+            const cT3  = document.getElementById('cronTarifaTarifa3');   if(cT3)  cT3.className  = 'btn-pagament' + (tipus === 'tarifa3'   ? ' selected' : '');
             if (tipus === 'tarifa3') {
                 selectOrigenCarrera('app_client');
-                const btnCarrer = document.getElementById('origenCarreraCarrer');
-                if (btnCarrer) { btnCarrer.disabled = true; btnCarrer.style.opacity = '0.35'; }
+                ['origenCarreraCarrer','cronOrigenCarrer'].forEach(id => { const b = document.getElementById(id); if(b){b.disabled=true;b.style.opacity='0.35';} });
             } else {
-                const btnCarrer = document.getElementById('origenCarreraCarrer');
-                if (btnCarrer) { btnCarrer.disabled = false; btnCarrer.style.opacity = ''; }
+                ['origenCarreraCarrer','cronOrigenCarrer'].forEach(id => { const b = document.getElementById(id); if(b){b.disabled=false;b.style.opacity='';} });
             }
         }
 
@@ -3643,9 +3688,14 @@
             if (val === false || val === null || val === undefined) val = 'ciutat';
             if (val === true) val = 'entrada';
             aeroportSeleccionat = val;
-            document.getElementById('aeroportNo').className      = 'btn-pagament' + (val === 'ciutat'  ? ' selected' : '');
-            document.getElementById('aeroportEntrada').className = 'btn-pagament' + (val === 'entrada' ? ' selected' : '');
-            document.getElementById('aeroportSortida').className = 'btn-pagament' + (val === 'sortida' ? ' selected' : '');
+            // Panell import
+            const a1 = document.getElementById('aeroportNo');      if(a1) a1.className = 'btn-pagament' + (val === 'ciutat'  ? ' selected' : '');
+            const a2 = document.getElementById('aeroportEntrada'); if(a2) a2.className = 'btn-pagament' + (val === 'entrada' ? ' selected' : '');
+            const a3 = document.getElementById('aeroportSortida'); if(a3) a3.className = 'btn-pagament' + (val === 'sortida' ? ' selected' : '');
+            // Panell cronòmetre
+            const c1 = document.getElementById('cronAeroportNo');      if(c1) c1.className = 'btn-pagament' + (val === 'ciutat'  ? ' selected' : '');
+            const c2 = document.getElementById('cronAeroportEntrada'); if(c2) c2.className = 'btn-pagament' + (val === 'entrada' ? ' selected' : '');
+            const c3 = document.getElementById('cronAeroportSortida'); if(c3) c3.className = 'btn-pagament' + (val === 'sortida' ? ' selected' : '');
         }
 
         function selectTarifaDetail(tipus) {
@@ -3673,9 +3723,10 @@
 
         function selectPagament(tipus) {
             pagamentSeleccionat = tipus;
-            ['Efectiu','Targeta','App'].forEach(t => {
-                const btn = document.getElementById('pag' + t);
-                if (btn) btn.className = 'btn-pagament' + (['efectiu','targeta','app'][['Efectiu','Targeta','App'].indexOf(t)] === tipus ? ' selected' : '');
+            const map = [['Efectiu','efectiu'],['Targeta','targeta'],['App','app']];
+            map.forEach(([k,v]) => {
+                const b = document.getElementById('pag' + k); if(b) b.className = 'btn-pagament' + (v === tipus ? ' selected' : '');
+                const c = document.getElementById('cronPag' + k); if(c) c.className = 'btn-pagament' + (v === tipus ? ' selected' : '');
             });
         }
 
@@ -3689,8 +3740,10 @@
 
         function selectOrigenCarrera(tipus) {
             origenCarreraSeleccionat = tipus;
-            document.getElementById('origenCarreraCarrer').className = 'btn-pagament' + (tipus === 'carrer' ? ' selected' : '');
-            document.getElementById('origenCarreraApp').className = 'btn-pagament' + (tipus === 'app_client' ? ' selected' : '');
+            const b1 = document.getElementById('origenCarreraCarrer'); if(b1) b1.className = 'btn-pagament' + (tipus === 'carrer'     ? ' selected' : '');
+            const b2 = document.getElementById('origenCarreraApp');    if(b2) b2.className = 'btn-pagament' + (tipus === 'app_client' ? ' selected' : '');
+            const c1 = document.getElementById('cronOrigenCarrer');    if(c1) c1.className = 'btn-pagament' + (tipus === 'carrer'     ? ' selected' : '');
+            const c2 = document.getElementById('cronOrigenApp');       if(c2) c2.className = 'btn-pagament' + (tipus === 'app_client' ? ' selected' : '');
         }
 
         function selectOrigenCarreraDetail(tipus) {
@@ -3761,7 +3814,11 @@
                     selectOrigenCarrera(d.origenCarrera || 'carrer');
                     selectAeroport(d.aeroport || 'ciutat');
                 } else {
-                    // Estava al cronòmetre
+                    // Estava al cronòmetre: restaurar categories i sincronitzar botons
+                    selectTarifa(d.tarifa || 'taxímetre');
+                    selectPagament(d.pagament || 'efectiu');
+                    selectOrigenCarrera(d.origenCarrera || 'carrer');
+                    selectAeroport(d.aeroport || 'ciutat');
                     document.getElementById('cronometrePanel').style.display = 'block';
                     document.getElementById('importPanel').style.display = 'none';
                     startCronòmetre();
@@ -4584,14 +4641,11 @@
             stopCronòmetre();
             document.getElementById('cronometrePanel').style.display = 'none';
             document.getElementById('importPanel').style.display = 'block';
-            tarifaSeleccionada = 'taxímetre';
-            selectTarifa('taxímetre');
-            pagamentSeleccionat = 'efectiu';
-            selectPagament('efectiu');
-            origenCarreraSeleccionat = 'carrer';
-            selectOrigenCarrera('carrer');
-            aeroportSeleccionat = 'ciutat';
-            selectAeroport('ciutat');
+            // Conservar les categories ja seleccionades al cronòmetre (re-aplicar per sincronitzar botons del panell import)
+            selectTarifa(tarifaSeleccionada || 'taxímetre');
+            selectPagament(pagamentSeleccionat || 'efectiu');
+            selectOrigenCarrera(origenCarreraSeleccionat || 'carrer');
+            selectAeroport(aeroportSeleccionat || 'ciutat');
             saveCarreraPendent();
             scrollToFormTop();
             setTimeout(() => {
@@ -4616,6 +4670,16 @@
             // Nova carrera
             document.getElementById('carreraImport').value = '';
             carreraHoraInici = new Date();
+
+            // Resetar categories a valors per defecte i sincronitzar botons
+            tarifaSeleccionada = 'taxímetre';
+            pagamentSeleccionat = 'efectiu';
+            origenCarreraSeleccionat = 'carrer';
+            aeroportSeleccionat = 'ciutat';
+            selectTarifa('taxímetre');
+            selectPagament('efectiu');
+            selectOrigenCarrera('carrer');
+            selectAeroport('ciutat');
 
             // Mostrar panell cronòmetre, amagar import
             document.getElementById('cronometrePanel').style.display = 'block';
