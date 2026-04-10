@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <title>GPS Navigator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
+
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --gold: #FFC300;
+      --gold-dim: rgba(255,195,0,0.15);
+      --gold-mid: rgba(255,195,0,0.4);
+      --blue: #00B4D8;
+      --blue-dim: rgba(0,180,216,0.15);
+      --dark: #0a0a0f;
+      --panel: rgba(8,8,14,0.93);
+      --border: rgba(255,195,0,0.18);
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Rajdhani', sans-serif;
+      background: var(--dark);
+      color: #fff;
+      overflow: hidden;
+    }
+
+    #map {
+      position: absolute;
+      top: 0; bottom: 0;
+      width: 100%;
+    }
+
+    /* ── TOP HUD ── */
+    .top-hud {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 14px 16px 0;
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    .compass-wrap {
+      pointer-events: all;
+    }
+
+    .compass {
+      width: 56px;
+      height: 56px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      box-shadow: 0 0 20px rgba(255,195,0,0.12), inset 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .compass svg {
+      transition: transform 0.3s ease;
+    }
+
+    .compass-label {
+      position: absolute;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 9px;
+      color: var(--gold);
+      top: -18px;
+      left: 50%;
+      transform: translateX(-50%);
+      white-space: nowrap;
+      letter-spacing: 1px;
+    }
+
+    /* ── SPEED BADGE ── */
+    .speed-badge {
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 14px;
+      text-align: center;
+      box-shadow: 0 0 14px rgba(255,195,0,0.1);
+    }
+
+    .speed-value {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 26px;
+      color: var(--gold);
+      line-height: 1;
+    }
+
+    .speed-unit {
+      font-size: 10px;
+      color: #666;
+      letter-spacing: 1px;
+    }
+
+    /* ── SETTINGS BUTTON ── */
+    .hamburger {
+      pointer-events: all;
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: var(--gold);
+      font-size: 20px;
+      box-shadow: 0 0 14px rgba(255,195,0,0.1);
+    }
+
+    .settings-panel {
+      display: none;
+      position: absolute;
+      top: 68px;
+      right: 14px;
+      background: var(--panel);
+      padding: 18px;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      z-index: 20;
+      min-width: 260px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+    }
+
+    .settings-panel h3 {
+      color: var(--gold);
+      font-size: 13px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .settings-panel label {
+      font-size: 11px;
+      color: #888;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .settings-panel input {
+      width: 100%;
+      padding: 9px 10px;
+      margin: 6px 0 12px;
+      background: #111;
+      border: 1px solid #333;
+      color: #fff;
+      border-radius: 6px;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 12px;
+    }
+
+    .settings-panel input:focus {
+      outline: none;
+      border-color: var(--gold);
+    }
+
+    .settings-panel button {
+      background: var(--gold);
+      color: #000;
+      border: none;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: 700;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 14px;
+      letter-spacing: 1px;
+      border-radius: 6px;
+      width: 100%;
+      text-transform: uppercase;
+      transition: opacity 0.2s;
+    }
+
+    .settings-panel button:hover { opacity: 0.85; }
+
+    /* ── HINT ── */
+    .hint {
+      position: absolute;
+      top: 14px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--panel);
+      border: 1px solid var(--border);
+      padding: 7px 16px;
+      border-radius: 20px;
+      font-size: 12px;
+      color: var(--gold);
+      letter-spacing: 1px;
+      pointer-events: none;
+      z-index: 10;
+      white-space: nowrap;
+      transition: opacity 0.4s;
+    }
+
+    /* ── BOTTOM PANEL ── */
+    .panel {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: var(--panel);
+      border-top: 1.5px solid var(--border);
+      padding: 16px 16px 24px;
+      z-index: 10;
+      transition: transform 0.3s ease;
+    }
+
+    .panel-label {
+      font-size: 10px;
+      letter-spacing: 3px;
+      color: #555;
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    /* ── ROUTE CARDS ── */
+    .routes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .route-card {
+      border-radius: 10px;
+      padding: 12px 14px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: all 0.2s ease;
+      background: rgba(255,255,255,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .route-card::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+
+    .route-card.gold::before  { background: var(--gold-dim); }
+    .route-card.blue::before  { background: var(--blue-dim); }
+
+    .route-card.active { border-color: var(--gold); }
+    .route-card.active::before { opacity: 1; }
+    .route-card.active-blue { border-color: var(--blue); }
+    .route-card.active-blue::before { opacity: 1; }
+
+    .route-card:hover::before { opacity: 0.6; }
+
+    .route-tag {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .route-tag .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-gold { background: var(--gold); }
+    .dot-blue  { background: var(--blue); }
+
+    .route-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 28px;
+      line-height: 1;
+    }
+
+    .route-time .unit { font-size: 14px; color: #888; margin-left: 2px; }
+
+    .route-dist {
+      font-size: 12px;
+      color: #666;
+      margin-top: 4px;
+    }
+
+    .route-badge {
+      position: absolute;
+      top: 8px; right: 10px;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 2px 7px;
+      border-radius: 10px;
+    }
+
+    .badge-best {
+      background: rgba(255,195,0,0.15);
+      color: var(--gold);
+      border: 1px solid rgba(255,195,0,0.3);
+    }
+
+    .badge-alt {
+      background: rgba(0,180,216,0.12);
+      color: var(--blue);
+      border: 1px solid rgba(0,180,216,0.25);
+    }
+
+    .route-card.disabled {
+      opacity: 0.35;
+      pointer-events: none;
+    }
+
+    /* ── RECENTER BUTTON ── */
+    .recenter-btn {
+      position: absolute;
+      bottom: 160px;
+      right: 16px;
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--gold);
+      font-size: 18px;
+      z-index: 10;
+      box-shadow: 0 0 14px rgba(255,195,0,0.1);
+      transition: transform 0.2s;
+    }
+    .recenter-btn:hover { transform: scale(1.1); }
+
+    /* ── NO ROUTES STATE ── */
+    .no-routes {
+      text-align: center;
+      padding: 10px;
+      color: #444;
+      font-size: 13px;
+      letter-spacing: 1px;
+      grid-column: span 2;
+    }
+
+    /* Mapbox controls */
+    .mapboxgl-ctrl-group { display: none !important; }
+  </style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="hint" id="hint">TAP THE MAP TO SET DESTINATION</div>
+
+<div class="top-hud">
+  <div class="compass-wrap">
+    <div class="compass" id="compass">
+      <svg width="28" height="28" viewBox="0 0 28 28" id="compass-svg">
+        <polygon points="14,3 17,14 14,12 11,14" fill="#FFC300"/>
+        <polygon points="14,25 17,14 14,16 11,14" fill="#444"/>
+        <circle cx="14" cy="14" r="2.5" fill="#fff" opacity="0.7"/>
+      </svg>
+    </div>
+  </div>
+
+  <div class="speed-badge">
+    <div class="speed-value" id="speed-val">0</div>
+    <div class="speed-unit">km/h</div>
+  </div>
+
+  <div class="hamburger" id="hamburger">&#9776;</div>
+</div>
+
+<div class="settings-panel" id="settings-panel">
+  <h3>⚙ API Config</h3>
+  <label for="api-key">Mapbox Access Token</label>
+  <input type="text" id="api-key" placeholder="pk.eyJ1..." />
+  <button id="save-key">SAVE & START</button>
+</div>
+
+<div class="recenter-btn" id="recenter" title="Re-center">⊕</div>
+
+<div class="panel" id="main-panel">
+  <div class="panel-label">Route Selection</div>
+  <div class="routes-grid" id="routes-grid">
+    <div class="no-routes">Tap the map to calculate routes</div>
+  </div>
+</div>
+
+<script>
+let map = null;
+let userLocation = null;
+let userHeading = 0;
+let userMarker = null;
+let routeIds = [];
+let routeData = [];
+let activeRoute = 0;
+let watchId = null;
+let isFollowing = true;
+
+const hamburger = document.getElementById('hamburger');
+const settingsPanel = document.getElementById('settings-panel');
+const apiKeyInput = document.getElementById('api-key');
+const saveKeyBtn = document.getElementById('save-key');
+const compassSvg = document.getElementById('compass-svg');
+const speedVal = document.getElementById('speed-val');
+const hint = document.getElementById('hint');
+const recenterBtn = document.getElementById('recenter');
+const routesGrid = document.getElementById('routes-grid');
+
+// ── SETTINGS PANEL ──
+hamburger.addEventListener('click', () => {
+  settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
+});
+
+saveKeyBtn.addEventListener('click', () => {
+  const key = apiKeyInput.value.trim();
+  if (key) {
+    localStorage.setItem('mapbox_key', key);
+    settingsPanel.style.display = 'none';
+    if (!map) initMap(key);
+  } else {
+    alert("Please enter a valid API key.");
+  }
+});
+
+const savedKey = localStorage.getItem('mapbox_key');
+if (savedKey) {
+  apiKeyInput.value = savedKey;
+  initMap(savedKey);
+} else {
+  settingsPanel.style.display = 'block';
+}
+
+// ── RECENTER ──
+recenterBtn.addEventListener('click', () => {
+  isFollowing = true;
+  if (map && userLocation) {
+    map.easeTo({ center: userLocation, bearing: userHeading, pitch: 55, zoom: 16, duration: 800 });
+  }
+});
+
+// ── INIT MAP ──
+function initMap(token) {
+  if (map) return;
+  mapboxgl.accessToken = token;
+
+  map = new mapboxgl.Map({
+    container: 'map',
+    style: 'mapbox://styles/mapbox/dark-v11',
+    center: [2.1734, 41.3851],
+    zoom: 15,
+    pitch: 55,
+    bearing: 0,
+    antialias: true
+  });
+
+  map.on('load', () => {
+    // Enable 3D buildings
+    map.addLayer({
+      id: '3d-buildings',
+      source: 'composite',
+      'source-layer': 'building',
+      filter: ['==', 'extrude', 'true'],
+      type: 'fill-extrusion',
+      minzoom: 14,
+      paint: {
+        'fill-extrusion-color': '#111',
+        'fill-extrusion-height': ['get', 'height'],
+        'fill-extrusion-base': ['get', 'min_height'],
+        'fill-extrusion-opacity': 0.75
+      }
+    });
+
+    startTracking();
+  });
+
+  // Detect manual map drag → disable auto-follow
+  map.on('dragstart', () => { isFollowing = false; });
+
+  // Click to set destination
+  map.on('click', (e) => {
+    if (!userLocation) {
+      hint.textContent = 'WAITING FOR GPS...';
+      return;
+    }
+    const dest = [e.lngLat.lng, e.lngLat.lat];
+    hint.textContent = 'CALCULATING ROUTES...';
+    calcRoutes(dest);
+  });
+}
+
+// ── GPS TRACKING ──
+function startTracking() {
+  if (!navigator.geolocation) return;
+
+  watchId = navigator.geolocation.watchPosition(pos => {
+    const { longitude, latitude, heading, speed } = pos.coords;
+    userLocation = [longitude, latitude];
+
+    // Speed in km/h
+    const kmh = speed ? Math.round(speed * 3.6) : 0;
+    speedVal.textContent = kmh;
+
+    // Heading
+    if (heading !== null && heading !== undefined) {
+      userHeading = heading;
+    }
+
+    updateCompass(userHeading);
+
+    if (!userMarker) {
+      // Create custom arrow marker
+      const el = document.createElement('div');
+      el.id = 'user-arrow';
+      el.innerHTML = `
+        <svg width="36" height="36" viewBox="0 0 36 36">
+          <polygon points="18,2 26,30 18,24 10,30" fill="#FFC300" stroke="#000" stroke-width="1.5"/>
+        </svg>`;
+      el.style.cssText = 'transform-origin: center; transition: transform 0.3s;';
+
+      userMarker = new mapboxgl.Marker({ element: el, rotationAlignment: 'map', anchor: 'center' })
+        .setLngLat(userLocation)
+        .addTo(map);
+    } else {
+      userMarker.setLngLat(userLocation);
+    }
+
+    // Rotate arrow marker element
+    const arrowEl = document.getElementById('user-arrow');
+    if (arrowEl) arrowEl.style.transform = `rotate(${userHeading}deg)`;
+
+    // Auto-follow with heading
+    if (isFollowing) {
+      map.easeTo({
+        center: userLocation,
+        bearing: userHeading,
+        pitch: 55,
+        zoom: 16,
+        duration: 600
+      });
+    }
+
+    hint.textContent = 'TAP THE MAP TO SET DESTINATION';
+  }, err => {
+    console.error('GPS error:', err);
+    hint.textContent = 'GPS UNAVAILABLE — TAP TO SET DESTINATION';
+    // Fallback: Barcelona center
+    userLocation = [2.1734, 41.3851];
+  }, {
+    enableHighAccuracy: true,
+    maximumAge: 1000,
+    timeout: 10000
+  });
+
+  // Fallback DeviceOrientation for compass when speed=0
+  if (window.DeviceOrientationEvent) {
+    window.addEventListener('deviceorientationabsolute', onOrientation, true);
+    window.addEventListener('deviceorientation', onOrientation, true);
+  }
+}
+
+function onOrientation(e) {
+  if (e.absolute && e.alpha !== null) {
+    // Only use orientation when not moving (speed=0)
+    if (parseInt(speedVal.textContent) < 3) {
+      userHeading = 360 - e.alpha;
+      updateCompass(userHeading);
+    }
+  }
+}
+
+function updateCompass(deg) {
+  compassSvg.style.transform = `rotate(${-deg}deg)`;
+}
+
+// ── CALCULATE ROUTES ──
+function calcRoutes(dest) {
+  // Clear old routes
+  routeIds.forEach(id => {
+    if (map.getLayer(id)) map.removeLayer(id);
+    if (map.getSource(id)) map.removeSource(id);
+  });
+  routeIds = [];
+  routeData = [];
+
+  const url = `https://api.mapbox.com/directions/v5/mapbox/driving-traffic/` +
+    `${userLocation[0]},${userLocation[1]};${dest[0]},${dest[1]}` +
+    `?alternatives=true&geometries=geojson&overview=full&access_token=${mapboxgl.accessToken}`;
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      const routes = data.routes;
+      if (!routes || routes.length === 0) {
+        routesGrid.innerHTML = '<div class="no-routes">No routes found</div>';
+        hint.textContent = 'NO ROUTES FOUND';
+        return;
+      }
+
+      routes.sort((a, b) => a.duration - b.duration);
+      routeData = routes.slice(0, 2);
+      activeRoute = 0;
+
+      drawRoutes();
+      renderRouteCards();
+
+      hint.textContent = 'SELECT A ROUTE BELOW';
+
+      // Fit map to best route
+      const coords = routeData[0].geometry.coordinates;
+      const bounds = coords.reduce((b, c) => b.extend(c), new mapboxgl.LngLatBounds(coords[0], coords[0]));
+      map.fitBounds(bounds, { padding: 60, pitch: 45, duration: 1000 });
+      isFollowing = false;
+    })
+    .catch(err => {
+      console.error(err);
+      hint.textContent = 'ERROR — CHECK API KEY';
+    });
+}
+
+// ── DRAW ROUTES ON MAP ──
+function drawRoutes() {
+  routeData.forEach((r, i) => {
+    const id = 'route' + i;
+    const isActive = i === activeRoute;
+    const color = i === 0 ? '#FFC300' : '#00B4D8';
+
+    map.addSource(id, {
+      type: 'geojson',
+      data: { type: 'Feature', geometry: r.geometry }
+    });
+
+    // Shadow / outline
+    map.addLayer({
+      id: id + '-outline',
+      type: 'line',
+      source: id,
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: {
+        'line-color': '#000',
+        'line-width': isActive ? 10 : 7,
+        'line-opacity': 0.4
+      }
+    });
+
+    // Main line
+    map.addLayer({
+      id: id,
+      type: 'line',
+      source: id,
+      layout: { 'line-join': 'round', 'line-cap': 'round' },
+      paint: {
+        'line-color': color,
+        'line-width': isActive ? 6 : 3.5,
+        'line-opacity': isActive ? 1 : 0.4
+      }
+    });
+
+    routeIds.push(id + '-outline', id);
+  });
+}
+
+// ── UPDATE ACTIVE ROUTE VISUAL ──
+function updateActiveVisual() {
+  routeData.forEach((r, i) => {
+    const id = 'route' + i;
+    const isActive = i === activeRoute;
+
+    if (map.getLayer(id)) {
+      map.setPaintProperty(id, 'line-width', isActive ? 6 : 3.5);
+      map.setPaintProperty(id, 'line-opacity', isActive ? 1 : 0.4);
+      map.setPaintProperty(id + '-outline', 'line-width', isActive ? 10 : 7);
+    }
+
+    // Bring active route to front
+    if (isActive) {
+      if (map.getLayer(id)) map.moveLayer(id);
+    }
+  });
+}
+
+// ── RENDER ROUTE CARDS ──
+function renderRouteCards() {
+  if (routeData.length === 0) {
+    routesGrid.innerHTML = '<div class="no-routes">Tap the map to calculate routes</div>';
+    return;
+  }
+
+  const labels = ['RUTA ÓPTIMA', 'ALTERNATIVA'];
+  const colorClass = ['gold', 'blue'];
+  const dotClass = ['dot-gold', 'dot-blue'];
+  const badgeClass = ['badge-best', 'badge-alt'];
+  const badgeText = ['FASTEST', 'ALT'];
+  const timeColor = ['#FFC300', '#00B4D8'];
+
+  routesGrid.innerHTML = '';
+
+  routeData.forEach((r, i) => {
+    const mins = Math.round(r.duration / 60);
+    const km = (r.distance / 1000).toFixed(1);
+    const isActive = i === activeRoute;
+
+    const card = document.createElement('div');
+    card.className = `route-card ${colorClass[i]} ${isActive ? (i === 0 ? 'active' : 'active-blue') : ''}`;
+    if (routeData.length === 1 && i === 1) card.classList.add('disabled');
+
+    card.innerHTML = `
+      <div class="route-tag">
+        <span class="dot ${dotClass[i]}"></span>
+        <span style="color:${timeColor[i]};font-size:9px;letter-spacing:2px">${labels[i]}</span>
+      </div>
+      <span class="route-badge ${badgeClass[i]}">${badgeText[i]}</span>
+      <div class="route-time" style="color:${timeColor[i]}">${mins}<span class="unit">min</span></div>
+      <div class="route-dist">${km} km</div>
+    `;
+
+    card.addEventListener('click', () => {
+      activeRoute = i;
+      updateActiveVisual();
+
+      // Rerender cards
+      routeData.forEach((_, j) => {
+        const cards = routesGrid.querySelectorAll('.route-card');
+        cards[j].classList.remove('active', 'active-blue');
+        if (j === activeRoute) {
+          cards[j].classList.add(j === 0 ? 'active' : 'active-blue');
+        }
+      });
+
+      hint.textContent = `ROUTE ${i + 1} SELECTED`;
+    });
+
+    routesGrid.appendChild(card);
+  });
+}
+</script>
+</body>
+</html>
