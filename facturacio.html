@@ -86,6 +86,7 @@
             <div class="menu-item" onclick="exportJSON()">💾 Exportar JSON (local)</div>
             <div class="menu-item" onclick="exportarADrive()">☁️ Exportar a Drive</div>
             <div class="menu-item" onclick="document.getElementById('importFile').click()">📂 Importar JSON</div>
+            <div class="menu-item" onclick="obrirObjectius()">🎯 Objectius</div>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="obrirConfigDrive()">⚙️ Configurar Drive</div>
             <div class="menu-divider"></div>
@@ -979,6 +980,81 @@
         </div>
     </div>
 
+    <!-- OBJECTIUS MODAL -->
+    <!-- ════ MODAL: OBJECTIUS DE COLOR ════ -->
+    <div class="modal" id="objectiusModal">
+        <div class="modal-content" style="max-width:500px;">
+            <div class="modal-header">
+                <h2 class="modal-title">🎯 Objectius</h2>
+                <button class="modal-close" onclick="tancarObjectiusModal()">×</button>
+            </div>
+            <div class="modal-body" style="padding:1rem;">
+                <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:1rem;">
+                    Defineix els 5 llindars de color per a cada mètrica. Cada valor marca el punt a partir del qual canvia el color:<br>
+                    <span style="color:#ff00aa;font-weight:700;">Fuscia</span> →
+                    <span style="color:#ff4444;font-weight:700;">Roig</span> →
+                    <span style="color:#ff9800;font-weight:700;">Taronja</span> →
+                    <span style="color:#4caf50;font-weight:700;">Verd</span> →
+                    <span style="color:#00e676;font-weight:700;">Verd brillant</span> →
+                    <span style="color:#ff00aa;font-weight:700;">Fuscia</span>
+                </p>
+
+                <!-- MENSUAL -->
+                <div style="background:var(--bg-secondary);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.75rem;">
+                    <div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);margin-bottom:0.6rem;">📆 Mensual (€)</div>
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;">
+                        <div><label style="font-size:0.65rem;color:#ff00aa;">Fuscia</label><input type="number" id="obj_mensual_0" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff4444;">Roig</label><input type="number" id="obj_mensual_1" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff9800;">Taronja</label><input type="number" id="obj_mensual_2" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#4caf50;">Verd</label><input type="number" id="obj_mensual_3" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#00e676;">V.Brll.</label><input type="number" id="obj_mensual_4" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                    </div>
+                </div>
+
+                <!-- DIARI -->
+                <div style="background:var(--bg-secondary);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.75rem;">
+                    <div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);margin-bottom:0.6rem;">📅 Diari (€)</div>
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;">
+                        <div><label style="font-size:0.65rem;color:#ff00aa;">Fuscia</label><input type="number" id="obj_diari_0" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff4444;">Roig</label><input type="number" id="obj_diari_1" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff9800;">Taronja</label><input type="number" id="obj_diari_2" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#4caf50;">Verd</label><input type="number" id="obj_diari_3" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#00e676;">V.Brll.</label><input type="number" id="obj_diari_4" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                    </div>
+                </div>
+
+                <!-- MITJA PER HORA -->
+                <div style="background:var(--bg-secondary);border-radius:10px;padding:0.85rem 1rem;margin-bottom:0.75rem;">
+                    <div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);margin-bottom:0.6rem;">⏱ Mitjana per hora (€/h)</div>
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;">
+                        <div><label style="font-size:0.65rem;color:#ff00aa;">Fuscia</label><input type="number" id="obj_hora_0" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff4444;">Roig</label><input type="number" id="obj_hora_1" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff9800;">Taronja</label><input type="number" id="obj_hora_2" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#4caf50;">Verd</label><input type="number" id="obj_hora_3" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#00e676;">V.Brll.</label><input type="number" id="obj_hora_4" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                    </div>
+                </div>
+
+                <!-- BENEFICIS -->
+                <div style="background:var(--bg-secondary);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem;">
+                    <div style="font-size:0.85rem;font-weight:700;color:var(--text-primary);margin-bottom:0.6rem;">💰 Beneficis (€)</div>
+                    <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:0.4rem;">
+                        <div><label style="font-size:0.65rem;color:#ff00aa;">Fuscia</label><input type="number" id="obj_beneficis_0" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff4444;">Roig</label><input type="number" id="obj_beneficis_1" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#ff9800;">Taronja</label><input type="number" id="obj_beneficis_2" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#4caf50;">Verd</label><input type="number" id="obj_beneficis_3" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                        <div><label style="font-size:0.65rem;color:#00e676;">V.Brll.</label><input type="number" id="obj_beneficis_4" class="form-input" style="padding:0.4rem 0.3rem;font-size:0.85rem;text-align:center;"></div>
+                    </div>
+                </div>
+
+                <div style="display:flex;gap:0.75rem;">
+                    <button class="btn btn-primary" style="flex:1;" onclick="desarObjectius()">💾 Desar</button>
+                    <button class="btn" style="flex:1;background:var(--bg-secondary);color:var(--text-secondary);" onclick="resetObjectius()">↺ Restablir</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- GASTOS MODAL -->
     <!-- ════ MODAL: DESPESES DEL MES ════ -->
     <div class="modal" id="gastosModal">
@@ -1394,40 +1470,11 @@
         }
 
         function getMonthlyRevenueColor(value) {
-            if (value > 6000) return 'var(--color-magenta)';
-            if (value >= 4500) return 'var(--color-green)';
-            if (value >= 2000) return 'var(--accent)';
-            return 'var(--color-red)';
+            return getObjectiuColor(value, loadObjectius().mensual);
         }
 
         function getDailyRevenueColor(value) {
-            const MIN = 150;
-            const MAX = 300;
-            if (value <= MIN) return '#ff1a1a';
-            if (value >= MAX) return '#00ff44';
-            const ratio = (value - MIN) / (MAX - MIN);
-            // Red -> Orange -> Yellow -> Green gradient
-            let r, g, b;
-            if (ratio < 0.33) {
-                // red -> orange
-                const t = ratio / 0.33;
-                r = 255;
-                g = Math.round(26 + t * (165 - 26));
-                b = Math.round(26 * (1 - t));
-            } else if (ratio < 0.66) {
-                // orange -> yellow
-                const t = (ratio - 0.33) / 0.33;
-                r = 255;
-                g = Math.round(165 + t * (220 - 165));
-                b = 0;
-            } else {
-                // yellow -> bright green
-                const t = (ratio - 0.66) / 0.34;
-                r = Math.round(255 * (1 - t));
-                g = Math.round(220 + t * (255 - 220));
-                b = Math.round(t * 68);
-            }
-            return `rgb(${r},${g},${b})`;
+            return getObjectiuColor(value, loadObjectius().diari);
         }
 
         function getPositiveColor(percentage) {
@@ -1688,8 +1735,8 @@
                 return html;
             };
 
-            const mediaDiaColor = getConditionalColor(currentStats.mediaDia, 150, 320);
-            const mediaHoraColor = getConditionalColor(currentStats.mediaHora, 15, 25);
+            const mediaDiaColor = getObjectiuColor(currentStats.mediaDia, loadObjectius().diari);
+            const mediaHoraColor = getObjectiuColor(currentStats.mediaHora, loadObjectius().hora);
             const proyeccionColor = getMonthlyRevenueColor(proyeccion);
 
             const statsHtml = `
@@ -1870,7 +1917,7 @@
             }
             
             const stats = calculateStats(monthData);
-            const mediaHoraColor = getConditionalColor(stats.mediaHora, 15, 25);
+            const mediaHoraColor = getObjectiuColor(stats.mediaHora, loadObjectius().hora);
             
             // Mitjana d'hores per dia (només dies amb hores registrades)
             const diesAmbHores = monthData.filter(d => d.horas_trabajadas && d.horas_trabajadas > 0);
@@ -2100,9 +2147,7 @@
                 const gastos = getGastosForMonth(mesAnio);
                 const beneficios = Math.round(ingresos - gastos);
                 
-                const beneficiosColor = beneficios >= 0 ? 
-                    (beneficios > 2000 ? 'var(--color-green)' : 'var(--accent)') : 
-                    'var(--color-red)';
+                const beneficiosColor = getObjectiuColor(beneficios, loadObjectius().beneficis);
                 
                 html += `
                     <div class="month-card" onclick="openGastosModal('${mesAnio}', ${ingresos}, ${gastos})">
@@ -2209,9 +2254,7 @@
 
         function updateGastosPreview(ingresos, gastos) {
             const beneficios = ingresos - gastos;
-            const beneficiosColor = beneficios >= 0 ? 
-                (beneficios > 2000 ? 'var(--color-green)' : 'var(--accent)') : 
-                'var(--color-red)';
+            const beneficiosColor = getObjectiuColor(beneficios, loadObjectius().beneficis);
             
             document.getElementById('gastosIngresos').textContent = formatCurrency(ingresos);
             document.getElementById('gastosGastos').textContent = formatCurrency(gastos);
@@ -2285,8 +2328,8 @@
             
             // Calcular estadísticas
             const stats = calculateStats(monthData);
-            const mediaDiaColor = getConditionalColor(stats.ingresos / monthData.length, 150, 320);
-            const mediaHoraColor = getConditionalColor(stats.mediaHora, 15, 25);
+            const mediaDiaColor = getObjectiuColor(stats.ingresos / monthData.length, loadObjectius().diari);
+            const mediaHoraColor = getObjectiuColor(stats.mediaHora, loadObjectius().hora);
             
             // Obtener observaciones
             const observaciones = monthData
@@ -2672,7 +2715,7 @@
                 const mediaHora = mData.horas > 0 ? mData.ingresos / mData.horas : 0;
                 
                 const mediaDiaColor = getConditionalColor(mediaDia, 50, 300);
-                const mediaHoraColor = getConditionalColor(mediaHora, 10, 27);
+                const mediaHoraColor = getObjectiuColor(mediaHora, loadObjectius().hora);
                 const monthRevenueColor = getMonthlyRevenueColor(mData.ingresos);
                 const hasObservations = monthsWithObservations.has(mesAnio);
 
@@ -2751,7 +2794,7 @@
                 const mediaHora = wData.horas > 0 ? wData.ingresos / wData.horas : 0;
                 
                 const mediaDiaColor = getConditionalColor(mediaDia, 150, 320);
-                const mediaHoraColor = getConditionalColor(mediaHora, 15, 25);
+                const mediaHoraColor = getObjectiuColor(mediaHora, loadObjectius().hora);
                 const weekRevenueColor = getWeeklyRevenueColor(wData.ingresos);
 
                 html += `
@@ -2954,7 +2997,7 @@
             resumHtml += stat('💶 Ingressos', data.ingresos_dia != null ? `${data.ingresos_dia.toFixed(2)}€` : '—', 'var(--accent)');
             resumHtml += stat('🚕 Serveis', data.servicios_dia ?? '—');
             resumHtml += stat('⏱ Hores', data.horas_trabajadas != null ? `${data.horas_trabajadas}h` : '—');
-            resumHtml += stat('💶 €/hora', euroHora ? `${euroHora}€` : '—', euroHora >= 25 ? '#00e676' : euroHora >= 15 ? '#4caf50' : euroHora >= 10 ? '#ff9800' : '#ff4444');
+            resumHtml += stat('💶 €/hora', euroHora ? `${euroHora}€` : '—', getObjectiuColor(parseFloat(euroHora), loadObjectius().hora));
             if (data.km_inici != null || data.km_fi != null) {
                 resumHtml += stat('🛣️ Km inici', data.km_inici != null ? data.km_inici : '—');
                 resumHtml += stat('🏁 Km fi', data.km_fi != null ? data.km_fi : '—');
@@ -4502,6 +4545,49 @@
             return '#ff00aa';                 // fuscia: > 45
         }
 
+        // ==========================================
+        // OBJECTIUS (umbrals de color configurables)
+        // ==========================================
+        const OBJECTIUS_DEFAULT = {
+            mensual: [2000, 3000, 4000, 5000, 6000],
+            diari:   [100,  150,  200,  280,  350],
+            hora:    [10,   15,   20,   25,   30],
+            beneficis: [0,  500,  1000, 1500, 2000]
+        };
+
+        function loadObjectius() {
+            try {
+                const saved = localStorage.getItem('taxi_objectius');
+                if (saved) {
+                    const parsed = JSON.parse(saved);
+                    // Merge with defaults to handle missing keys
+                    return {
+                        mensual:   parsed.mensual   || OBJECTIUS_DEFAULT.mensual,
+                        diari:     parsed.diari     || OBJECTIUS_DEFAULT.diari,
+                        hora:      parsed.hora      || OBJECTIUS_DEFAULT.hora,
+                        beneficis: parsed.beneficis || OBJECTIUS_DEFAULT.beneficis
+                    };
+                }
+            } catch(e) {}
+            return JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT));
+        }
+
+        function saveObjectius(obj) {
+            localStorage.setItem('taxi_objectius', JSON.stringify(obj));
+        }
+
+        // Aplica la lògica de 6 colors (igual que getCarreraColor) amb umbrals configurables
+        // t[0..4] = 5 llindars: < t[0] fuscia, < t[1] roig, < t[2] taronja, < t[3] verd, <= t[4] verd brillant, > t[4] fuscia
+        function getObjectiuColor(value, thresholds) {
+            const [t0, t1, t2, t3, t4] = thresholds;
+            if (value < t0)  return '#ff00aa';  // fuscia
+            if (value < t1)  return '#ff4444';  // roig
+            if (value < t2)  return '#ff9800';  // taronja
+            if (value < t3)  return '#4caf50';  // verd
+            if (value <= t4) return '#00e676';  // verd brillant
+            return '#ff00aa';                   // fuscia
+        }
+
         function renderCarreresLlista() {
             const total = calcularTotalCarreres();
             const totalEl = document.getElementById('carreresTotalValue');
@@ -4656,7 +4742,7 @@
                 const mm = totalMins % 60;
                 const horesStr = String(hh).padStart(2,'0') + ':' + String(mm).padStart(2,'0');
                 const euroHora = totalHores > 0 ? (total / totalHores) : 0;
-                const euroHoraColor = euroHora >= 25 ? '#00e676' : euroHora >= 15 ? '#4caf50' : euroHora >= 10 ? '#ff9800' : '#ff4444';
+                const euroHoraColor = getObjectiuColor(parseFloat(euroHora), loadObjectius().hora);
 
                 // Estimació al final del torn (basada en 12h des de l'inici del torn)
                 const tornObjectiuMins = 12 * 60; // torn de 12h per defecte
@@ -5954,7 +6040,7 @@
                             <span style="font-size:0.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">⏱</span>
                             <span style="font-size:0.9rem;font-weight:700;color:var(--text-primary);">${horesStr}</span>
                         </div>
-                        ${mediaHora != null ? `<div style="display:flex;align-items:center;gap:0.35rem;"><span style="font-size:0.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">€/h</span><span style="font-size:0.9rem;font-weight:700;color:${getConditionalColor(mediaHora,15,25)};">${mediaHora.toFixed(2).replace('.',',')}€</span></div>` : ''}
+                        ${mediaHora != null ? `<div style="display:flex;align-items:center;gap:0.35rem;"><span style="font-size:0.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">€/h</span><span style="font-size:0.9rem;font-weight:700;color:${getObjectiuColor(mediaHora, loadObjectius().hora)};">${mediaHora.toFixed(2).replace('.',',')}€</span></div>` : ''}
                         <div style="display:flex;align-items:center;gap:0.35rem;">
                             <span style="font-size:0.7rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">🛣</span>
                             <span style="font-size:0.9rem;font-weight:700;color:var(--text-primary);">${kmStr}</span>
@@ -6068,6 +6154,58 @@
             renderTorns();
 
             tancarTornEditModal();
+        }
+
+        // ==========================================
+        // OBJECTIUS MODAL
+        // ==========================================
+        function obrirObjectius() {
+            toggleMenu();
+            const obj = loadObjectius();
+            ['mensual','diari','hora','beneficis'].forEach(cat => {
+                obj[cat].forEach((val, i) => {
+                    const el = document.getElementById(`obj_${cat}_${i}`);
+                    if (el) el.value = val;
+                });
+            });
+            document.getElementById('objectiusModal').classList.add('active');
+        }
+
+        function tancarObjectiusModal() {
+            document.getElementById('objectiusModal').classList.remove('active');
+        }
+
+        function desarObjectius() {
+            const obj = { mensual: [], diari: [], hora: [], beneficis: [] };
+            let valid = true;
+            ['mensual','diari','hora','beneficis'].forEach(cat => {
+                for (let i = 0; i < 5; i++) {
+                    const val = parseFloat(document.getElementById(`obj_${cat}_${i}`).value);
+                    if (isNaN(val)) { valid = false; return; }
+                    obj[cat].push(val);
+                }
+                // Validar ordre ascendent
+                for (let i = 1; i < 5; i++) {
+                    if (obj[cat][i] <= obj[cat][i-1]) { valid = false; }
+                }
+            });
+            if (!valid) {
+                alert('⚠️ Els valors han de ser números i en ordre ascendent dins de cada categoria.');
+                return;
+            }
+            saveObjectius(obj);
+            tancarObjectiusModal();
+            // Refresca totes les vistes
+            updateDashboard();
+            updateDiesView();
+            updateMesosView();
+            updateBeneficisView();
+        }
+
+        function resetObjectius() {
+            if (!confirm('Restablir tots els objectius als valors per defecte?')) return;
+            saveObjectius(JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT)));
+            obrirObjectius(); // reopen to show defaults
         }
 
         initApp();
