@@ -349,6 +349,136 @@
       grid-column: span 2;
     }
 
+    /* ── SEARCH BAR ── */
+    .search-wrap {
+      position: absolute;
+      top: 76px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 32px);
+      max-width: 420px;
+      z-index: 15;
+    }
+
+    .search-box {
+      width: 100%;
+      display: flex;
+      align-items: center;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      transition: border-color 0.2s;
+    }
+
+    .search-box:focus-within {
+      border-color: var(--gold);
+    }
+
+    .search-icon {
+      color: #555;
+      font-size: 15px;
+      margin-right: 8px;
+      flex-shrink: 0;
+    }
+
+    .search-box input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      padding: 11px 0;
+      letter-spacing: 0.3px;
+    }
+
+    .search-box input::placeholder {
+      color: #444;
+      font-weight: 400;
+    }
+
+    .search-clear {
+      color: #444;
+      font-size: 18px;
+      cursor: pointer;
+      flex-shrink: 0;
+      line-height: 1;
+      display: none;
+      padding: 4px;
+      transition: color 0.15s;
+    }
+    .search-clear:hover { color: var(--gold); }
+
+    .search-counter {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 10px;
+      color: #333;
+      flex-shrink: 0;
+      margin-left: 4px;
+      min-width: 20px;
+      text-align: right;
+    }
+
+    .search-results {
+      display: none;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(0,0,0,0.6);
+    }
+
+    .search-result-item {
+      padding: 11px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,195,0,0.06);
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      transition: background 0.15s;
+    }
+
+    .search-result-item:last-child { border-bottom: none; }
+
+    .search-result-item:hover {
+      background: var(--gold-dim);
+    }
+
+    .result-icon {
+      color: var(--gold);
+      font-size: 13px;
+      margin-top: 1px;
+      flex-shrink: 0;
+      opacity: 0.7;
+    }
+
+    .result-main {
+      font-size: 14px;
+      font-weight: 600;
+      color: #eee;
+      line-height: 1.2;
+    }
+
+    .result-sub {
+      font-size: 11px;
+      color: #555;
+      margin-top: 2px;
+      letter-spacing: 0.3px;
+    }
+
+    .search-status {
+      padding: 10px 14px;
+      font-size: 12px;
+      color: #444;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
     /* Mapbox controls */
     .mapboxgl-ctrl-group { display: none !important; }
   </style>
@@ -358,6 +488,17 @@
 <div id="map"></div>
 
 <div class="hint" id="hint">TAP THE MAP TO SET DESTINATION</div>
+
+<!-- ── SEARCH BAR ── -->
+<div class="search-wrap" id="search-wrap">
+  <div class="search-box">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="search-input" placeholder="Escribe nº + calle o lugar..." autocomplete="off" />
+    <span class="search-counter" id="search-counter"></span>
+    <span class="search-clear" id="search-clear">✕</span>
+  </div>
+  <div class="search-results" id="search-results"></div>
+</div>
 
 <div class="top-hud">
   <div class="compass-wrap">
@@ -382,7 +523,13 @@
   <h3>⚙ API Config</h3>
   <label for="api-key">Mapbox Access Token</label>
   <input type="text" id="api-key" placeholder="pk.eyJ1..." />
-  <button id="save-key">SAVE & START</button>
+  <label for="map-style" style="display:block;margin-top:2px">Estilo personalizado <span style="color:#444;font-size:10px">(opcional)</span></label>
+  <input type="text" id="map-style" placeholder="mapbox://styles/usuario/style-id" />
+  <div style="font-size:10px;color:#555;margin:-6px 0 10px;line-height:1.5">
+    Crea tu estilo en <span style="color:#FFC300">mapbox.com/studio</span><br>
+    y pega el Style ID. Por defecto: dark-v11
+  </div>
+  <button id="save-key">GUARDAR E INICIAR</button>
 </div>
 
 <div class="recenter-btn" id="recenter" title="Re-center">⊕</div>
@@ -422,14 +569,25 @@ hamburger.addEventListener('click', () => {
 
 saveKeyBtn.addEventListener('click', () => {
   const key = apiKeyInput.value.trim();
+  const styleInput = document.getElementById('map-style');
+  const styleVal = styleInput ? styleInput.value.trim() : '';
   if (key) {
     localStorage.setItem('mapbox_key', key);
+    if (styleVal) localStorage.setItem('mapbox_style', styleVal);
+    else localStorage.removeItem('mapbox_style');
     settingsPanel.style.display = 'none';
     if (!map) initMap(key);
   } else {
-    alert("Please enter a valid API key.");
+    alert("Por favor, introduce una clave API válida.");
   }
 });
+
+// Pre-fill style input if saved
+const savedStyleVal = localStorage.getItem('mapbox_style');
+if (savedStyleVal) {
+  const si = document.getElementById('map-style');
+  if (si) si.value = savedStyleVal;
+}
 
 const savedKey = localStorage.getItem('mapbox_key');
 if (savedKey) {
@@ -452,9 +610,11 @@ function initMap(token) {
   if (map) return;
   mapboxgl.accessToken = token;
 
+  const savedStyle = localStorage.getItem('mapbox_style') || 'mapbox://styles/mapbox/dark-v11';
+
   map = new mapboxgl.Map({
     container: 'map',
-    style: 'mapbox://styles/mapbox/dark-v11',
+    style: savedStyle,
     center: [2.1734, 41.3851],
     zoom: 15,
     pitch: 55,
@@ -463,19 +623,25 @@ function initMap(token) {
   });
 
   map.on('load', () => {
-    // Enable 3D buildings
-    map.addLayer({
-      id: '3d-buildings',
-      source: 'composite',
-      'source-layer': 'building',
-      filter: ['==', 'extrude', 'true'],
-      type: 'fill-extrusion',
-      minzoom: 14,
-      paint: {
-        'fill-extrusion-color': '#111',
-        'fill-extrusion-height': ['get', 'height'],
-        'fill-extrusion-base': ['get', 'min_height'],
-        'fill-extrusion-opacity': 0.75
+    // Boost street label visibility — increase font size & opacity on all label layers
+    const labelLayerPatterns = ['road-label', 'street-label', 'road-number-shield', 'road-exit-shield'];
+    map.getStyle().layers.forEach(layer => {
+      const id = layer.id || '';
+      const isLabel = labelLayerPatterns.some(p => id.includes(p)) || layer.type === 'symbol';
+      if (isLabel) {
+        try {
+          map.setLayoutProperty(id, 'text-field', ['coalesce', ['get', 'name_es'], ['get', 'name']]);
+          map.setPaintProperty(id, 'text-opacity', 1);
+          map.setPaintProperty(id, 'text-halo-width', 2);
+          map.setPaintProperty(id, 'text-halo-color', 'rgba(0,0,0,0.9)');
+        } catch(e) { /* layer may not support these props */ }
+      }
+    });
+
+    // Make road labels bigger specifically
+    ['road-label', 'road-label-simple'].forEach(id => {
+      if (map.getLayer(id)) {
+        try { map.setLayoutProperty(id, 'text-size', 13); } catch(e) {}
       }
     });
 
@@ -739,6 +905,126 @@ function renderRouteCards() {
     });
 
     routesGrid.appendChild(card);
+  });
+}
+// ── ADDRESS SEARCH ──
+const searchInput  = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
+const searchClear  = document.getElementById('search-clear');
+const searchCounter = document.getElementById('search-counter');
+
+const MIN_CHARS = 4;
+const DEBOUNCE_MS = 350;
+let searchTimer = null;
+let destMarker = null;
+
+searchInput.addEventListener('input', () => {
+  const val = searchInput.value.trim();
+  const len = val.length;
+
+  // Counter feedback: show how many chars until search fires
+  if (len < MIN_CHARS) {
+    searchCounter.textContent = len > 0 ? `${MIN_CHARS - len}` : '';
+    searchResults.style.display = 'none';
+    searchResults.innerHTML = '';
+    searchClear.style.display = len > 0 ? 'block' : 'none';
+    clearTimeout(searchTimer);
+    return;
+  }
+
+  searchCounter.textContent = '';
+  searchClear.style.display = 'block';
+
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => geocodeQuery(val), DEBOUNCE_MS);
+});
+
+searchClear.addEventListener('click', () => {
+  searchInput.value = '';
+  searchCounter.textContent = '';
+  searchClear.style.display = 'none';
+  searchResults.style.display = 'none';
+  searchResults.innerHTML = '';
+  searchInput.focus();
+});
+
+// Close results when clicking outside
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('#search-wrap')) {
+    searchResults.style.display = 'none';
+  }
+});
+
+function geocodeQuery(query) {
+  if (!mapboxgl.accessToken) return;
+
+  // Bias results around user location or Barcelona
+  const proximity = userLocation
+    ? `${userLocation[0]},${userLocation[1]}`
+    : '2.1734,41.3851';
+
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json` +
+    `?proximity=${proximity}` +
+    `&language=es` +
+    `&limit=5` +
+    `&access_token=${mapboxgl.accessToken}`;
+
+  searchResults.innerHTML = '<div class="search-status">Buscando...</div>';
+  searchResults.style.display = 'block';
+
+  fetch(url)
+    .then(r => r.json())
+    .then(data => {
+      if (!data.features || data.features.length === 0) {
+        searchResults.innerHTML = '<div class="search-status">Sin resultados</div>';
+        return;
+      }
+      renderResults(data.features);
+    })
+    .catch(() => {
+      searchResults.innerHTML = '<div class="search-status">Error de búsqueda</div>';
+    });
+}
+
+function renderResults(features) {
+  searchResults.innerHTML = '';
+
+  features.forEach(f => {
+    const [lng, lat] = f.center;
+    const mainText = f.text || f.place_name.split(',')[0];
+    const subText  = f.place_name.replace(mainText + ', ', '');
+
+    const item = document.createElement('div');
+    item.className = 'search-result-item';
+    item.innerHTML = `
+      <span class="result-icon">📍</span>
+      <div>
+        <div class="result-main">${mainText}</div>
+        <div class="result-sub">${subText}</div>
+      </div>`;
+
+    item.addEventListener('click', () => {
+      // Close search UI
+      searchInput.value = f.place_name;
+      searchResults.style.display = 'none';
+      searchInput.blur();
+
+      // Drop destination marker
+      if (destMarker) destMarker.remove();
+      destMarker = new mapboxgl.Marker({ color: '#FF4444' })
+        .setLngLat([lng, lat])
+        .addTo(map);
+
+      // Calculate routes
+      if (!userLocation) {
+        hint.textContent = 'WAITING FOR GPS...';
+        return;
+      }
+      hint.textContent = 'CALCULATING ROUTES...';
+      calcRoutes([lng, lat]);
+    });
+
+    searchResults.appendChild(item);
   });
 }
 </script>
