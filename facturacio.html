@@ -3477,6 +3477,8 @@
                 dayCarreres.forEach(c => {
                     const imp = parseFloat(c.import) || 0;
                     const color = getCarreraColor(imp);
+                    const kmCarrera = kmCarreraEstimat(c);
+                    const kmTag = kmCarrera > 0.1 ? `<span style="font-size:0.75rem;color:var(--text-secondary);margin-left:0.4rem;">${kmCarrera.toFixed(1)}km</span>` : '';
                     const _aIcon2 = aeroportIcon(c.aeroport,'0.7rem'); const _aeroportBadge2 = _aIcon2 ? `<span class="pagament-badge" style="color:#b0b0b0;">${_aIcon2}</span>` : '';
                     html += `
                     <div class="carrera-item" style="padding:0.65rem 0.85rem;margin-bottom:0.4rem;cursor:pointer;" onclick="mostrarDetallCarreraGlobal('${c.id}')">
@@ -3485,7 +3487,7 @@
                         <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera]||''}</span>
                         <span class="pagament-badge">${PAGAMENT_ICONS[c.pagament]||''}</span>
                         ${_aeroportBadge2}
-                        <span style="flex:1;text-align:right;font-weight:700;color:${color};font-size:1rem;">${formatEur(imp)}</span>
+                        <span style="flex:1;text-align:right;font-weight:700;color:${color};font-size:1rem;">${formatEur(imp)}${kmTag}</span>
                         <span style="color:var(--text-secondary);font-size:0.9rem;margin-left:0.5rem;">›</span>
                     </div>`;
                 });
