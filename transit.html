@@ -572,9 +572,10 @@ saveKeyBtn.addEventListener('click', () => {
   const styleInput = document.getElementById('map-style');
   const styleVal = styleInput ? styleInput.value.trim() : '';
   if (key) {
-    localStorage.setItem('mapbox_key', key);
-    if (styleVal) localStorage.setItem('mapbox_style', styleVal);
-    else localStorage.removeItem('mapbox_style');
+    const saves = [dbSet('mapbox_key', key)];
+    if (styleVal) saves.push(dbSet('mapbox_style', styleVal));
+    else saves.push(dbDel('mapbox_style'));
+    Promise.all(saves).catch(console.error);
     settingsPanel.style.display = 'none';
     if (!map) initMap(key);
   } else {
@@ -582,20 +583,59 @@ saveKeyBtn.addEventListener('click', () => {
   }
 });
 
-// Pre-fill style input if saved
-const savedStyleVal = localStorage.getItem('mapbox_style');
-if (savedStyleVal) {
-  const si = document.getElementById('map-style');
-  if (si) si.value = savedStyleVal;
+// ── IndexedDB storage (funciona en GitHub Pages) ──
+const DB_NAME = 'gps_nav_db';
+const DB_STORE = 'config';
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME, 1);
+    req.onupgradeneeded = e => e.target.result.createObjectStore(DB_STORE);
+    req.onsuccess = e => resolve(e.target.result);
+    req.onerror = e => reject(e);
+  });
 }
 
-const savedKey = localStorage.getItem('mapbox_key');
-if (savedKey) {
-  apiKeyInput.value = savedKey;
-  initMap(savedKey);
-} else {
-  settingsPanel.style.display = 'block';
+function dbGet(key) {
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readonly');
+    const req = tx.objectStore(DB_STORE).get(key);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = e => reject(e);
+  }));
 }
+
+function dbSet(key, value) {
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    const req = tx.objectStore(DB_STORE).put(value, key);
+    req.onsuccess = () => resolve();
+    req.onerror = e => reject(e);
+  }));
+}
+
+function dbDel(key) {
+  return openDB().then(db => new Promise((resolve, reject) => {
+    const tx = db.transaction(DB_STORE, 'readwrite');
+    const req = tx.objectStore(DB_STORE).delete(key);
+    req.onsuccess = () => resolve();
+    req.onerror = e => reject(e);
+  }));
+}
+
+// Load saved config from IndexedDB on startup
+Promise.all([dbGet('mapbox_key'), dbGet('mapbox_style')]).then(([savedKey, savedStyle]) => {
+  if (savedKey) {
+    apiKeyInput.value = savedKey;
+    const styleInput = document.getElementById('map-style');
+    if (styleInput && savedStyle) styleInput.value = savedStyle;
+    initMap(savedKey);
+  } else {
+    settingsPanel.style.display = 'block';
+  }
+}).catch(() => {
+  settingsPanel.style.display = 'block';
+});
 
 // ── RECENTER ──
 recenterBtn.addEventListener('click', () => {
@@ -610,7 +650,7 @@ function initMap(token) {
   if (map) return;
   mapboxgl.accessToken = token;
 
-  const savedStyle = localStorage.getItem('mapbox_style') || 'mapbox://styles/mapbox/dark-v11';
+  const savedStyle = '' || 'mapbox://styles/mapbox/dark-v11';
 
   map = new mapboxgl.Map({
     container: 'map',
