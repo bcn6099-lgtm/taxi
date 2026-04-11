@@ -336,6 +336,119 @@
       z-index: 99;
     }
 
+    /* ── BOTTOM PANEL ── */
+    .panel {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      background: rgba(8,8,14,0.93);
+      border-top: 1.5px solid rgba(255,195,0,0.18);
+      padding: 14px 14px 22px;
+      z-index: 10;
+    }
+
+    .panel-label {
+      font-size: 9px;
+      letter-spacing: 3px;
+      color: #444;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    /* ── ROUTE CARDS ── */
+    .routes-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .route-card {
+      border-radius: 10px;
+      padding: 12px 13px;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: border-color 0.2s, background 0.2s;
+      background: rgba(255,255,255,0.04);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .route-card.gold { }
+    .route-card.blue { }
+    .route-card.active        { border-color: #FFC300; background: rgba(255,195,0,0.08); }
+    .route-card.active-blue   { border-color: #00B4D8; background: rgba(0,180,216,0.08); }
+    .route-card:active        { opacity: 0.8; }
+
+    .route-tag {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .route-tag .dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .dot-gold { background: #FFC300; }
+    .dot-blue { background: #00B4D8; }
+
+    .route-time {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 26px;
+      line-height: 1;
+    }
+    .route-time .unit { font-size: 13px; color: #666; margin-left: 2px; }
+
+    .route-dist {
+      font-size: 12px;
+      color: #555;
+      margin-top: 3px;
+    }
+
+    .route-badge {
+      position: absolute;
+      top: 8px; right: 9px;
+      font-size: 9px;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      padding: 2px 6px;
+      border-radius: 8px;
+    }
+    .badge-best { background: rgba(255,195,0,0.12); color: #FFC300; border: 1px solid rgba(255,195,0,0.25); }
+    .badge-alt  { background: rgba(0,180,216,0.1);  color: #00B4D8; border: 1px solid rgba(0,180,216,0.2); }
+
+    .route-card.disabled { opacity: 0.3; pointer-events: none; }
+
+    .no-routes {
+      text-align: center;
+      padding: 10px;
+      color: #333;
+      font-size: 13px;
+      letter-spacing: 1px;
+      grid-column: span 2;
+    }
+
+    /* ── RECENTER BUTTON ── */
+    .recenter-btn {
+      position: absolute;
+      bottom: 155px;
+      right: 14px;
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: rgba(8,8,14,0.93);
+      border: 1.5px solid rgba(255,195,0,0.18);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: #FFC300;
+      font-size: 18px;
+      z-index: 10;
+    }
+
     /* Mapbox controls */
     .mapboxgl-ctrl-group { display: none !important; }
   </style>
