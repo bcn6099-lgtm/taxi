@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <title>GPS Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet" />
-<script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
+  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
+  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <style>
@@ -608,7 +608,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">TAP2 THE MAP TO SET DESTINATION</div>
+<div class="hint" id="hint">22222TAP THE MAP TO SET DESTINATION</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -663,11 +663,11 @@
   <div class="s-section">
     <div class="s-section-title">Estilo del mapa</div>
     <div class="style-grid">
-      <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
+      <button class="style-btn active" data-style="mapbox://styles/bcn6099/cmnsp3ihp001k01s84t0key7d">🗺️ Personalitzat</button>
+      <button class="style-btn" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-night-v1">🚗 Noche</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-day-v1">☀️ Día</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12">🛰️ Satélite</button>
-      <button class="style-btn" id="btn-custom" data-style="custom" style="grid-column:span 2">✏️ Personalizado (campo URL arriba)</button>
     </div>
   </div>
 
@@ -817,7 +817,7 @@ let cfg = {
   showStreet: true,
   showTraffic: true,
   searchRadius: 40,
-  mapStyle: '',
+  mapStyle: 'mapbox://styles/bcn6099/cmnsp3ihp001k01s84t0key7d',
   poiClasses: ['medical', 'lodging', 'education', 'food_and_drink', 'religion']
 };
 
@@ -848,7 +848,7 @@ function applyCfgToUI() {
   if (styleInput) styleInput.value = isCustom ? cfg.mapStyle : '';
 
   // Style buttons
-  const activeStyle = isCustom ? 'custom' : (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11');
+  const activeStyle = isCustom ? 'custom' : (cfg.mapStyle || 'mapbox://styles/bcn6099/cmnsp3ihp001k01s84t0key7d');
   document.querySelectorAll('.style-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.style === activeStyle);
   });
@@ -1007,15 +1007,8 @@ document.addEventListener('click', e => {
   btn.classList.add('active');
 
   const styleInput = document.getElementById('map-style');
-  if (btn.dataset.style === 'custom') {
-    // Personalizado: usa el valor del camp de text
-    const customVal = styleInput ? styleInput.value.trim() : '';
-    if (!customVal) { alert('Introdueix primer la URL del teu estil personalitzat al camp de dalt.'); btn.classList.remove('active'); return; }
-    cfg.mapStyle = customVal;
-  } else {
-    cfg.mapStyle = btn.dataset.style;
-    if (styleInput) styleInput.value = '';
-  }
+  cfg.mapStyle = btn.dataset.style;
+  if (styleInput) styleInput.value = '';
 
   if (map) {
     map.setStyle(cfg.mapStyle);
@@ -1078,10 +1071,7 @@ document.addEventListener('click', e => {
   // El camp de text URL té prioritat sobre els botons preset
   if (styleVal) {
     cfg.mapStyle = styleVal;
-    // Marca el botó "Personalizado" com actiu
     document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
-    const customBtn = document.getElementById('btn-custom');
-    if (customBtn) customBtn.classList.add('active');
   }
 
   const tokenChanged = cfg._token !== key;
