@@ -472,6 +472,52 @@
       text-align: center;
     }
 
+
+    /* ── STREET PILL ── */
+    .street-pill {
+      position: absolute;
+      bottom: 148px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(8,8,14,0.92);
+      border: 1.5px solid rgba(255,195,0,0.22);
+      border-radius: 20px;
+      padding: 7px 18px;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      max-width: calc(100% - 100px);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
+      pointer-events: none;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .street-pill-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.7); }
+    }
+
+    .street-pill-text {
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      color: #fff;
+      letter-spacing: 0.3px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     /* Mapbox controls */
     .mapboxgl-ctrl-group { display: none !important; }
   </style>
@@ -513,19 +559,114 @@
 </div>
 
 <div class="settings-panel" id="settings-panel">
-  <h3>⚙ API Config</h3>
-  <label for="api-key">Mapbox Access Token</label>
-  <input type="text" id="api-key" placeholder="pk.eyJ1..." />
-  <label for="map-style" style="display:block;margin-top:2px">Estilo personalizado <span style="color:#444;font-size:10px">(opcional)</span></label>
-  <input type="text" id="map-style" placeholder="mapbox://styles/usuario/style-id" />
-  <div style="font-size:10px;color:#555;margin:-6px 0 10px;line-height:1.5">
-    Crea tu estilo en <span style="color:#FFC300">mapbox.com/studio</span><br>
-    y pega el Style ID. Por defecto: dark-v11
+
+  <!-- Header -->
+  <div class="s-header">
+    <h3>⚙ Configuración</h3>
+    <span class="s-close" id="s-close">✕</span>
   </div>
-  <button id="save-key">GUARDAR E INICIAR</button>
+
+  <!-- API -->
+  <div class="s-section">
+    <div class="s-section-title">API</div>
+    <span class="s-label">Mapbox Access Token</span>
+    <input class="s-input" type="text" id="api-key" placeholder="pk.eyJ1..." />
+    <span class="s-label">Estilo personalizado <span style="color:#333;font-size:10px">(opcional)</span></span>
+    <input class="s-input" type="text" id="map-style" placeholder="mapbox://styles/usuario/id" />
+    <div class="s-hint">Crea tu estilo en <span>mapbox.com/studio</span></div>
+  </div>
+
+  <!-- Estilo del mapa -->
+  <div class="s-section">
+    <div class="s-section-title">Estilo del mapa</div>
+    <div class="style-grid">
+      <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
+      <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-night-v1">🚗 Noche</button>
+      <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-day-v1">☀️ Día</button>
+      <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12">🛰️ Satélite</button>
+    </div>
+  </div>
+
+  <!-- Etiquetas -->
+  <div class="s-section">
+    <div class="s-section-title">Nombres de calle</div>
+
+    <div class="s-label" style="margin-bottom:7px">Idioma</div>
+    <div class="lang-row" style="margin-bottom:12px">
+      <button class="lang-btn active" data-lang="es">ES</button>
+      <button class="lang-btn" data-lang="ca">CAT</button>
+      <button class="lang-btn" data-lang="en">EN</button>
+      <button class="lang-btn" data-lang="">AUTO</button>
+    </div>
+
+    <div class="s-slider-row">
+      <div class="s-slider-header">
+        <span class="s-label" style="margin:0">Tamaño texto</span>
+        <span class="s-slider-val" id="label-size-val">13px</span>
+      </div>
+      <input type="range" class="s-range" id="label-size" min="10" max="20" value="13" step="1">
+    </div>
+  </div>
+
+  <!-- Vista -->
+  <div class="s-section">
+    <div class="s-section-title">Vista</div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">Vista 3D</div>
+        <div class="s-toggle-sub">Perspectiva inclinada</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="tog-3d" checked><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">Seguir orientación</div>
+        <div class="s-toggle-sub">Rota el mapa con el heading</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="tog-heading" checked><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">Nombre de calle</div>
+        <div class="s-toggle-sub">Pastilla inferior</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="tog-street" checked><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">Tráfico en ruta</div>
+        <div class="s-toggle-sub">Colorea congestion</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="tog-traffic" checked><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
+  <!-- Busqueda -->
+  <div class="s-section">
+    <div class="s-section-title">Búsqueda</div>
+    <div class="s-slider-row">
+      <div class="s-slider-header">
+        <span class="s-label" style="margin:0">Radio de búsqueda</span>
+        <span class="s-slider-val" id="search-radius-val">40 km</span>
+      </div>
+      <input type="range" class="s-range" id="search-radius" min="5" max="100" value="40" step="5">
+    </div>
+  </div>
+
+  <!-- Guardar -->
+  <div class="s-section">
+    <button class="s-save-btn" id="save-key">GUARDAR E INICIAR</button>
+  </div>
+
 </div>
 
 <div class="recenter-btn" id="recenter" title="Re-center">⊕</div>
+
+<div class="street-pill" id="street-pill"><span class="street-pill-dot"></span><span class="street-pill-text" id="street-text">Localizando...</span></div>
 
 <div class="panel" id="main-panel">
   <div class="panel-label">Route Selection</div>
@@ -555,19 +696,178 @@ const hint = document.getElementById('hint');
 const recenterBtn = document.getElementById('recenter');
 const routesGrid = document.getElementById('routes-grid');
 
+// ── SETTINGS STATE ──
+let cfg = {
+  lang: 'es',
+  labelSize: 13,
+  pitch3d: true,
+  followHeading: true,
+  showStreet: true,
+  showTraffic: true,
+  searchRadius: 40,
+  mapStyle: ''
+};
+
+function loadCfgFromDB() {
+  return dbGet('app_config').then(val => {
+    if (val) Object.assign(cfg, JSON.parse(val));
+  }).catch(() => {});
+}
+
+function saveCfgToDB() {
+  return dbSet('app_config', JSON.stringify(cfg)).catch(console.error);
+}
+
+function applyCfgToUI() {
+  // Style buttons
+  document.querySelectorAll('.style-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.style === (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11'));
+  });
+  // Lang buttons
+  document.querySelectorAll('.lang-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.lang === cfg.lang);
+  });
+  // Sliders
+  const ls = document.getElementById('label-size');
+  if (ls) { ls.value = cfg.labelSize; document.getElementById('label-size-val').textContent = cfg.labelSize + 'px'; }
+  const sr = document.getElementById('search-radius');
+  if (sr) { sr.value = cfg.searchRadius; document.getElementById('search-radius-val').textContent = cfg.searchRadius + ' km'; }
+  // Toggles
+  const tog3d = document.getElementById('tog-3d');
+  const togH  = document.getElementById('tog-heading');
+  const togSt = document.getElementById('tog-street');
+  const togTr = document.getElementById('tog-traffic');
+  if (tog3d) tog3d.checked = cfg.pitch3d;
+  if (togH)  togH.checked  = cfg.followHeading;
+  if (togSt) togSt.checked = cfg.showStreet;
+  if (togTr) togTr.checked = cfg.showTraffic;
+}
+
+function applyLabelsToMap() {
+  if (!map) return;
+  const langField = cfg.lang
+    ? ['coalesce', ['get', 'name_' + cfg.lang], ['get', 'name']]
+    : ['get', 'name'];
+  map.getStyle().layers.forEach(layer => {
+    if (layer.type === 'symbol') {
+      try {
+        map.setLayoutProperty(layer.id, 'text-field', langField);
+        map.setPaintProperty(layer.id, 'text-opacity', 1);
+        map.setPaintProperty(layer.id, 'text-halo-width', 2);
+        map.setPaintProperty(layer.id, 'text-halo-color', 'rgba(0,0,0,0.9)');
+      } catch(e) {}
+      try { map.setLayoutProperty(layer.id, 'text-size', cfg.labelSize); } catch(e) {}
+    }
+  });
+}
+
+function applyTrafficLayer() {
+  if (!map) return;
+  const hasTraffic = map.getLayer('traffic-layer');
+  if (cfg.showTraffic && !hasTraffic) {
+    try {
+      if (!map.getSource('mapbox-traffic')) {
+        map.addSource('mapbox-traffic', { type: 'vector', url: 'mapbox://mapbox.mapbox-traffic-v1' });
+      }
+      map.addLayer({
+        id: 'traffic-layer',
+        type: 'line',
+        source: 'mapbox-traffic',
+        'source-layer': 'traffic',
+        layout: { 'line-join': 'round', 'line-cap': 'round' },
+        paint: {
+          'line-width': 3,
+          'line-color': [
+            'match', ['get', 'congestion'],
+            'low',    '#00c851',
+            'moderate','#ffbb33',
+            'heavy',  '#ff4444',
+            'severe', '#cc0000',
+            '#aaa'
+          ],
+          'line-opacity': 0.7
+        }
+      }, 'road-label');
+    } catch(e) {}
+  } else if (!cfg.showTraffic && hasTraffic) {
+    try { map.removeLayer('traffic-layer'); } catch(e) {}
+  }
+}
+
 // ── SETTINGS PANEL ──
 hamburger.addEventListener('click', () => {
-  settingsPanel.style.display = settingsPanel.style.display === 'block' ? 'none' : 'block';
+  const open = settingsPanel.style.display === 'block';
+  settingsPanel.style.display = open ? 'none' : 'block';
+  if (!open) applyCfgToUI();
+});
+
+document.addEventListener('click', e => {
+  const sc = document.getElementById('s-close');
+  if (sc && sc.contains(e.target)) settingsPanel.style.display = 'none';
+});
+
+// Style preset buttons
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.style-btn');
+  if (!btn) return;
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  cfg.mapStyle = btn.dataset.style;
+  const styleInput = document.getElementById('map-style');
+  if (styleInput) styleInput.value = '';
+});
+
+// Lang buttons
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.lang-btn');
+  if (!btn) return;
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  cfg.lang = btn.dataset.lang;
+  applyLabelsToMap();
+});
+
+// Label size slider
+document.addEventListener('input', e => {
+  if (e.target.id === 'label-size') {
+    cfg.labelSize = parseInt(e.target.value);
+    document.getElementById('label-size-val').textContent = cfg.labelSize + 'px';
+    applyLabelsToMap();
+  }
+  if (e.target.id === 'search-radius') {
+    cfg.searchRadius = parseInt(e.target.value);
+    document.getElementById('search-radius-val').textContent = cfg.searchRadius + ' km';
+  }
+});
+
+// Toggles
+document.addEventListener('change', e => {
+  if (e.target.id === 'tog-3d') {
+    cfg.pitch3d = e.target.checked;
+    if (map) map.easeTo({ pitch: cfg.pitch3d ? 55 : 0, duration: 600 });
+  }
+  if (e.target.id === 'tog-heading') {
+    cfg.followHeading = e.target.checked;
+  }
+  if (e.target.id === 'tog-street') {
+    cfg.showStreet = e.target.checked;
+    const pill = document.getElementById('street-pill');
+    if (pill) pill.style.display = cfg.showStreet ? 'flex' : 'none';
+  }
+  if (e.target.id === 'tog-traffic') {
+    cfg.showTraffic = e.target.checked;
+    applyTrafficLayer();
+  }
 });
 
 saveKeyBtn.addEventListener('click', () => {
   const key = apiKeyInput.value.trim();
   const styleInput = document.getElementById('map-style');
   const styleVal = styleInput ? styleInput.value.trim() : '';
+  // Custom style ID overrides preset
+  if (styleVal) cfg.mapStyle = styleVal;
   if (key) {
-    const saves = [dbSet('mapbox_key', key)];
-    if (styleVal) saves.push(dbSet('mapbox_style', styleVal));
-    else saves.push(dbDel('mapbox_style'));
+    const saves = [dbSet('mapbox_key', key), saveCfgToDB()];
     Promise.all(saves).catch(console.error);
     settingsPanel.style.display = 'none';
     if (!map) initMap(key);
@@ -617,11 +917,10 @@ function dbDel(key) {
 }
 
 // Load saved config from IndexedDB on startup
-Promise.all([dbGet('mapbox_key'), dbGet('mapbox_style')]).then(([savedKey, savedStyle]) => {
+Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
   if (savedKey) {
     apiKeyInput.value = savedKey;
-    const styleInput = document.getElementById('map-style');
-    if (styleInput && savedStyle) styleInput.value = savedStyle;
+    applyCfgToUI();
     initMap(savedKey);
   } else {
     settingsPanel.style.display = 'block';
@@ -643,7 +942,7 @@ function initMap(token) {
   if (map) return;
   mapboxgl.accessToken = token;
 
-  const savedStyle = '' || 'mapbox://styles/mapbox/dark-v11';
+  const savedStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
 
   map = new mapboxgl.Map({
     container: 'map',
@@ -671,13 +970,8 @@ function initMap(token) {
       }
     });
 
-    // Make road labels bigger specifically
-    ['road-label', 'road-label-simple'].forEach(id => {
-      if (map.getLayer(id)) {
-        try { map.setLayoutProperty(id, 'text-size', 13); } catch(e) {}
-      }
-    });
-
+    applyLabelsToMap();
+    applyTrafficLayer();
     startTracking();
   });
 
@@ -740,14 +1034,15 @@ function startTracking() {
     if (isFollowing) {
       map.easeTo({
         center: userLocation,
-        bearing: userHeading,
-        pitch: 55,
+        bearing: cfg.followHeading ? userHeading : map.getBearing(),
+        pitch: cfg.pitch3d ? 55 : 0,
         zoom: 16,
         duration: 600
       });
     }
 
     hint.textContent = 'TAP THE MAP TO SET DESTINATION';
+    maybeReverseGeocode(userLocation);
   }, err => {
     console.error('GPS error:', err);
     hint.textContent = 'GPS UNAVAILABLE — TAP TO SET DESTINATION';
@@ -779,6 +1074,45 @@ function onOrientation(e) {
 function updateCompass(deg) {
   compassSvg.style.transform = `rotate(${-deg}deg)`;
 }
+
+// ── REVERSE GEOCODE (nombre de calle) ──
+let lastReverseGeocode = 0;
+let lastReverseLocation = null;
+const REVERSE_INTERVAL = 15000; // cada 15s máximo
+const REVERSE_MIN_DIST = 80;    // solo si nos movemos >80m
+
+function metersApart(a, b) {
+  if (!a || !b) return Infinity;
+  const R = 6371000;
+  const dLat = (b[1]-a[1]) * Math.PI/180;
+  const dLon = (b[0]-a[0]) * Math.PI/180;
+  const s = Math.sin(dLat/2)**2 + Math.cos(a[1]*Math.PI/180)*Math.cos(b[1]*Math.PI/180)*Math.sin(dLon/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(s), Math.sqrt(1-s));
+}
+
+function maybeReverseGeocode(loc) {
+  const now = Date.now();
+  const dist = metersApart(lastReverseLocation, loc);
+  if (now - lastReverseGeocode < REVERSE_INTERVAL && dist < REVERSE_MIN_DIST) return;
+  lastReverseGeocode = now;
+  lastReverseLocation = loc;
+
+  if (!mapboxgl.accessToken) return;
+
+  fetch(`https://api.mapbox.com/geocoding/v5/mapbox.places/${loc[0]},${loc[1]}.json?types=address&language=es&limit=1&access_token=${mapboxgl.accessToken}`)
+    .then(r => r.json())
+    .then(data => {
+      const f = data.features && data.features[0];
+      if (!f) return;
+      // Show street name + number, strip city/country
+      const parts = f.place_name.split(',');
+      const street = parts[0].trim();
+      document.getElementById('street-text').textContent = street;
+    })
+    .catch(() => {});
+}
+
+
 
 // ── CALCULATE ROUTES ──
 function calcRoutes(dest) {
