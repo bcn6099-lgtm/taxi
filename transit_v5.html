@@ -608,7 +608,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">TAP THE MAP TO SET DESTINATION</div>
+<div class="hint" id="hint">nnnnnnnN</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -1107,7 +1107,7 @@ document.addEventListener('click', e => {
         renderRouteCards();
 
         map.setStyle(FIXED_STYLE);
-        map.once('style.load', () => { hide3dBuildings(); applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
+        map.once('style.load', () => { try { map.setConfigProperty('basemap', 'showBuildings3d', false); } catch(e) {} hide3dBuildings(); applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
       }
     });
 });
@@ -1180,6 +1180,7 @@ function initMap(token) {
   });
 
   map.on('load', () => {
+    try { map.setConfigProperty('basemap', 'showBuildings3d', false); } catch(e) {}
     hide3dBuildings();
     applyLabelsToMap();
     applyTrafficLayer();
@@ -1241,6 +1242,10 @@ function startTracking() {
     // Rotate arrow marker element
     const arrowEl = document.getElementById('user-arrow');
     if (arrowEl) arrowEl.style.transform = `rotate(${userHeading}deg)`;
+
+    // Asegurar sin edificios 3D en cada update GPS
+    try { map.setConfigProperty('basemap', 'showBuildings3d', false); } catch(e) {}
+    hide3dBuildings();
 
     // Auto-follow with heading
     if (isFollowing) {
