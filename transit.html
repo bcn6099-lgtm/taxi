@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>GPSS Navigator</title>
+  <title>XXX Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet" />
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
@@ -399,15 +399,16 @@
 
     .route-time {
       font-family: 'Share Tech Mono', monospace;
-      font-size: 26px;
+      font-size: 28px;
       line-height: 1;
     }
-    .route-time .unit { font-size: 13px; color: #666; margin-left: 2px; }
+    .route-time .unit { font-size: 14px; color: #999; margin-left: 2px; }
 
     .route-dist {
-      font-size: 12px;
-      color: #555;
-      margin-top: 3px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #bbb;
+      margin-top: 5px;
     }
 
     .route-badge {
@@ -426,7 +427,6 @@
 
     .cancel-route-btn {
       grid-column: span 2;
-      margin-top: 2px;
       padding: 10px;
       background: transparent;
       border: 1px solid rgba(255,60,60,0.3);
@@ -535,33 +535,33 @@
     .search-results {
       display: none;
       margin-top: 6px;
-      background: #0e0e14;
-      border: 1px solid rgba(255,195,0,0.15);
+      background: #1a1a24;
+      border: 1px solid rgba(255,195,0,0.35);
       border-radius: 10px;
       overflow: hidden;
-      box-shadow: 0 8px 28px rgba(0,0,0,0.7);
+      box-shadow: 0 8px 28px rgba(0,0,0,0.8);
     }
 
     .search-result-item {
       display: flex;
       align-items: center;
-      gap: 10px;
-      padding: 11px 14px;
+      gap: 12px;
+      padding: 14px 16px;
       cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,0.04);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
       transition: background 0.15s;
     }
     .search-result-item:last-child { border-bottom: none; }
-    .search-result-item:active { background: rgba(255,195,0,0.07); }
+    .search-result-item:active { background: rgba(255,195,0,0.12); }
 
-    .result-icon { font-size: 14px; flex-shrink: 0; }
-    .result-main { font-size: 14px; font-weight: 600; color: #ddd; }
-    .result-sub  { font-size: 11px; color: #555; margin-top: 1px; }
+    .result-icon { font-size: 18px; flex-shrink: 0; }
+    .result-main { font-size: 16px; font-weight: 700; color: #fff; }
+    .result-sub  { font-size: 13px; color: #888; margin-top: 3px; }
 
     .search-status {
-      padding: 12px 14px;
-      font-size: 12px;
-      color: #555;
+      padding: 14px 16px;
+      font-size: 13px;
+      color: #666;
       letter-spacing: 1px;
       text-align: center;
     }
@@ -673,22 +673,10 @@
     <div class="s-section-title">API</div>
     <span class="s-label">Mapbox Access Token</span>
     <input class="s-input" type="text" id="api-key" placeholder="pk.eyJ1..." />
-    <span class="s-label">Estilo personalizado <span style="color:#333;font-size:10px">(opcional)</span></span>
-    <input class="s-input" type="text" id="map-style" placeholder="mapbox://styles/usuario/id" />
-    <div class="s-hint">Crea tu estilo en <span>mapbox.com/studio</span></div>
+    <input type="hidden" id="map-style" value="">
   </div>
 
-  <!-- Estilo del mapa -->
-  <div class="s-section">
-    <div class="s-section-title">Estilo del mapa</div>
-    <div class="style-grid">
-      <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
-      <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-night-v1">🚗 Noche</button>
-      <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-day-v1">☀️ Día</button>
-      <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12">🛰️ Satélite</button>
-      <button class="style-btn" id="btn-custom" data-style="custom" style="grid-column:span 2">✏️ Personalizado (campo URL arriba)</button>
-    </div>
-  </div>
+
 
   <!-- Etiquetas -->
   <div class="s-section">
@@ -754,8 +742,7 @@
 
   <!-- POI Filtros -->
   <div class="s-section" id="poi-section">
-    <div class="s-section-title">Punts d'interès <span style="color:#333;font-size:9px">(només estil personalitzat)</span></div>
-    <div id="poi-warning" style="font-size:10px;color:#555;margin-bottom:10px;display:none">⚠️ Activa l'estil personalitzat per usar els filtres POI</div>
+    <div class="s-section-title">Punts d'interès</div>
 
     <div class="s-toggle-row">
       <div>
@@ -1017,29 +1004,7 @@ document.addEventListener('click', e => {
   if (e.target.closest('#s-close')) closeSettings();
 });
 
-// Style preset buttons — apply immediately to map
-document.addEventListener('click', e => {
-  const btn = e.target.closest('.style-btn');
-  if (!btn) return;
-  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-
-  const styleInput = document.getElementById('map-style');
-  if (btn.dataset.style === 'custom') {
-    // Personalizado: usa el valor del camp de text
-    const customVal = styleInput ? styleInput.value.trim() : '';
-    if (!customVal) { alert('Introdueix primer la URL del teu estil personalitzat al camp de dalt.'); btn.classList.remove('active'); return; }
-    cfg.mapStyle = customVal;
-  } else {
-    cfg.mapStyle = btn.dataset.style;
-    if (styleInput) styleInput.value = '';
-  }
-
-  if (map) {
-    map.setStyle(cfg.mapStyle);
-    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
-  }
-});
+// (selector de estilo eliminado)
 
 // Label size slider
 document.addEventListener('input', e => {
@@ -1084,26 +1049,11 @@ document.addEventListener('change', e => {
   }
 });
 
-// Save button
+// Save button — solo guarda el token, no reinicia el mapa
 document.addEventListener('click', e => {
   if (!e.target.closest('#save-key')) return;
   const key = document.getElementById('api-key').value.trim();
   if (!key) { alert('Introdueix una clau API de Mapbox vàlida.'); return; }
-
-  // Sincronitzar poiClasses des del DOM abans de guardar
-  cfg.poiClasses = Array.from(document.querySelectorAll('.tog-poi:checked')).map(cb => cb.dataset.class);
-
-  const styleInput = document.getElementById('map-style');
-  const styleVal = styleInput ? styleInput.value.trim() : '';
-
-  // El camp de text URL té prioritat sobre els botons preset
-  if (styleVal) {
-    cfg.mapStyle = styleVal;
-    // Marca el botó "Personalizado" com actiu
-    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
-    const customBtn = document.getElementById('btn-custom');
-    if (customBtn) customBtn.classList.add('active');
-  }
 
   const tokenChanged = cfg._token !== key;
   cfg._token = key;
@@ -1112,11 +1062,8 @@ document.addEventListener('click', e => {
     .catch(console.error)
     .finally(() => {
       closeSettings();
-
       if (!map || tokenChanged) {
-        // Reinicia el mapa completament si no existia o ha canviat el token
         if (map) {
-          // Neteja rutes actives
           routeIds.forEach(id => {
             try { if (map.getLayer(id)) map.removeLayer(id); } catch(e) {}
             try { if (map.getSource(id)) map.removeSource(id); } catch(e) {}
@@ -1128,17 +1075,7 @@ document.addEventListener('click', e => {
         }
         initMap(key);
       } else {
-        // Mateix token, canvia estil i reseteja rutes
-        routeIds.forEach(id => {
-          try { if (map.getLayer(id)) map.removeLayer(id); } catch(e) {}
-          try { if (map.getSource(id)) map.removeSource(id); } catch(e) {}
-        });
-        routeIds = []; routeData = [];
-        renderRouteCards();
-
-        const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
-        map.setStyle(newStyle);
-        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
+        closeSettings();
       }
     });
 });
