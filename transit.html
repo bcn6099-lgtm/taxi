@@ -608,7 +608,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">test7</div>
+<div class="hint" id="hint">RRRRRR</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -875,11 +875,16 @@ function applyCfgToUI() {
 
 function hide3dBuildings() {
   if (!map) return;
-  map.getStyle().layers.forEach(layer => {
-    if (layer.type === 'fill-extrusion') {
-      try { map.setLayoutProperty(layer.id, 'visibility', 'none'); } catch(e) {}
-    }
-  });
+  const _hide = () => {
+    map.getStyle().layers.forEach(layer => {
+      if (layer.type === 'fill-extrusion') {
+        try { map.setLayoutProperty(layer.id, 'visibility', 'none'); } catch(e) {}
+      }
+    });
+  };
+  _hide();
+  // En móvil las capas pueden llegar tarde; segundo intento en idle
+  map.once('idle', _hide);
 }
 
 function applyLabelsToMap() {
