@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>GPS Navigator</title>
+  <title>GPSS Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet" />
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
@@ -426,6 +426,7 @@
 
     .cancel-route-btn {
       grid-column: span 2;
+      margin-top: 2px;
       padding: 10px;
       background: transparent;
       border: 1px solid rgba(255,60,60,0.3);
@@ -1088,6 +1089,9 @@ document.addEventListener('click', e => {
   if (!e.target.closest('#save-key')) return;
   const key = document.getElementById('api-key').value.trim();
   if (!key) { alert('Introdueix una clau API de Mapbox vàlida.'); return; }
+
+  // Sincronitzar poiClasses des del DOM abans de guardar
+  cfg.poiClasses = Array.from(document.querySelectorAll('.tog-poi:checked')).map(cb => cb.dataset.class);
 
   const styleInput = document.getElementById('map-style');
   const styleVal = styleInput ? styleInput.value.trim() : '';
