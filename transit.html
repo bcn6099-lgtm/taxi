@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>XXX Navigator</title>
+  <title>ZZZ Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet" />
 <script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
@@ -535,8 +535,8 @@
     .search-results {
       display: none;
       margin-top: 6px;
-      background: #1a1a24;
-      border: 1px solid rgba(255,195,0,0.35);
+      background: #2a2a38;
+      border: 1px solid rgba(255,195,0,0.5);
       border-radius: 10px;
       overflow: hidden;
       box-shadow: 0 8px 28px rgba(0,0,0,0.8);
@@ -546,17 +546,17 @@
       display: flex;
       align-items: center;
       gap: 12px;
-      padding: 14px 16px;
+      padding: 15px 16px;
       cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,0.08);
+      border-bottom: 1px solid rgba(255,255,255,0.1);
       transition: background 0.15s;
     }
     .search-result-item:last-child { border-bottom: none; }
-    .search-result-item:active { background: rgba(255,195,0,0.12); }
+    .search-result-item:active { background: rgba(255,195,0,0.15); }
 
-    .result-icon { font-size: 18px; flex-shrink: 0; }
-    .result-main { font-size: 16px; font-weight: 700; color: #fff; }
-    .result-sub  { font-size: 13px; color: #888; margin-top: 3px; }
+    .result-icon { font-size: 20px; flex-shrink: 0; }
+    .result-main { font-size: 17px; font-weight: 700; color: #ffffff; letter-spacing: 0.2px; }
+    .result-sub  { font-size: 13px; color: #aaa; margin-top: 4px; }
 
     .search-status {
       padding: 14px 16px;
@@ -676,6 +676,17 @@
     <input type="hidden" id="map-style" value="">
   </div>
 
+  <!-- Estilo del mapa -->
+  <div class="s-section">
+    <div class="s-section-title">Estilo del mapa</div>
+    <div class="style-grid">
+      <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
+      <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-night-v1">🚗 Noche</button>
+      <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-day-v1">☀️ Día</button>
+      <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12">🛰️ Satélite</button>
+    </div>
+  </div>
+
 
 
   <!-- Etiquetas -->
@@ -709,14 +720,6 @@
         <div class="s-toggle-sub">Rota el mapa con el heading</div>
       </div>
       <label class="toggle"><input type="checkbox" id="tog-heading" checked><span class="toggle-slider"></span></label>
-    </div>
-
-    <div class="s-toggle-row">
-      <div>
-        <div class="s-toggle-label">Nombre de calle</div>
-        <div class="s-toggle-sub">Pastilla inferior</div>
-      </div>
-      <label class="toggle"><input type="checkbox" id="tog-street" checked><span class="toggle-slider"></span></label>
     </div>
 
     <div class="s-toggle-row">
@@ -914,6 +917,9 @@ function applyTrafficLayer() {
       if (!map.getSource('mapbox-traffic')) {
         map.addSource('mapbox-traffic', { type: 'vector', url: 'mapbox://mapbox.mapbox-traffic-v1' });
       }
+      // Buscar una capa de referencia válida o insertar al final
+      const refLayer = map.getLayer('road-label') ? 'road-label' :
+                       map.getLayer('road-street-low') ? 'road-street-low' : undefined;
       map.addLayer({
         id: 'traffic-layer',
         type: 'line',
@@ -921,7 +927,7 @@ function applyTrafficLayer() {
         'source-layer': 'traffic',
         layout: { 'line-join': 'round', 'line-cap': 'round' },
         paint: {
-          'line-width': 3,
+          'line-width': 4,
           'line-color': [
             'match', ['get', 'congestion'],
             'low',    '#00c851',
@@ -930,9 +936,9 @@ function applyTrafficLayer() {
             'severe', '#cc0000',
             '#aaa'
           ],
-          'line-opacity': 0.7
+          'line-opacity': 0.8
         }
-      }, 'road-label');
+      }, refLayer);
     } catch(e) {}
   } else if (!cfg.showTraffic && hasTraffic) {
     try { map.removeLayer('traffic-layer'); } catch(e) {}
@@ -1004,7 +1010,18 @@ document.addEventListener('click', e => {
   if (e.target.closest('#s-close')) closeSettings();
 });
 
-// (selector de estilo eliminado)
+// Style preset buttons
+document.addEventListener('click', e => {
+  const btn = e.target.closest('.style-btn');
+  if (!btn) return;
+  document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  cfg.mapStyle = btn.dataset.style;
+  if (map) {
+    map.setStyle(cfg.mapStyle);
+    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
+  }
+});
 
 // Label size slider
 document.addEventListener('input', e => {
@@ -1027,11 +1044,6 @@ document.addEventListener('change', e => {
   }
   if (e.target.id === 'tog-heading') {
     cfg.followHeading = e.target.checked;
-  }
-  if (e.target.id === 'tog-street') {
-    cfg.showStreet = e.target.checked;
-    const pill = document.getElementById('street-pill');
-    if (pill) pill.style.display = cfg.showStreet ? 'flex' : 'none';
   }
   if (e.target.id === 'tog-traffic') {
     cfg.showTraffic = e.target.checked;
