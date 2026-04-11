@@ -4,8 +4,8 @@
   <meta charset="utf-8" />
   <title>GPS Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
-  <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
+<link href="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.css" rel="stylesheet" />
+<script src="https://api.mapbox.com/mapbox-gl-js/v3.1.2/mapbox-gl.js"></script>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;600;700&family=Share+Tech+Mono&display=swap" rel="stylesheet">
 
   <style>
@@ -608,7 +608,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">Version4 TAP </div>
+<div class="hint" id="hint">test7</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -663,11 +663,11 @@
   <div class="s-section">
     <div class="s-section-title">Estilo del mapa</div>
     <div class="style-grid">
-      <button class="style-btn active" data-style="mapbox://styles/bcn6099/cmnsp3ihp001k01s84t0key7d">🗺️ Personalitzat</button>
-      <button class="style-btn" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
+      <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-night-v1">🚗 Noche</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-day-v1">☀️ Día</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12">🛰️ Satélite</button>
+      <button class="style-btn" id="btn-custom" data-style="custom" style="grid-column:span 2">✏️ Personalizado (campo URL arriba)</button>
     </div>
   </div>
 
@@ -778,8 +778,6 @@
 </div>
 
 <div class="recenter-btn" id="recenter" title="Re-center">⊕</div>
-<div id="debug-btn" onclick="runDebug()" style="position:absolute;bottom:210px;right:14px;width:42px;height:42px;border-radius:50%;background:rgba(8,8,14,0.93);border:1.5px solid rgba(0,180,216,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#00B4D8;font-size:16px;z-index:10;" title="Debug capas">🔍</div>
-<div id="debug-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;max-height:50vh;overflow-y:auto;background:#0a0a0f;border-top:1px solid #333;z-index:200;padding:12px;font-family:monospace;font-size:11px;color:#aaa;"></div>
 
 <div class="street-pill" id="street-pill"><span class="street-pill-dot"></span><span class="street-pill-text" id="street-text">Localizando...</span></div>
 
@@ -850,7 +848,7 @@ function applyCfgToUI() {
   if (styleInput) styleInput.value = isCustom ? cfg.mapStyle : '';
 
   // Style buttons
-  const activeStyle = isCustom ? 'custom' : (cfg.mapStyle || 'mapbox://styles/bcn6099/cmnsp3ihp001k01s84t0key7d');
+  const activeStyle = isCustom ? 'custom' : (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11');
   document.querySelectorAll('.style-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.style === activeStyle);
   });
@@ -875,40 +873,38 @@ function applyCfgToUI() {
   applyCfgToPoiToggles();
 }
 
+function hide3dBuildings() {
+  if (!map) return;
+  map.getStyle().layers.forEach(layer => {
+    if (layer.type === 'fill-extrusion') {
+      try { map.setLayoutProperty(layer.id, 'visibility', 'none'); } catch(e) {}
+    }
+  });
+}
+
 function applyLabelsToMap() {
   if (!map) return;
   const langField = cfg.lang
     ? ['coalesce', ['get', 'name_' + cfg.lang], ['get', 'name']]
     : ['get', 'name'];
 
-  const PRESETS = [
-    'mapbox://styles/mapbox/dark-v11',
-    'mapbox://styles/mapbox/navigation-night-v1',
-    'mapbox://styles/mapbox/navigation-day-v1',
-    'mapbox://styles/mapbox/satellite-streets-v12'
-  ];
-  const currentStyle = cfg.mapStyle || '';
-  const isPreset = PRESETS.includes(currentStyle);
-
-  // For preset styles, force readable colors. For custom Studio styles,
-  // leave colors untouched so the style renders as designed.
-  const isLight = currentStyle.includes('day') || currentStyle.includes('light') || currentStyle.includes('satellite');
-  const textColor = isLight ? '#111111' : '#ffffff';
-  const haloColor = isLight ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
-  const haloWidth = isLight ? 2.5 : 2;
+  // Detect if style is light/day — use dark text + light halo
+  const styleId = cfg.mapStyle || '';
+  const isLight = styleId.includes('day') || styleId.includes('light') || styleId.includes('satellite');
+  const textColor   = isLight ? '#111111' : '#ffffff';
+  const haloColor   = isLight ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
+  const haloWidth   = isLight ? 2.5 : 2;
 
   map.getStyle().layers.forEach(layer => {
     if (layer.type === 'symbol') {
-      if (isPreset) {
-        try { map.setLayoutProperty(layer.id, 'text-field', langField); } catch(e) {}
-        try { map.setLayoutProperty(layer.id, 'text-size', cfg.labelSize); } catch(e) {}
-        try {
-          map.setPaintProperty(layer.id, 'text-opacity', 1);
-          map.setPaintProperty(layer.id, 'text-color', textColor);
-          map.setPaintProperty(layer.id, 'text-halo-width', haloWidth);
-          map.setPaintProperty(layer.id, 'text-halo-color', haloColor);
-        } catch(e) {}
-      }
+      try {
+        map.setLayoutProperty(layer.id, 'text-field', langField);
+        map.setPaintProperty(layer.id, 'text-opacity', 1);
+        map.setPaintProperty(layer.id, 'text-color', textColor);
+        map.setPaintProperty(layer.id, 'text-halo-width', haloWidth);
+        map.setPaintProperty(layer.id, 'text-halo-color', haloColor);
+      } catch(e) {}
+      try { map.setLayoutProperty(layer.id, 'text-size', cfg.labelSize); } catch(e) {}
     }
   });
 }
@@ -1020,12 +1016,19 @@ document.addEventListener('click', e => {
   btn.classList.add('active');
 
   const styleInput = document.getElementById('map-style');
-  cfg.mapStyle = btn.dataset.style;
-  if (styleInput) styleInput.value = '';
+  if (btn.dataset.style === 'custom') {
+    // Personalizado: usa el valor del camp de text
+    const customVal = styleInput ? styleInput.value.trim() : '';
+    if (!customVal) { alert('Introdueix primer la URL del teu estil personalitzat al camp de dalt.'); btn.classList.remove('active'); return; }
+    cfg.mapStyle = customVal;
+  } else {
+    cfg.mapStyle = btn.dataset.style;
+    if (styleInput) styleInput.value = '';
+  }
 
   if (map) {
     map.setStyle(cfg.mapStyle);
-    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
+    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); hide3dBuildings(); syncPoiUI(); });
   }
 });
 
@@ -1034,8 +1037,7 @@ document.addEventListener('input', e => {
   if (e.target.id === 'label-size') {
     cfg.labelSize = parseInt(e.target.value);
     document.getElementById('label-size-val').textContent = cfg.labelSize + 'px';
-    const PRESETS = ['mapbox://styles/mapbox/dark-v11','mapbox://styles/mapbox/navigation-night-v1','mapbox://styles/mapbox/navigation-day-v1','mapbox://styles/mapbox/satellite-streets-v12'];
-    if (PRESETS.includes(cfg.mapStyle || '')) applyLabelsToMap();
+    applyLabelsToMap();
   }
   if (e.target.id === 'search-radius') {
     cfg.searchRadius = parseInt(e.target.value);
@@ -1085,7 +1087,10 @@ document.addEventListener('click', e => {
   // El camp de text URL té prioritat sobre els botons preset
   if (styleVal) {
     cfg.mapStyle = styleVal;
+    // Marca el botó "Personalizado" com actiu
     document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    const customBtn = document.getElementById('btn-custom');
+    if (customBtn) customBtn.classList.add('active');
   }
 
   const tokenChanged = cfg._token !== key;
@@ -1121,7 +1126,7 @@ document.addEventListener('click', e => {
 
         const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
         map.setStyle(newStyle);
-        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
+        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); hide3dBuildings(); syncPoiUI(); });
       }
     });
 });
@@ -1197,6 +1202,7 @@ function initMap(token) {
     applyLabelsToMap();
     applyTrafficLayer();
     applyPoiFilter();
+    hide3dBuildings();
     startTracking();
   });
 
@@ -1632,42 +1638,6 @@ function renderResults(features) {
   });
 }
 
-
-// ── DEBUG ──
-function runDebug() {
-  const panel = document.getElementById('debug-panel');
-  if (!map) { panel.style.display='block'; panel.innerHTML='<span style="color:red">Mapa no inicialitzat</span>'; return; }
-
-  const style = map.getStyle();
-  const zoom = map.getZoom().toFixed(1);
-  const layers = style.layers || [];
-
-  const symbolLayers = layers.filter(l => l.type === 'symbol');
-  const roadLayers = layers.filter(l => l.id && (l.id.includes('road') || l.id.includes('street') || l.id.includes('label') || l.id.includes('carrer') || l.id.includes('calle') || l.id.includes('via')));
-
-  let html = `<div style="color:#FFC300;margin-bottom:8px">── DEBUG ── zoom: ${zoom} | estil: ${cfg.mapStyle || 'default'}</div>`;
-  html += `<div style="color:#00B4D8;margin-bottom:4px">Symbol layers (${symbolLayers.length} total):</div>`;
-
-  symbolLayers.slice(0, 40).forEach(l => {
-    const vis = map.getLayoutProperty(l.id, 'visibility') || 'visible';
-    const color = vis === 'none' ? '#f44' : '#6f6';
-    html += `<div style="color:${color}">${vis==='none'?'✗':'✓'} ${l.id}</div>`;
-  });
-
-  if (roadLayers.length) {
-    html += `<div style="color:#00B4D8;margin-top:8px;margin-bottom:4px">Road/label layers:</div>`;
-    roadLayers.forEach(l => {
-      const vis = map.getLayoutProperty(l.id, 'visibility') || 'visible';
-      const color = vis === 'none' ? '#f44' : '#6f6';
-      html += `<div style="color:${color}">${vis==='none'?'✗':'✓'} [${l.type}] ${l.id}</div>`;
-    });
-  }
-
-  html += `<div style="margin-top:10px;color:#555">Tap anywhere to close</div>`;
-  panel.innerHTML = html;
-  panel.style.display = 'block';
-  panel.onclick = () => panel.style.display = 'none';
-}
 
 // ── STARTUP ──
 Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
