@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>GPS Navigator</title>
+  <title>GPSSSS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -114,408 +114,226 @@
       box-shadow: 0 0 14px rgba(255,195,0,0.1);
     }
 
+    /* ── SETTINGS DRAWER ── */
     .settings-panel {
       display: none;
-      position: absolute;
-      top: 68px;
-      right: 14px;
-      background: var(--panel);
-      padding: 18px;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      z-index: 20;
-      min-width: 260px;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+      position: fixed;
+      top: 0; right: 0; bottom: 0;
+      width: 300px;
+      max-width: 92vw;
+      background: #0e0e14;
+      border-left: 1px solid rgba(255,195,0,0.15);
+      z-index: 100;
+      overflow-y: auto;
+      overflow-x: hidden;
+      -webkit-overflow-scrolling: touch;
+      box-shadow: -8px 0 32px rgba(0,0,0,0.7);
     }
 
-    .settings-panel h3 {
+    .settings-panel::-webkit-scrollbar { width: 3px; }
+    .settings-panel::-webkit-scrollbar-track { background: transparent; }
+    .settings-panel::-webkit-scrollbar-thumb { background: #2a2a35; border-radius: 2px; }
+
+    .s-header {
+      position: sticky;
+      top: 0;
+      background: #0e0e14;
+      padding: 16px 16px 12px;
+      border-bottom: 1px solid rgba(255,195,0,0.1);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      z-index: 1;
+    }
+
+    .s-header h3 {
       color: var(--gold);
-      font-size: 13px;
-      letter-spacing: 2px;
+      font-size: 11px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      margin: 0;
+    }
+
+    .s-close {
+      color: #666;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 4px 6px;
+      border-radius: 4px;
+      transition: color 0.15s;
+    }
+    .s-close:hover { color: #fff; }
+
+    .s-section {
+      padding: 16px;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+
+    .s-section-title {
+      font-size: 9px;
+      letter-spacing: 2.5px;
+      color: #3a3a4a;
       text-transform: uppercase;
       margin-bottom: 12px;
     }
 
-    .settings-panel label {
+    .s-label {
       font-size: 11px;
-      color: #888;
-      letter-spacing: 1px;
-      text-transform: uppercase;
+      color: #777;
+      margin-bottom: 5px;
+      display: block;
     }
 
-    .settings-panel input {
+    .s-input {
       width: 100%;
-      padding: 9px 10px;
-      margin: 6px 0 12px;
-      background: #111;
-      border: 1px solid #333;
-      color: #fff;
+      padding: 10px 11px;
+      margin-bottom: 12px;
+      background: #13131a;
+      border: 1px solid #222230;
+      color: #ddd;
       border-radius: 6px;
       font-family: 'Share Tech Mono', monospace;
       font-size: 12px;
+      transition: border-color 0.2s;
+      -webkit-appearance: none;
+    }
+    .s-input:focus { outline: none; border-color: rgba(255,195,0,0.5); }
+    .s-input::placeholder { color: #333; }
+
+    .s-hint {
+      font-size: 10px;
+      color: #333;
+      line-height: 1.5;
+      margin-top: -6px;
+      margin-bottom: 4px;
+    }
+    .s-hint span { color: #555; }
+
+    /* Style presets — subtle row */
+    .style-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5px;
     }
 
-    .settings-panel input:focus {
+    .style-btn {
+      padding: 9px 6px;
+      background: #13131a;
+      border: 1px solid #222230;
+      border-radius: 6px;
+      color: #666;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.15s;
+    }
+    .style-btn:active { opacity: 0.7; }
+    .style-btn.active {
+      border-color: rgba(255,195,0,0.4);
+      color: #ccc;
+      background: rgba(255,195,0,0.06);
+    }
+
+    /* Toggle rows */
+    .s-toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .s-toggle-row:last-child { border-bottom: none; }
+
+    .s-toggle-label { font-size: 13px; color: #bbb; font-weight: 600; }
+    .s-toggle-sub   { font-size: 10px; color: #444; margin-top: 1px; }
+
+    .toggle {
+      position: relative;
+      width: 40px; height: 22px;
+      flex-shrink: 0;
+    }
+    .toggle input { opacity: 0; width: 0; height: 0; position: absolute; }
+    .toggle-slider {
+      position: absolute;
+      inset: 0;
+      background: #1a1a24;
+      border-radius: 11px;
+      cursor: pointer;
+      transition: background 0.2s;
+      border: 1px solid #2a2a38;
+    }
+    .toggle-slider:before {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      left: 2px; top: 2px;
+      background: #444;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+    .toggle input:checked + .toggle-slider { background: rgba(255,195,0,0.2); border-color: rgba(255,195,0,0.4); }
+    .toggle input:checked + .toggle-slider:before { transform: translateX(18px); background: var(--gold); }
+
+    /* Slider */
+    .s-slider-row { margin-bottom: 4px; }
+    .s-slider-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .s-slider-val {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #888;
+    }
+    input[type=range].s-range {
+      width: 100%;
+      height: 3px;
+      -webkit-appearance: none;
+      appearance: none;
+      background: #222230;
+      border-radius: 2px;
       outline: none;
-      border-color: var(--gold);
+    }
+    input[type=range].s-range::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: #ccc;
+      cursor: pointer;
+      border: 2px solid #0e0e14;
     }
 
-    .settings-panel button {
+    /* Save button */
+    .s-save-btn {
+      display: block;
+      width: 100%;
+      padding: 13px;
       background: var(--gold);
       color: #000;
       border: none;
-      padding: 10px;
-      cursor: pointer;
+      border-radius: 7px;
       font-weight: 700;
       font-family: 'Rajdhani', sans-serif;
-      font-size: 14px;
-      letter-spacing: 1px;
-      border-radius: 6px;
-      width: 100%;
-      text-transform: uppercase;
-      transition: opacity 0.2s;
-    }
-
-    .settings-panel button:hover { opacity: 0.85; }
-
-    /* ── HINT ── */
-    .hint {
-      position: absolute;
-      top: 14px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: var(--panel);
-      border: 1px solid var(--border);
-      padding: 7px 16px;
-      border-radius: 20px;
-      font-size: 12px;
-      color: var(--gold);
-      letter-spacing: 1px;
-      pointer-events: none;
-      z-index: 10;
-      white-space: nowrap;
-      transition: opacity 0.4s;
-    }
-
-    /* ── BOTTOM PANEL ── */
-    .panel {
-      position: absolute;
-      bottom: 0;
-      width: 100%;
-      background: var(--panel);
-      border-top: 1.5px solid var(--border);
-      padding: 16px 16px 24px;
-      z-index: 10;
-      transition: transform 0.3s ease;
-    }
-
-    .panel-label {
-      font-size: 10px;
-      letter-spacing: 3px;
-      color: #555;
-      text-transform: uppercase;
-      margin-bottom: 12px;
-    }
-
-    /* ── ROUTE CARDS ── */
-    .routes-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .route-card {
-      border-radius: 10px;
-      padding: 12px 14px;
-      cursor: pointer;
-      border: 2px solid transparent;
-      transition: all 0.2s ease;
-      background: rgba(255,255,255,0.04);
-      position: relative;
-      overflow: hidden;
-    }
-
-    .route-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      opacity: 0;
-      transition: opacity 0.2s;
-    }
-
-    .route-card.gold::before  { background: var(--gold-dim); }
-    .route-card.blue::before  { background: var(--blue-dim); }
-
-    .route-card.active { border-color: var(--gold); }
-    .route-card.active::before { opacity: 1; }
-    .route-card.active-blue { border-color: var(--blue); }
-    .route-card.active-blue::before { opacity: 1; }
-
-    .route-card:hover::before { opacity: 0.6; }
-
-    .route-tag {
-      font-size: 9px;
+      font-size: 15px;
       letter-spacing: 2px;
       text-transform: uppercase;
-      margin-bottom: 6px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .route-tag .dot {
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      flex-shrink: 0;
-    }
-
-    .dot-gold { background: var(--gold); }
-    .dot-blue  { background: var(--blue); }
-
-    .route-time {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 28px;
-      line-height: 1;
-    }
-
-    .route-time .unit { font-size: 14px; color: #888; margin-left: 2px; }
-
-    .route-dist {
-      font-size: 12px;
-      color: #666;
-      margin-top: 4px;
-    }
-
-    .route-badge {
-      position: absolute;
-      top: 8px; right: 10px;
-      font-size: 9px;
-      letter-spacing: 1.5px;
-      text-transform: uppercase;
-      padding: 2px 7px;
-      border-radius: 10px;
-    }
-
-    .badge-best {
-      background: rgba(255,195,0,0.15);
-      color: var(--gold);
-      border: 1px solid rgba(255,195,0,0.3);
-    }
-
-    .badge-alt {
-      background: rgba(0,180,216,0.12);
-      color: var(--blue);
-      border: 1px solid rgba(0,180,216,0.25);
-    }
-
-    .route-card.disabled {
-      opacity: 0.35;
-      pointer-events: none;
-    }
-
-    /* ── RECENTER BUTTON ── */
-    .recenter-btn {
-      position: absolute;
-      bottom: 160px;
-      right: 16px;
-      width: 44px; height: 44px;
-      border-radius: 50%;
-      background: var(--panel);
-      border: 1.5px solid var(--border);
-      display: flex; align-items: center; justify-content: center;
       cursor: pointer;
-      color: var(--gold);
-      font-size: 18px;
-      z-index: 10;
-      box-shadow: 0 0 14px rgba(255,195,0,0.1);
-      transition: transform 0.2s;
+      -webkit-appearance: none;
     }
-    .recenter-btn:hover { transform: scale(1.1); }
+    .s-save-btn:active { opacity: 0.8; }
 
-    /* ── NO ROUTES STATE ── */
-    .no-routes {
-      text-align: center;
-      padding: 10px;
-      color: #444;
-      font-size: 13px;
-      letter-spacing: 1px;
-      grid-column: span 2;
-    }
-
-    /* ── SEARCH BAR ── */
-    .search-wrap {
-      position: absolute;
-      top: 76px;
-      left: 50%;
-      transform: translateX(-50%);
-      width: calc(100% - 32px);
-      max-width: 420px;
-      z-index: 15;
-    }
-
-    .search-box {
-      width: 100%;
-      display: flex;
-      align-items: center;
-      background: var(--panel);
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 0 12px;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
-      transition: border-color 0.2s;
-    }
-
-    .search-box:focus-within {
-      border-color: var(--gold);
-    }
-
-    .search-icon {
-      color: #555;
-      font-size: 15px;
-      margin-right: 8px;
-      flex-shrink: 0;
-    }
-
-    .search-box input {
-      flex: 1;
-      background: transparent;
-      border: none;
-      outline: none;
-      color: #fff;
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      padding: 11px 0;
-      letter-spacing: 0.3px;
-    }
-
-    .search-box input::placeholder {
-      color: #444;
-      font-weight: 400;
-    }
-
-    .search-clear {
-      color: #444;
-      font-size: 18px;
-      cursor: pointer;
-      flex-shrink: 0;
-      line-height: 1;
+    /* Overlay behind drawer */
+    .settings-overlay {
       display: none;
-      padding: 4px;
-      transition: color 0.15s;
-    }
-    .search-clear:hover { color: var(--gold); }
-
-    .search-counter {
-      font-family: 'Share Tech Mono', monospace;
-      font-size: 10px;
-      color: #333;
-      flex-shrink: 0;
-      margin-left: 4px;
-      min-width: 20px;
-      text-align: right;
-    }
-
-    .search-results {
-      display: none;
-      background: #111418;
-      border: 1.5px solid var(--border);
-      border-top: none;
-      border-radius: 0 0 10px 10px;
-      overflow: hidden;
-      box-shadow: 0 8px 24px rgba(0,0,0,0.8);
-    }
-
-    .search-result-item {
-      padding: 13px 16px;
-      cursor: pointer;
-      border-bottom: 1px solid rgba(255,255,255,0.07);
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      transition: background 0.15s;
-    }
-
-    .search-result-item:last-child { border-bottom: none; }
-
-    .search-result-item:hover {
-      background: rgba(255,195,0,0.1);
-    }
-
-    .result-icon {
-      color: var(--gold);
-      font-size: 13px;
-      margin-top: 1px;
-      flex-shrink: 0;
-      opacity: 0.7;
-    }
-
-    .result-main {
-      font-size: 16px;
-      font-weight: 700;
-      color: #fff;
-      line-height: 1.3;
-    }
-
-    .result-sub {
-      font-size: 13px;
-      color: #aaa;
-      margin-top: 3px;
-      letter-spacing: 0.2px;
-    }
-
-    .search-status {
-      padding: 12px 14px;
-      font-size: 13px;
-      color: #888;
-      letter-spacing: 1px;
-      text-align: center;
-    }
-
-
-    /* ── STREET PILL ── */
-    .street-pill {
-      position: absolute;
-      bottom: 148px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: rgba(8,8,14,0.92);
-      border: 1.5px solid rgba(255,195,0,0.22);
-      border-radius: 20px;
-      padding: 7px 18px;
-      z-index: 10;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      max-width: calc(100% - 100px);
-      box-shadow: 0 2px 12px rgba(0,0,0,0.5);
-      pointer-events: none;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    .street-pill-dot {
-      width: 7px; height: 7px;
-      border-radius: 50%;
-      background: var(--gold);
-      flex-shrink: 0;
-      animation: pulse-dot 2s ease-in-out infinite;
-    }
-
-    @keyframes pulse-dot {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(0.7); }
-    }
-
-    .street-pill-text {
-      font-family: 'Rajdhani', sans-serif;
-      font-size: 15px;
-      font-weight: 600;
-      color: #fff;
-      letter-spacing: 0.3px;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.5);
+      z-index: 99;
     }
 
     /* Mapbox controls */
@@ -558,6 +376,7 @@
   <div class="hamburger" id="hamburger">&#9776;</div>
 </div>
 
+<div class="settings-overlay" id="settings-overlay"></div>
 <div class="settings-panel" id="settings-panel">
 
   <!-- Header -->
@@ -735,13 +554,22 @@ function applyLabelsToMap() {
   const langField = cfg.lang
     ? ['coalesce', ['get', 'name_' + cfg.lang], ['get', 'name']]
     : ['get', 'name'];
+
+  // Detect if style is light/day — use dark text + light halo
+  const styleId = cfg.mapStyle || '';
+  const isLight = styleId.includes('day') || styleId.includes('light') || styleId.includes('satellite');
+  const textColor   = isLight ? '#111111' : '#ffffff';
+  const haloColor   = isLight ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
+  const haloWidth   = isLight ? 2.5 : 2;
+
   map.getStyle().layers.forEach(layer => {
     if (layer.type === 'symbol') {
       try {
         map.setLayoutProperty(layer.id, 'text-field', langField);
         map.setPaintProperty(layer.id, 'text-opacity', 1);
-        map.setPaintProperty(layer.id, 'text-halo-width', 2);
-        map.setPaintProperty(layer.id, 'text-halo-color', 'rgba(0,0,0,0.9)');
+        map.setPaintProperty(layer.id, 'text-color', textColor);
+        map.setPaintProperty(layer.id, 'text-halo-width', haloWidth);
+        map.setPaintProperty(layer.id, 'text-halo-color', haloColor);
       } catch(e) {}
       try { map.setLayoutProperty(layer.id, 'text-size', cfg.labelSize); } catch(e) {}
     }
@@ -782,15 +610,25 @@ function applyTrafficLayer() {
 }
 
 // ── SETTINGS PANEL ──
+function openSettings() {
+  settingsPanel.style.display = 'block';
+  document.getElementById('settings-overlay').style.display = 'block';
+  applyCfgToUI();
+}
+function closeSettings() {
+  settingsPanel.style.display = 'none';
+  document.getElementById('settings-overlay').style.display = 'none';
+}
+
 hamburger.addEventListener('click', () => {
-  const open = settingsPanel.style.display === 'block';
-  settingsPanel.style.display = open ? 'none' : 'block';
-  if (!open) applyCfgToUI();
+  settingsPanel.style.display === 'block' ? closeSettings() : openSettings();
 });
 
+// Close on overlay click
+document.getElementById('settings-overlay').addEventListener('click', closeSettings);
+
 document.addEventListener('click', e => {
-  const sc = document.getElementById('s-close');
-  if (sc && sc.contains(e.target)) settingsPanel.style.display = 'none';
+  if (e.target.closest('#s-close')) closeSettings();
 });
 
 // Style preset buttons — apply immediately to map
@@ -841,7 +679,7 @@ document.addEventListener('change', e => {
   }
 });
 
-// Save button — delegated so it works even when panel is rebuilt
+// Save button
 document.addEventListener('click', e => {
   if (!e.target.closest('#save-key')) return;
   const key = document.getElementById('api-key').value.trim();
@@ -850,15 +688,13 @@ document.addEventListener('click', e => {
   if (styleVal) cfg.mapStyle = styleVal;
   if (key) {
     Promise.all([dbSet('mapbox_key', key), saveCfgToDB()]).catch(console.error);
-    settingsPanel.style.display = 'none';
-    if (!map) initMap(key);
-    else {
-      // Apply style change if map already loaded
+    closeSettings();
+    if (!map) {
+      initMap(key);
+    } else {
       const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
-      if (map.getStyle().sprite && !map.getStyle().sprite.includes(newStyle.split('/').pop())) {
-        map.setStyle(newStyle);
-        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
-      }
+      map.setStyle(newStyle);
+      map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
     }
   } else {
     alert("Por favor, introduce una clave API válida.");
@@ -944,21 +780,6 @@ function initMap(token) {
   });
 
   map.on('load', () => {
-    // Boost street label visibility — increase font size & opacity on all label layers
-    const labelLayerPatterns = ['road-label', 'street-label', 'road-number-shield', 'road-exit-shield'];
-    map.getStyle().layers.forEach(layer => {
-      const id = layer.id || '';
-      const isLabel = labelLayerPatterns.some(p => id.includes(p)) || layer.type === 'symbol';
-      if (isLabel) {
-        try {
-          map.setLayoutProperty(id, 'text-field', ['coalesce', ['get', 'name_es'], ['get', 'name']]);
-          map.setPaintProperty(id, 'text-opacity', 1);
-          map.setPaintProperty(id, 'text-halo-width', 2);
-          map.setPaintProperty(id, 'text-halo-color', 'rgba(0,0,0,0.9)');
-        } catch(e) { /* layer may not support these props */ }
-      }
-    });
-
     applyLabelsToMap();
     applyTrafficLayer();
     startTracking();
