@@ -2,7 +2,7 @@
 <html>
 <head>
   <meta charset="utf-8" />
-  <title>GPSSSS</title>
+  <title>GPS Navigator</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.css" rel="stylesheet" />
   <script src="https://api.mapbox.com/mapbox-gl-js/v2.15.0/mapbox-gl.js"></script>
@@ -529,15 +529,33 @@ function saveCfgToDB() {
 }
 
 function applyCfgToUI() {
+  // Token input
+  const keyInput = document.getElementById('api-key');
+  if (keyInput && cfg._token) keyInput.value = cfg._token;
+
+  // Map style input — show custom style if set and not a preset
+  const presets = [
+    'mapbox://styles/mapbox/dark-v11',
+    'mapbox://styles/mapbox/navigation-night-v1',
+    'mapbox://styles/mapbox/navigation-day-v1',
+    'mapbox://styles/mapbox/satellite-streets-v12'
+  ];
+  const styleInput = document.getElementById('map-style');
+  const isCustom = cfg.mapStyle && !presets.includes(cfg.mapStyle);
+  if (styleInput) styleInput.value = isCustom ? cfg.mapStyle : '';
+
   // Style buttons
+  const activeStyle = isCustom ? '' : (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11');
   document.querySelectorAll('.style-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.style === (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11'));
+    b.classList.toggle('active', b.dataset.style === activeStyle);
   });
+
   // Sliders
   const ls = document.getElementById('label-size');
   if (ls) { ls.value = cfg.labelSize; document.getElementById('label-size-val').textContent = cfg.labelSize + 'px'; }
   const sr = document.getElementById('search-radius');
   if (sr) { sr.value = cfg.searchRadius; document.getElementById('search-radius-val').textContent = cfg.searchRadius + ' km'; }
+
   // Toggles
   const tog3d = document.getElementById('tog-3d');
   const togH  = document.getElementById('tog-heading');
@@ -685,8 +703,10 @@ document.addEventListener('click', e => {
   const key = document.getElementById('api-key').value.trim();
   const styleInput = document.getElementById('map-style');
   const styleVal = styleInput ? styleInput.value.trim() : '';
+  // Custom text field overrides preset button
   if (styleVal) cfg.mapStyle = styleVal;
   if (key) {
+    cfg._token = key; // store in cfg so applyCfgToUI can repopulate
     Promise.all([dbSet('mapbox_key', key), saveCfgToDB()]).catch(console.error);
     closeSettings();
     if (!map) {
@@ -741,18 +761,7 @@ function dbDel(key) {
   }));
 }
 
-// Load saved config from IndexedDB on startup
-Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
-  if (savedKey) {
-    apiKeyInput.value = savedKey;
-    applyCfgToUI();
-    initMap(savedKey);
-  } else {
-    settingsPanel.style.display = 'block';
-  }
-}).catch(() => {
-  settingsPanel.style.display = 'block';
-});
+// startup moved to bottom — see end of script
 
 // ── RECENTER ──
 recenterBtn.addEventListener('click', () => {
@@ -1209,6 +1218,33 @@ function renderResults(features) {
     searchResults.appendChild(item);
   });
 }
+
+
+// ── STARTUP ──
+Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
+  if (savedKey) {
+    cfg._token = savedKey;
+    applyCfgToUI();
+    initMap(savedKey);
+  } else {
+    openSettings();
+  }
+}).catch(() => {
+  openSettings();
+});
+
+// ── STARTUP ──
+Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
+  if (savedKey) {
+    cfg._token = savedKey;
+    applyCfgToUI();
+    initMap(savedKey);
+  } else {
+    openSettings();
+  }
+}).catch(() => {
+  openSettings();
+});
 </script>
 </body>
 </html>
