@@ -608,7 +608,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">3333333TAP THE MAP TO SET DESTINATION</div>
+<div class="hint" id="hint">44444TAP THE MAP TO SET DESTINATION</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -897,9 +897,9 @@ function applyLabelsToMap() {
 
   map.getStyle().layers.forEach(layer => {
     if (layer.type === 'symbol') {
-      try { map.setLayoutProperty(layer.id, 'text-field', langField); } catch(e) {}
-      try { map.setLayoutProperty(layer.id, 'text-size', cfg.labelSize); } catch(e) {}
       if (isPreset) {
+        try { map.setLayoutProperty(layer.id, 'text-field', langField); } catch(e) {}
+        try { map.setLayoutProperty(layer.id, 'text-size', cfg.labelSize); } catch(e) {}
         try {
           map.setPaintProperty(layer.id, 'text-opacity', 1);
           map.setPaintProperty(layer.id, 'text-color', textColor);
@@ -1032,7 +1032,8 @@ document.addEventListener('input', e => {
   if (e.target.id === 'label-size') {
     cfg.labelSize = parseInt(e.target.value);
     document.getElementById('label-size-val').textContent = cfg.labelSize + 'px';
-    applyLabelsToMap();
+    const PRESETS = ['mapbox://styles/mapbox/dark-v11','mapbox://styles/mapbox/navigation-night-v1','mapbox://styles/mapbox/navigation-day-v1','mapbox://styles/mapbox/satellite-streets-v12'];
+    if (PRESETS.includes(cfg.mapStyle || '')) applyLabelsToMap();
   }
   if (e.target.id === 'search-radius') {
     cfg.searchRadius = parseInt(e.target.value);
