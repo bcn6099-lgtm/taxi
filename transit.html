@@ -608,7 +608,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">44444TAP THE MAP TO SET DESTINATION</div>
+<div class="hint" id="hint">555555TAP THE MAP TO SET DESTINATION</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -778,6 +778,8 @@
 </div>
 
 <div class="recenter-btn" id="recenter" title="Re-center">⊕</div>
+<div id="debug-btn" onclick="runDebug()" style="position:absolute;bottom:210px;right:14px;width:42px;height:42px;border-radius:50%;background:rgba(8,8,14,0.93);border:1.5px solid rgba(0,180,216,0.4);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#00B4D8;font-size:16px;z-index:10;" title="Debug capas">🔍</div>
+<div id="debug-panel" style="display:none;position:fixed;bottom:0;left:0;right:0;max-height:50vh;overflow-y:auto;background:#0a0a0f;border-top:1px solid #333;z-index:200;padding:12px;font-family:monospace;font-size:11px;color:#aaa;"></div>
 
 <div class="street-pill" id="street-pill"><span class="street-pill-dot"></span><span class="street-pill-text" id="street-text">Localizando...</span></div>
 
@@ -1630,6 +1632,42 @@ function renderResults(features) {
   });
 }
 
+
+// ── DEBUG ──
+function runDebug() {
+  const panel = document.getElementById('debug-panel');
+  if (!map) { panel.style.display='block'; panel.innerHTML='<span style="color:red">Mapa no inicialitzat</span>'; return; }
+
+  const style = map.getStyle();
+  const zoom = map.getZoom().toFixed(1);
+  const layers = style.layers || [];
+
+  const symbolLayers = layers.filter(l => l.type === 'symbol');
+  const roadLayers = layers.filter(l => l.id && (l.id.includes('road') || l.id.includes('street') || l.id.includes('label') || l.id.includes('carrer') || l.id.includes('calle') || l.id.includes('via')));
+
+  let html = `<div style="color:#FFC300;margin-bottom:8px">── DEBUG ── zoom: ${zoom} | estil: ${cfg.mapStyle || 'default'}</div>`;
+  html += `<div style="color:#00B4D8;margin-bottom:4px">Symbol layers (${symbolLayers.length} total):</div>`;
+
+  symbolLayers.slice(0, 40).forEach(l => {
+    const vis = map.getLayoutProperty(l.id, 'visibility') || 'visible';
+    const color = vis === 'none' ? '#f44' : '#6f6';
+    html += `<div style="color:${color}">${vis==='none'?'✗':'✓'} ${l.id}</div>`;
+  });
+
+  if (roadLayers.length) {
+    html += `<div style="color:#00B4D8;margin-top:8px;margin-bottom:4px">Road/label layers:</div>`;
+    roadLayers.forEach(l => {
+      const vis = map.getLayoutProperty(l.id, 'visibility') || 'visible';
+      const color = vis === 'none' ? '#f44' : '#6f6';
+      html += `<div style="color:${color}">${vis==='none'?'✗':'✓'} [${l.type}] ${l.id}</div>`;
+    });
+  }
+
+  html += `<div style="margin-top:10px;color:#555">Tap anywhere to close</div>`;
+  panel.innerHTML = html;
+  panel.style.display = 'block';
+  panel.onclick = () => panel.style.display = 'none';
+}
 
 // ── STARTUP ──
 Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
