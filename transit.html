@@ -608,7 +608,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">22222TAP THE MAP TO SET DESTINATION</div>
+<div class="hint" id="hint">3333333TAP THE MAP TO SET DESTINATION</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -879,23 +879,34 @@ function applyLabelsToMap() {
     ? ['coalesce', ['get', 'name_' + cfg.lang], ['get', 'name']]
     : ['get', 'name'];
 
-  // Detect if style is light/day — use dark text + light halo
-  const styleId = cfg.mapStyle || '';
-  const isLight = styleId.includes('day') || styleId.includes('light') || styleId.includes('satellite');
-  const textColor   = isLight ? '#111111' : '#ffffff';
-  const haloColor   = isLight ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
-  const haloWidth   = isLight ? 2.5 : 2;
+  const PRESETS = [
+    'mapbox://styles/mapbox/dark-v11',
+    'mapbox://styles/mapbox/navigation-night-v1',
+    'mapbox://styles/mapbox/navigation-day-v1',
+    'mapbox://styles/mapbox/satellite-streets-v12'
+  ];
+  const currentStyle = cfg.mapStyle || '';
+  const isPreset = PRESETS.includes(currentStyle);
+
+  // For preset styles, force readable colors. For custom Studio styles,
+  // leave colors untouched so the style renders as designed.
+  const isLight = currentStyle.includes('day') || currentStyle.includes('light') || currentStyle.includes('satellite');
+  const textColor = isLight ? '#111111' : '#ffffff';
+  const haloColor = isLight ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.9)';
+  const haloWidth = isLight ? 2.5 : 2;
 
   map.getStyle().layers.forEach(layer => {
     if (layer.type === 'symbol') {
-      try {
-        map.setLayoutProperty(layer.id, 'text-field', langField);
-        map.setPaintProperty(layer.id, 'text-opacity', 1);
-        map.setPaintProperty(layer.id, 'text-color', textColor);
-        map.setPaintProperty(layer.id, 'text-halo-width', haloWidth);
-        map.setPaintProperty(layer.id, 'text-halo-color', haloColor);
-      } catch(e) {}
+      try { map.setLayoutProperty(layer.id, 'text-field', langField); } catch(e) {}
       try { map.setLayoutProperty(layer.id, 'text-size', cfg.labelSize); } catch(e) {}
+      if (isPreset) {
+        try {
+          map.setPaintProperty(layer.id, 'text-opacity', 1);
+          map.setPaintProperty(layer.id, 'text-color', textColor);
+          map.setPaintProperty(layer.id, 'text-halo-width', haloWidth);
+          map.setPaintProperty(layer.id, 'text-halo-color', haloColor);
+        } catch(e) {}
+      }
     }
   });
 }
