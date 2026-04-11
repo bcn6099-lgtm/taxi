@@ -591,14 +591,6 @@
   <div class="s-section">
     <div class="s-section-title">Nombres de calle</div>
 
-    <div class="s-label" style="margin-bottom:7px">Idioma</div>
-    <div class="lang-row" style="margin-bottom:12px">
-      <button class="lang-btn active" data-lang="es">ES</button>
-      <button class="lang-btn" data-lang="ca">CAT</button>
-      <button class="lang-btn" data-lang="en">EN</button>
-      <button class="lang-btn" data-lang="">AUTO</button>
-    </div>
-
     <div class="s-slider-row">
       <div class="s-slider-header">
         <span class="s-label" style="margin:0">Tamaño texto</span>
@@ -689,7 +681,6 @@ let isFollowing = true;
 const hamburger = document.getElementById('hamburger');
 const settingsPanel = document.getElementById('settings-panel');
 const apiKeyInput = document.getElementById('api-key');
-const saveKeyBtn = document.getElementById('save-key');
 const compassSvg = document.getElementById('compass-svg');
 const speedVal = document.getElementById('speed-val');
 const hint = document.getElementById('hint');
@@ -698,7 +689,7 @@ const routesGrid = document.getElementById('routes-grid');
 
 // ── SETTINGS STATE ──
 let cfg = {
-  lang: 'es',
+  lang: 'ca',
   labelSize: 13,
   pitch3d: true,
   followHeading: true,
@@ -722,10 +713,6 @@ function applyCfgToUI() {
   // Style buttons
   document.querySelectorAll('.style-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.style === (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11'));
-  });
-  // Lang buttons
-  document.querySelectorAll('.lang-btn').forEach(b => {
-    b.classList.toggle('active', b.dataset.lang === cfg.lang);
   });
   // Sliders
   const ls = document.getElementById('label-size');
@@ -806,7 +793,7 @@ document.addEventListener('click', e => {
   if (sc && sc.contains(e.target)) settingsPanel.style.display = 'none';
 });
 
-// Style preset buttons
+// Style preset buttons — apply immediately to map
 document.addEventListener('click', e => {
   const btn = e.target.closest('.style-btn');
   if (!btn) return;
@@ -815,16 +802,10 @@ document.addEventListener('click', e => {
   cfg.mapStyle = btn.dataset.style;
   const styleInput = document.getElementById('map-style');
   if (styleInput) styleInput.value = '';
-});
-
-// Lang buttons
-document.addEventListener('click', e => {
-  const btn = e.target.closest('.lang-btn');
-  if (!btn) return;
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.remove('active'));
-  btn.classList.add('active');
-  cfg.lang = btn.dataset.lang;
-  applyLabelsToMap();
+  if (map) {
+    map.setStyle(cfg.mapStyle);
+    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
+  }
 });
 
 // Label size slider
@@ -860,17 +841,25 @@ document.addEventListener('change', e => {
   }
 });
 
-saveKeyBtn.addEventListener('click', () => {
-  const key = apiKeyInput.value.trim();
+// Save button — delegated so it works even when panel is rebuilt
+document.addEventListener('click', e => {
+  if (!e.target.closest('#save-key')) return;
+  const key = document.getElementById('api-key').value.trim();
   const styleInput = document.getElementById('map-style');
   const styleVal = styleInput ? styleInput.value.trim() : '';
-  // Custom style ID overrides preset
   if (styleVal) cfg.mapStyle = styleVal;
   if (key) {
-    const saves = [dbSet('mapbox_key', key), saveCfgToDB()];
-    Promise.all(saves).catch(console.error);
+    Promise.all([dbSet('mapbox_key', key), saveCfgToDB()]).catch(console.error);
     settingsPanel.style.display = 'none';
     if (!map) initMap(key);
+    else {
+      // Apply style change if map already loaded
+      const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
+      if (map.getStyle().sprite && !map.getStyle().sprite.includes(newStyle.split('/').pop())) {
+        map.setStyle(newStyle);
+        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
+      }
+    }
   } else {
     alert("Por favor, introduce una clave API válida.");
   }
