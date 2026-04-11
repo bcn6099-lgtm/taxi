@@ -424,6 +424,24 @@
 
     .route-card.disabled { opacity: 0.3; pointer-events: none; }
 
+    .cancel-route-btn {
+      grid-column: span 2;
+      padding: 10px;
+      background: transparent;
+      border: 1px solid rgba(255,60,60,0.3);
+      border-radius: 10px;
+      color: rgba(255,80,80,0.7);
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+    .cancel-route-btn:active { background: rgba(255,60,60,0.1); }
+
     .no-routes {
       text-align: center;
       padding: 10px;
@@ -608,7 +626,7 @@
 
 <div id="map"></div>
 
-<div class="hint" id="hint">nnnnnnnN</div>
+<div class="hint" id="hint">CLICA UN LLOC</div>
 
 <!-- ── SEARCH BAR ── -->
 <div class="search-wrap" id="search-wrap">
@@ -654,12 +672,13 @@
     <div class="s-section-title">API</div>
     <span class="s-label">Mapbox Access Token</span>
     <input class="s-input" type="text" id="api-key" placeholder="pk.eyJ1..." />
-    <div class="s-hint" style="color:#555">Estil: BCN Navigator (fix)</div>
-    <input type="hidden" id="map-style" value="">
+    <span class="s-label">Estilo personalizado <span style="color:#333;font-size:10px">(opcional)</span></span>
+    <input class="s-input" type="text" id="map-style" placeholder="mapbox://styles/usuario/id" />
+    <div class="s-hint">Crea tu estilo en <span>mapbox.com/studio</span></div>
   </div>
 
   <!-- Estilo del mapa -->
-  <div class="s-section" style="display:none">
+  <div class="s-section">
     <div class="s-section-title">Estilo del mapa</div>
     <div class="style-grid">
       <button class="style-btn active" data-style="mapbox://styles/mapbox/dark-v11">🌙 Oscuro</button>
@@ -807,19 +826,16 @@ const hint = document.getElementById('hint');
 const recenterBtn = document.getElementById('recenter');
 const routesGrid = document.getElementById('routes-grid');
 
-// ── ESTILO FIJO (no editable desde UI) ──
-const FIXED_STYLE = 'mapbox://styles/bcn6099/cmnsp3ihp001k01s84t0key7d';
-
 // ── SETTINGS STATE ──
 let cfg = {
   lang: 'ca',
   labelSize: 13,
-  pitch3d: false,
+  pitch3d: true,
   followHeading: true,
   showStreet: true,
   showTraffic: true,
   searchRadius: 40,
-  mapStyle: '',  // ignorado, se usa FIXED_STYLE
+  mapStyle: 'mapbox://styles/mapbox/dark-v11',
   poiClasses: ['medical', 'lodging', 'education', 'food_and_drink', 'religion']
 };
 
@@ -873,19 +889,6 @@ function applyCfgToUI() {
 
   // POI toggles
   applyCfgToPoiToggles();
-}
-
-function hide3dBuildings() {
-  if (!map) return;
-  const _hide = () => {
-    map.getStyle().layers.forEach(layer => {
-      if (layer.type === 'fill-extrusion') {
-        try { map.setPaintProperty(layer.id, 'fill-extrusion-opacity', 0); } catch(e) {}
-      }
-    });
-  };
-  _hide();
-  map.once('idle', _hide);
 }
 
 function applyLabelsToMap() {
@@ -962,7 +965,7 @@ function isCustomStyle() {
 }
 
 function applyPoiFilter() {
-  if (!map || !isCustomStyle()) return;
+  if (!map) return;
   if (!map.getLayer(POI_LAYER)) return;
   const active = cfg.poiClasses || [];
   if (active.length === 0) {
@@ -975,12 +978,11 @@ function applyPoiFilter() {
 }
 
 function syncPoiUI() {
-  const custom = isCustomStyle();
   const warning = document.getElementById('poi-warning');
-  if (warning) warning.style.display = custom ? 'none' : 'block';
+  if (warning) warning.style.display = 'none';
   document.querySelectorAll('.tog-poi').forEach(cb => {
-    cb.disabled = !custom;
-    cb.closest('.s-toggle-row').style.opacity = custom ? '1' : '0.35';
+    cb.disabled = false;
+    cb.closest('.s-toggle-row').style.opacity = '1';
   });
 }
 
@@ -1021,7 +1023,21 @@ document.addEventListener('click', e => {
   document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
 
-  // Estilo fijo: los botones preset no cambian el mapa
+  const styleInput = document.getElementById('map-style');
+  if (btn.dataset.style === 'custom') {
+    // Personalizado: usa el valor del camp de text
+    const customVal = styleInput ? styleInput.value.trim() : '';
+    if (!customVal) { alert('Introdueix primer la URL del teu estil personalitzat al camp de dalt.'); btn.classList.remove('active'); return; }
+    cfg.mapStyle = customVal;
+  } else {
+    cfg.mapStyle = btn.dataset.style;
+    if (styleInput) styleInput.value = '';
+  }
+
+  if (map) {
+    map.setStyle(cfg.mapStyle);
+    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
+  }
 });
 
 // Label size slider
@@ -1073,7 +1089,17 @@ document.addEventListener('click', e => {
   const key = document.getElementById('api-key').value.trim();
   if (!key) { alert('Introdueix una clau API de Mapbox vàlida.'); return; }
 
-  // Estilo fijo — no se lee del campo UI
+  const styleInput = document.getElementById('map-style');
+  const styleVal = styleInput ? styleInput.value.trim() : '';
+
+  // El camp de text URL té prioritat sobre els botons preset
+  if (styleVal) {
+    cfg.mapStyle = styleVal;
+    // Marca el botó "Personalizado" com actiu
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    const customBtn = document.getElementById('btn-custom');
+    if (customBtn) customBtn.classList.add('active');
+  }
 
   const tokenChanged = cfg._token !== key;
   cfg._token = key;
@@ -1106,8 +1132,9 @@ document.addEventListener('click', e => {
         routeIds = []; routeData = [];
         renderRouteCards();
 
-        map.setStyle(FIXED_STYLE);
-        map.once('style.load', () => { try { map.setConfigProperty('basemap', 'showBuildings3d', false); } catch(e) {} hide3dBuildings(); applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
+        const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
+        map.setStyle(newStyle);
+        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
       }
     });
 });
@@ -1167,7 +1194,7 @@ function initMap(token) {
   if (map) return;
   mapboxgl.accessToken = token;
 
-  const savedStyle = FIXED_STYLE;
+  const savedStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
 
   map = new mapboxgl.Map({
     container: 'map',
@@ -1180,8 +1207,6 @@ function initMap(token) {
   });
 
   map.on('load', () => {
-    try { map.setConfigProperty('basemap', 'showBuildings3d', false); } catch(e) {}
-    hide3dBuildings();
     applyLabelsToMap();
     applyTrafficLayer();
     applyPoiFilter();
@@ -1242,10 +1267,6 @@ function startTracking() {
     // Rotate arrow marker element
     const arrowEl = document.getElementById('user-arrow');
     if (arrowEl) arrowEl.style.transform = `rotate(${userHeading}deg)`;
-
-    // Asegurar sin edificios 3D en cada update GPS
-    try { map.setConfigProperty('basemap', 'showBuildings3d', false); } catch(e) {}
-    hide3dBuildings();
 
     // Auto-follow with heading
     if (isFollowing) {
@@ -1490,6 +1511,24 @@ function renderRouteCards() {
 
     routesGrid.appendChild(card);
   });
+
+  // Botón cancelar ruta
+  const cancelBtn = document.createElement('div');
+  cancelBtn.className = 'cancel-route-btn';
+  cancelBtn.textContent = '✕  CANCELAR RUTA';
+  cancelBtn.addEventListener('click', () => {
+    // Eliminar capas y fuentes de rutas
+    routeIds.forEach(id => {
+      try { if (map.getLayer(id)) map.removeLayer(id); } catch(e) {}
+      try { if (map.getSource(id)) map.removeSource(id); } catch(e) {}
+    });
+    routeIds = []; routeData = []; activeRoute = 0;
+    // Eliminar marcador destino
+    if (typeof destMarker !== 'undefined' && destMarker) { destMarker.remove(); destMarker = null; }
+    renderRouteCards();
+    hint.textContent = 'TAP THE MAP TO SET DESTINATION';
+  });
+  routesGrid.appendChild(cancelBtn);
 }
 // ── ADDRESS SEARCH ──
 const searchInput  = document.getElementById('search-input');
@@ -1627,9 +1666,8 @@ function renderResults(features) {
 
 // ── STARTUP ──
 Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
-  // Forzar siempre valores fijos independientemente del DB
-  cfg.pitch3d = false;
-  cfg.mapStyle = '';  // no se usa, FIXED_STYLE es constante
+  cfg.mapStyle = 'mapbox://styles/mapbox/dark-v11'; // estilo fijo
+  cfg.pitch3d = false; // sin edificios 3D
   if (savedKey) {
     cfg._token = savedKey;
     applyCfgToUI();
