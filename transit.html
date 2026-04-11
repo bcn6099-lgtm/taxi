@@ -733,6 +733,43 @@
     </div>
   </div>
 
+  <!-- POI Filtros -->
+  <div class="s-section" id="poi-section">
+    <div class="s-section-title">Punts d'interès <span style="color:#333;font-size:9px">(només estil personalitzat)</span></div>
+    <div id="poi-warning" style="font-size:10px;color:#555;margin-bottom:10px;display:none">⚠️ Activa l'estil personalitzat per usar els filtres POI</div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">🏥 Hospitals / Clíniques</div>
+      </div>
+      <label class="toggle"><input type="checkbox" class="tog-poi" data-class="medical" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">🏨 Hotels</div>
+      </div>
+      <label class="toggle"><input type="checkbox" class="tog-poi" data-class="lodging" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">🏫 Escoles / Universitats</div>
+      </div>
+      <label class="toggle"><input type="checkbox" class="tog-poi" data-class="education" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">🍽️ Restaurants / Bars</div>
+      </div>
+      <label class="toggle"><input type="checkbox" class="tog-poi" data-class="food_and_drink" checked><span class="toggle-slider"></span></label>
+    </div>
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">⛪ Esglésies / Temples</div>
+      </div>
+      <label class="toggle"><input type="checkbox" class="tog-poi" data-class="religion" checked><span class="toggle-slider"></span></label>
+    </div>
+  </div>
+
   <!-- Guardar -->
   <div class="s-section">
     <button class="s-save-btn" id="save-key">GUARDAR E INICIAR</button>
@@ -780,7 +817,8 @@ let cfg = {
   showStreet: true,
   showTraffic: true,
   searchRadius: 40,
-  mapStyle: ''
+  mapStyle: '',
+  poiClasses: ['medical', 'lodging', 'education', 'food_and_drink', 'religion']
 };
 
 function loadCfgFromDB() {
@@ -830,6 +868,9 @@ function applyCfgToUI() {
   if (togH)  togH.checked  = cfg.followHeading;
   if (togSt) togSt.checked = cfg.showStreet;
   if (togTr) togTr.checked = cfg.showTraffic;
+
+  // POI toggles
+  applyCfgToPoiToggles();
 }
 
 function applyLabelsToMap() {
@@ -892,11 +933,55 @@ function applyTrafficLayer() {
   }
 }
 
+// ── POI FILTER ──
+const POI_LAYER = 'poi-label'; // ID de la capa a Studio
+
+function isCustomStyle() {
+  const presets = [
+    'mapbox://styles/mapbox/dark-v11',
+    'mapbox://styles/mapbox/navigation-night-v1',
+    'mapbox://styles/mapbox/navigation-day-v1',
+    'mapbox://styles/mapbox/satellite-streets-v12'
+  ];
+  return cfg.mapStyle && !presets.includes(cfg.mapStyle);
+}
+
+function applyPoiFilter() {
+  if (!map || !isCustomStyle()) return;
+  if (!map.getLayer(POI_LAYER)) return;
+  const active = cfg.poiClasses || [];
+  if (active.length === 0) {
+    // Cap classe activa — amaga la capa
+    map.setLayoutProperty(POI_LAYER, 'visibility', 'none');
+  } else {
+    map.setLayoutProperty(POI_LAYER, 'visibility', 'visible');
+    map.setFilter(POI_LAYER, ['match', ['get', 'class'], active, true, false]);
+  }
+}
+
+function syncPoiUI() {
+  const custom = isCustomStyle();
+  const warning = document.getElementById('poi-warning');
+  if (warning) warning.style.display = custom ? 'none' : 'block';
+  document.querySelectorAll('.tog-poi').forEach(cb => {
+    cb.disabled = !custom;
+    cb.closest('.s-toggle-row').style.opacity = custom ? '1' : '0.35';
+  });
+}
+
+function applyCfgToPoiToggles() {
+  document.querySelectorAll('.tog-poi').forEach(cb => {
+    cb.checked = (cfg.poiClasses || []).includes(cb.dataset.class);
+  });
+  syncPoiUI();
+}
+
 // ── SETTINGS PANEL ──
 function openSettings() {
   settingsPanel.style.display = 'block';
   document.getElementById('settings-overlay').style.display = 'block';
   applyCfgToUI();
+  syncPoiUI();
 }
 function closeSettings() {
   settingsPanel.style.display = 'none';
@@ -934,7 +1019,7 @@ document.addEventListener('click', e => {
 
   if (map) {
     map.setStyle(cfg.mapStyle);
-    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
+    map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
   }
 });
 
@@ -968,6 +1053,16 @@ document.addEventListener('change', e => {
   if (e.target.id === 'tog-traffic') {
     cfg.showTraffic = e.target.checked;
     applyTrafficLayer();
+  }
+  if (e.target.classList.contains('tog-poi')) {
+    const cls = e.target.dataset.class;
+    if (e.target.checked) {
+      if (!cfg.poiClasses.includes(cls)) cfg.poiClasses.push(cls);
+    } else {
+      cfg.poiClasses = cfg.poiClasses.filter(c => c !== cls);
+    }
+    applyPoiFilter();
+    saveCfgToDB();
   }
 });
 
@@ -1022,7 +1117,7 @@ document.addEventListener('click', e => {
 
         const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
         map.setStyle(newStyle);
-        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
+        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); applyPoiFilter(); syncPoiUI(); });
       }
     });
 });
@@ -1097,6 +1192,7 @@ function initMap(token) {
   map.on('load', () => {
     applyLabelsToMap();
     applyTrafficLayer();
+    applyPoiFilter();
     startTracking();
   });
 
