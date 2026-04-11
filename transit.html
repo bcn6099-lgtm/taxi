@@ -449,6 +449,157 @@
       z-index: 10;
     }
 
+    /* ── SEARCH BAR ── */
+    .search-wrap {
+      position: absolute;
+      top: 72px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: calc(100% - 28px);
+      max-width: 480px;
+      z-index: 10;
+    }
+
+    .search-box {
+      display: flex;
+      align-items: center;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0 12px;
+      height: 46px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+      gap: 8px;
+    }
+
+    .search-icon {
+      font-size: 16px;
+      opacity: 0.6;
+      flex-shrink: 0;
+    }
+
+    #search-input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 15px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      min-width: 0;
+      -webkit-appearance: none;
+    }
+    #search-input::placeholder { color: #444; }
+
+    .search-counter {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #555;
+      flex-shrink: 0;
+      min-width: 12px;
+      text-align: right;
+    }
+
+    .search-clear {
+      font-size: 14px;
+      color: #555;
+      cursor: pointer;
+      flex-shrink: 0;
+      display: none;
+      padding: 2px 4px;
+      line-height: 1;
+    }
+    .search-clear:hover { color: #aaa; }
+
+    .search-results {
+      display: none;
+      margin-top: 6px;
+      background: #0e0e14;
+      border: 1px solid rgba(255,195,0,0.15);
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.7);
+    }
+
+    .search-result-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 11px 14px;
+      cursor: pointer;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+      transition: background 0.15s;
+    }
+    .search-result-item:last-child { border-bottom: none; }
+    .search-result-item:active { background: rgba(255,195,0,0.07); }
+
+    .result-icon { font-size: 14px; flex-shrink: 0; }
+    .result-main { font-size: 14px; font-weight: 600; color: #ddd; }
+    .result-sub  { font-size: 11px; color: #555; margin-top: 1px; }
+
+    .search-status {
+      padding: 12px 14px;
+      font-size: 12px;
+      color: #555;
+      letter-spacing: 1px;
+      text-align: center;
+    }
+
+    /* ── HINT ── */
+    .hint {
+      position: absolute;
+      top: 128px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0,0,0,0.65);
+      color: #FFC300;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 2px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      pointer-events: none;
+      z-index: 9;
+      white-space: nowrap;
+      border: 1px solid rgba(255,195,0,0.15);
+    }
+
+    /* ── STREET PILL ── */
+    .street-pill {
+      position: absolute;
+      bottom: 170px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 6px 14px;
+      z-index: 10;
+      pointer-events: none;
+      max-width: calc(100% - 80px);
+      overflow: hidden;
+    }
+    .street-pill-dot {
+      width: 7px; height: 7px;
+      border-radius: 50%;
+      background: var(--gold);
+      flex-shrink: 0;
+    }
+    .street-pill-text {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      color: #aaa;
+      letter-spacing: 1px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
     /* Mapbox controls */
     .mapboxgl-ctrl-group { display: none !important; }
   </style>
@@ -516,6 +667,7 @@
       <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-night-v1">🚗 Noche</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/navigation-day-v1">☀️ Día</button>
       <button class="style-btn" data-style="mapbox://styles/mapbox/satellite-streets-v12">🛰️ Satélite</button>
+      <button class="style-btn" id="btn-custom" data-style="custom" style="grid-column:span 2">✏️ Personalizado (campo URL arriba)</button>
     </div>
   </div>
 
@@ -658,7 +810,7 @@ function applyCfgToUI() {
   if (styleInput) styleInput.value = isCustom ? cfg.mapStyle : '';
 
   // Style buttons
-  const activeStyle = isCustom ? '' : (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11');
+  const activeStyle = isCustom ? 'custom' : (cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11');
   document.querySelectorAll('.style-btn').forEach(b => {
     b.classList.toggle('active', b.dataset.style === activeStyle);
   });
@@ -768,9 +920,18 @@ document.addEventListener('click', e => {
   if (!btn) return;
   document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
   btn.classList.add('active');
-  cfg.mapStyle = btn.dataset.style;
+
   const styleInput = document.getElementById('map-style');
-  if (styleInput) styleInput.value = '';
+  if (btn.dataset.style === 'custom') {
+    // Personalizado: usa el valor del camp de text
+    const customVal = styleInput ? styleInput.value.trim() : '';
+    if (!customVal) { alert('Introdueix primer la URL del teu estil personalitzat al camp de dalt.'); btn.classList.remove('active'); return; }
+    cfg.mapStyle = customVal;
+  } else {
+    cfg.mapStyle = btn.dataset.style;
+    if (styleInput) styleInput.value = '';
+  }
+
   if (map) {
     map.setStyle(cfg.mapStyle);
     map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
@@ -814,24 +975,56 @@ document.addEventListener('change', e => {
 document.addEventListener('click', e => {
   if (!e.target.closest('#save-key')) return;
   const key = document.getElementById('api-key').value.trim();
+  if (!key) { alert('Introdueix una clau API de Mapbox vàlida.'); return; }
+
   const styleInput = document.getElementById('map-style');
   const styleVal = styleInput ? styleInput.value.trim() : '';
-  // Custom text field overrides preset button
-  if (styleVal) cfg.mapStyle = styleVal;
-  if (key) {
-    cfg._token = key; // store in cfg so applyCfgToUI can repopulate
-    Promise.all([dbSet('mapbox_key', key), saveCfgToDB()]).catch(console.error);
-    closeSettings();
-    if (!map) {
-      initMap(key);
-    } else {
-      const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
-      map.setStyle(newStyle);
-      map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
-    }
-  } else {
-    alert("Por favor, introduce una clave API válida.");
+
+  // El camp de text URL té prioritat sobre els botons preset
+  if (styleVal) {
+    cfg.mapStyle = styleVal;
+    // Marca el botó "Personalizado" com actiu
+    document.querySelectorAll('.style-btn').forEach(b => b.classList.remove('active'));
+    const customBtn = document.getElementById('btn-custom');
+    if (customBtn) customBtn.classList.add('active');
   }
+
+  const tokenChanged = cfg._token !== key;
+  cfg._token = key;
+
+  Promise.all([dbSet('mapbox_key', key), saveCfgToDB()])
+    .catch(console.error)
+    .finally(() => {
+      closeSettings();
+
+      if (!map || tokenChanged) {
+        // Reinicia el mapa completament si no existia o ha canviat el token
+        if (map) {
+          // Neteja rutes actives
+          routeIds.forEach(id => {
+            try { if (map.getLayer(id)) map.removeLayer(id); } catch(e) {}
+            try { if (map.getSource(id)) map.removeSource(id); } catch(e) {}
+          });
+          routeIds = []; routeData = [];
+          map.remove();
+          map = null;
+          userMarker = null;
+        }
+        initMap(key);
+      } else {
+        // Mateix token, canvia estil i reseteja rutes
+        routeIds.forEach(id => {
+          try { if (map.getLayer(id)) map.removeLayer(id); } catch(e) {}
+          try { if (map.getSource(id)) map.removeSource(id); } catch(e) {}
+        });
+        routeIds = []; routeData = [];
+        renderRouteCards();
+
+        const newStyle = cfg.mapStyle || 'mapbox://styles/mapbox/dark-v11';
+        map.setStyle(newStyle);
+        map.once('style.load', () => { applyLabelsToMap(); applyTrafficLayer(); });
+      }
+    });
 });
 
 // ── IndexedDB storage (funciona en GitHub Pages) ──
@@ -1257,13 +1450,20 @@ document.addEventListener('click', (e) => {
 function geocodeQuery(query) {
   if (!mapboxgl.accessToken) return;
 
-  // Barcelona centre + 20km bbox
-  const proximity = userLocation
-    ? `${userLocation[0]},${userLocation[1]}`
-    : '2.1734,41.3851';
+  // Centre de referència: ubicació actual o Barcelona
+  const center = userLocation ? userLocation : [2.1734, 41.3851];
+  const proximity = `${center[0]},${center[1]}`;
 
-  // bbox: roughly 20km radius around Barcelona centre
-  const bbox = '1.60,41.00,2.75,41.80';
+  // BBox dinàmic basat en el radi configurat (cfg.searchRadius km)
+  const radiusKm = cfg.searchRadius || 40;
+  const dLat = radiusKm / 111;
+  const dLng = radiusKm / (111 * Math.cos(center[1] * Math.PI / 180));
+  const bbox = [
+    (center[0] - dLng).toFixed(4),
+    (center[1] - dLat).toFixed(4),
+    (center[0] + dLng).toFixed(4),
+    (center[1] + dLat).toFixed(4)
+  ].join(',');
 
   const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json` +
     `?proximity=${proximity}` +
@@ -1332,19 +1532,6 @@ function renderResults(features) {
   });
 }
 
-
-// ── STARTUP ──
-Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
-  if (savedKey) {
-    cfg._token = savedKey;
-    applyCfgToUI();
-    initMap(savedKey);
-  } else {
-    openSettings();
-  }
-}).catch(() => {
-  openSettings();
-});
 
 // ── STARTUP ──
 Promise.all([dbGet('mapbox_key'), loadCfgFromDB()]).then(([savedKey]) => {
