@@ -81,6 +81,8 @@
             <div class="menu-item" onclick="navigateTo('historic')">📋 Històric</div>
             <div class="menu-item" onclick="navigateTo('comparison')">🔄 Comparativa</div>
             <div class="menu-item" onclick="navigateTo('beneficis')">💰 Beneficis</div>
+            <div class="menu-item" onclick="navigateTo('despeses')">💸 Despeses</div>
+            <div class="menu-item" onclick="obrirCategoriesDespeses()">🏷️ Cat. Despeses</div>
             <a class="menu-item" href="https://bcn6099-lgtm.github.io/taxi/analisi.html" target="_blank" style="display:block;text-decoration:none;">📊 Informe 2018-2026</a>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="exportJSON()">💾 Exportar JSON (local)</div>
@@ -91,6 +93,7 @@
             <div class="menu-item" onclick="obrirConfigDrive()">⚙️ Configurar Drive</div>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="mostrarDiagnostic()" style="color:#888;font-size:0.8rem;">🔍 Diagnòstic torn</div>
+            <div class="menu-item" onclick="resetDB()" style="color:#ff7043;font-size:0.8rem;">🔧 Reset BD (debug)</div>
             <div class="menu-item danger" onclick="confirmDeleteAllData()">🗑️ Esborrar totes les dades</div>
             <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
         </div>
@@ -361,6 +364,34 @@
                 </div>
 
                 <div id="beneficisContainer"></div>
+            </div>
+
+            <!-- DESPESES PAGE -->
+            <!-- ── PÀGINA: DESPESES ── -->
+            <div id="despeses" class="page">
+                <h1 class="page-title">💸 Despeses</h1>
+
+                <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
+                    <button class="btn btn-primary" style="flex:1;padding:0.75rem;" onclick="obrirAfegirDespesa()">➕ Nova despesa</button>
+                    <button class="btn btn-secondary" style="flex:1;padding:0.75rem;" onclick="obrirCategoriesDespeses()">🏷️ Categories</button>
+                </div>
+
+                <!-- Filtres -->
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.85rem 1rem;margin-bottom:1rem;">
+                    <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;margin-bottom:0.5rem;">
+                        <label style="font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">Mes/Any:</label>
+                        <input type="month" id="despesesFilterMes" class="form-input" style="flex:1;padding:0.4rem 0.5rem;font-size:0.85rem;" onchange="renderDespesesPage()">
+                        <button class="dia-filter-btn" onclick="despesesFilterMesAvui()">Aquest mes</button>
+                        <button class="dia-filter-btn" onclick="document.getElementById('despesesFilterMes').value='';renderDespesesPage()">Tots</button>
+                    </div>
+                    <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="despesesFilterCatBtns"></div>
+                </div>
+
+                <!-- Resum del mes -->
+                <div id="despesesResumMes" style="margin-bottom:1rem;"></div>
+
+                <!-- Llista de despeses -->
+                <div id="despesesLlista"></div>
             </div>
 
             <!-- ADD DAY PAGE -->
@@ -726,7 +757,7 @@
     <div class="modal" id="numpadModal" style="align-items:flex-end;padding:0;">
         <div style="background:var(--bg-card);border-radius:20px 20px 0 0;padding:1.25rem 1rem 1.5rem;width:100%;max-width:400px;margin:0 auto;">
             <div style="display:flex;align-items:baseline;justify-content:center;gap:0.2rem;margin-bottom:1rem;min-height:3.5rem;">
-                <span style="font-size:3rem;font-weight:700;color:var(--accent);font-family:'DSEG7Classic','Courier New',monospace;letter-spacing:0.05em;min-width:6ch;text-align:right;" id="numpadDisplay">0</span>
+                <span style="font-size:3rem;font-weight:700;color:var(--accent);font-family:'DSEG7Classic','Courier New',monospace;letter-spacing:0.05em;min-width:7ch;text-align:right;" id="numpadDisplay">0</span>
                 <span style="font-size:1.5rem;color:var(--accent);font-weight:700;">€</span>
             </div>
             <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0.6rem;">
@@ -983,36 +1014,64 @@
     <!-- OBJECTIUS MODAL -->
     <!-- ════ MODAL: OBJECTIUS DE COLOR ════ -->
     <style>
-        /* Filetes de color entre forms d'objectius */
-        .obj-stripe {
-            width: 4px;
-            border-radius: 2px;
-            flex-shrink: 0;
-            align-self: stretch;
-            min-height: 48px;
-        }
-        .obj-row {
-            display: flex;
-            align-items: stretch;
-            gap: 0;
-            margin-bottom: 0.5rem;
-        }
-        .obj-form-block {
+        /* Nou disseny de 6 caixes per categoria */
+        .obj-cat-block {
             background: var(--bg-secondary);
             border-radius: 10px;
-            padding: 0.75rem 0.85rem;
-            flex: 1;
+            padding: 0.65rem 0.75rem 0.6rem;
+            margin-bottom: 0.6rem;
         }
-        .obj-inputs {
-            display: grid;
-            grid-template-columns: repeat(5,1fr);
-            gap: 0.35rem;
-            margin-top: 0.45rem;
-        }
-        .obj-inputs input {
-            padding: 0.4rem 0.2rem;
+        .obj-cat-title {
             font-size: 0.82rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.55rem;
+        }
+        .obj-color-boxes {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 0.3rem;
+        }
+        .obj-color-box {
+            border: 2px solid;
+            border-radius: 7px;
+            padding: 0.3rem 0.15rem 0.35rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 0.2rem;
+            background: var(--bg-primary);
+        }
+        .obj-color-box-label {
+            font-size: 0.52rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.03em;
             text-align: center;
+            line-height: 1.2;
+        }
+        .obj-color-box input {
+            width: 100%;
+            background: transparent;
+            border: none;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+            border-radius: 0;
+            padding: 0.1rem 0.1rem;
+            font-size: 0.78rem;
+            text-align: center;
+            color: var(--text-primary);
+            font-family: inherit;
+            outline: none;
+        }
+        .obj-color-box input:focus {
+            border-bottom-color: rgba(255,255,255,0.6);
+        }
+        .obj-color-box-range {
+            font-size: 0.48rem;
+            color: var(--text-secondary);
+            text-align: center;
+            line-height: 1.3;
+            min-height: 1.3em;
         }
     </style>
     <div class="modal" id="objectiusModal">
@@ -1023,100 +1082,193 @@
             </div>
             <div class="modal-body" style="padding:1rem;">
 
-                <!-- Llegenda visual de colors: filete → zone → filete... -->
-                <div style="display:flex;align-items:center;gap:0;margin-bottom:1rem;border-radius:8px;overflow:hidden;height:28px;">
-                    <div style="background:#ff00aa;flex:1;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#fff;font-weight:700;">FUSCIA</div>
-                    <div style="background:#ff4444;flex:1;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#fff;font-weight:700;">ROIG</div>
-                    <div style="background:#ff9800;flex:1;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#fff;font-weight:700;">TARONJA</div>
-                    <div style="background:#4caf50;flex:1;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#fff;font-weight:700;">VERD</div>
-                    <div style="background:#00e676;flex:1;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#000;font-weight:700;">V.BRILLANT</div>
-                    <div style="background:#ff00aa;flex:1;height:100%;display:flex;align-items:center;justify-content:center;font-size:0.6rem;color:#fff;font-weight:700;">FUSCIA</div>
-                </div>
-                <p style="font-size:0.73rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.5;">
-                    Cada camp defineix el llindar mínim d'aquell color. Els filetes laterals indiquen el color de la zona esquerra i dreta del formulari.
+                <p style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:0.9rem;line-height:1.5;">
+                    Cada caixa mostra el rang d'importos per aquell color. Introdueix el valor del llindar superior de cada zona (en ordre ascendent).
                 </p>
 
-                <!-- Helper macro per generar cada bloc amb filetes a banda i banda -->
-                <!-- FUSCIA|form|ROIG|form|TARONJA|form|VERD|form|V.BRILLANT|form|FUSCIA -->
-
                 <!-- MENSUAL -->
-                <div class="obj-row">
-                    <div class="obj-stripe" style="background:#ff00aa;margin-right:6px;"></div>
-                    <div class="obj-form-block">
-                        <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">📆 Mensual (€)</div>
-                        <div class="obj-inputs">
-                            <div><div style="font-size:0.6rem;color:#ff00aa;text-align:center;margin-bottom:2px;">→Roig</div><input type="number" id="obj_mensual_0" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff4444;text-align:center;margin-bottom:2px;">→Taronja</div><input type="number" id="obj_mensual_1" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff9800;text-align:center;margin-bottom:2px;">→Verd</div><input type="number" id="obj_mensual_2" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#4caf50;text-align:center;margin-bottom:2px;">→V.Brill</div><input type="number" id="obj_mensual_3" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#00e676;text-align:center;margin-bottom:2px;">→Fuscia</div><input type="number" id="obj_mensual_4" class="form-input"></div>
+                <div class="obj-cat-block">
+                    <div class="obj-cat-title">📆 Mensual (€)</div>
+                    <div class="obj-color-boxes">
+                        <div class="obj-color-box" style="border-color:#ff00aa;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
+                            <input type="number" id="obj_mensual_0" placeholder="fins a">
+                            <div class="obj-color-box-range">0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff4444;">
+                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
+                            <input type="number" id="obj_mensual_1" placeholder="fins a">
+                            <div class="obj-color-box-range">t0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff9800;">
+                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
+                            <input type="number" id="obj_mensual_2" placeholder="fins a">
+                            <div class="obj-color-box-range">t1 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#4caf50;">
+                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
+                            <input type="number" id="obj_mensual_3" placeholder="fins a">
+                            <div class="obj-color-box-range">t2 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#00e676;">
+                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
+                            <input type="number" id="obj_mensual_4" placeholder="fins a">
+                            <div class="obj-color-box-range">t3 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
+                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
+                            <div class="obj-color-box-range">automàtic</div>
                         </div>
                     </div>
-                    <div class="obj-stripe" style="background:#ff4444;margin-left:6px;"></div>
                 </div>
 
                 <!-- DIARI -->
-                <div class="obj-row">
-                    <div class="obj-stripe" style="background:#ff00aa;margin-right:6px;"></div>
-                    <div class="obj-form-block">
-                        <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">📅 Diari (€)</div>
-                        <div class="obj-inputs">
-                            <div><div style="font-size:0.6rem;color:#ff00aa;text-align:center;margin-bottom:2px;">→Roig</div><input type="number" id="obj_diari_0" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff4444;text-align:center;margin-bottom:2px;">→Taronja</div><input type="number" id="obj_diari_1" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff9800;text-align:center;margin-bottom:2px;">→Verd</div><input type="number" id="obj_diari_2" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#4caf50;text-align:center;margin-bottom:2px;">→V.Brill</div><input type="number" id="obj_diari_3" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#00e676;text-align:center;margin-bottom:2px;">→Fuscia</div><input type="number" id="obj_diari_4" class="form-input"></div>
+                <div class="obj-cat-block">
+                    <div class="obj-cat-title">📅 Diari (€)</div>
+                    <div class="obj-color-boxes">
+                        <div class="obj-color-box" style="border-color:#ff00aa;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
+                            <input type="number" id="obj_diari_0" placeholder="fins a">
+                            <div class="obj-color-box-range">0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff4444;">
+                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
+                            <input type="number" id="obj_diari_1" placeholder="fins a">
+                            <div class="obj-color-box-range">t0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff9800;">
+                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
+                            <input type="number" id="obj_diari_2" placeholder="fins a">
+                            <div class="obj-color-box-range">t1 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#4caf50;">
+                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
+                            <input type="number" id="obj_diari_3" placeholder="fins a">
+                            <div class="obj-color-box-range">t2 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#00e676;">
+                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
+                            <input type="number" id="obj_diari_4" placeholder="fins a">
+                            <div class="obj-color-box-range">t3 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
+                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
+                            <div class="obj-color-box-range">automàtic</div>
                         </div>
                     </div>
-                    <div class="obj-stripe" style="background:#ff4444;margin-left:6px;"></div>
                 </div>
 
                 <!-- HORA -->
-                <div class="obj-row">
-                    <div class="obj-stripe" style="background:#ff00aa;margin-right:6px;"></div>
-                    <div class="obj-form-block">
-                        <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">⏱ Mitjana per hora (€/h)</div>
-                        <div class="obj-inputs">
-                            <div><div style="font-size:0.6rem;color:#ff00aa;text-align:center;margin-bottom:2px;">→Roig</div><input type="number" id="obj_hora_0" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff4444;text-align:center;margin-bottom:2px;">→Taronja</div><input type="number" id="obj_hora_1" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff9800;text-align:center;margin-bottom:2px;">→Verd</div><input type="number" id="obj_hora_2" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#4caf50;text-align:center;margin-bottom:2px;">→V.Brill</div><input type="number" id="obj_hora_3" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#00e676;text-align:center;margin-bottom:2px;">→Fuscia</div><input type="number" id="obj_hora_4" class="form-input"></div>
+                <div class="obj-cat-block">
+                    <div class="obj-cat-title">⏱ Mitjana per hora (€/h)</div>
+                    <div class="obj-color-boxes">
+                        <div class="obj-color-box" style="border-color:#ff00aa;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
+                            <input type="number" id="obj_hora_0" placeholder="fins a">
+                            <div class="obj-color-box-range">0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff4444;">
+                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
+                            <input type="number" id="obj_hora_1" placeholder="fins a">
+                            <div class="obj-color-box-range">t0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff9800;">
+                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
+                            <input type="number" id="obj_hora_2" placeholder="fins a">
+                            <div class="obj-color-box-range">t1 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#4caf50;">
+                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
+                            <input type="number" id="obj_hora_3" placeholder="fins a">
+                            <div class="obj-color-box-range">t2 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#00e676;">
+                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
+                            <input type="number" id="obj_hora_4" placeholder="fins a">
+                            <div class="obj-color-box-range">t3 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
+                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
+                            <div class="obj-color-box-range">automàtic</div>
                         </div>
                     </div>
-                    <div class="obj-stripe" style="background:#ff4444;margin-left:6px;"></div>
                 </div>
 
                 <!-- BENEFICIS -->
-                <div class="obj-row">
-                    <div class="obj-stripe" style="background:#ff00aa;margin-right:6px;"></div>
-                    <div class="obj-form-block">
-                        <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">💰 Beneficis (€)</div>
-                        <div class="obj-inputs">
-                            <div><div style="font-size:0.6rem;color:#ff00aa;text-align:center;margin-bottom:2px;">→Roig</div><input type="number" id="obj_beneficis_0" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff4444;text-align:center;margin-bottom:2px;">→Taronja</div><input type="number" id="obj_beneficis_1" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff9800;text-align:center;margin-bottom:2px;">→Verd</div><input type="number" id="obj_beneficis_2" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#4caf50;text-align:center;margin-bottom:2px;">→V.Brill</div><input type="number" id="obj_beneficis_3" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#00e676;text-align:center;margin-bottom:2px;">→Fuscia</div><input type="number" id="obj_beneficis_4" class="form-input"></div>
+                <div class="obj-cat-block">
+                    <div class="obj-cat-title">💰 Beneficis (€)</div>
+                    <div class="obj-color-boxes">
+                        <div class="obj-color-box" style="border-color:#ff00aa;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
+                            <input type="number" id="obj_beneficis_0" placeholder="fins a">
+                            <div class="obj-color-box-range">0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff4444;">
+                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
+                            <input type="number" id="obj_beneficis_1" placeholder="fins a">
+                            <div class="obj-color-box-range">t0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff9800;">
+                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
+                            <input type="number" id="obj_beneficis_2" placeholder="fins a">
+                            <div class="obj-color-box-range">t1 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#4caf50;">
+                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
+                            <input type="number" id="obj_beneficis_3" placeholder="fins a">
+                            <div class="obj-color-box-range">t2 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#00e676;">
+                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
+                            <input type="number" id="obj_beneficis_4" placeholder="fins a">
+                            <div class="obj-color-box-range">t3 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
+                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
+                            <div class="obj-color-box-range">automàtic</div>
                         </div>
                     </div>
-                    <div class="obj-stripe" style="background:#ff4444;margin-left:6px;"></div>
                 </div>
 
                 <!-- CARRERA -->
-                <div class="obj-row">
-                    <div class="obj-stripe" style="background:#ff00aa;margin-right:6px;"></div>
-                    <div class="obj-form-block">
-                        <div style="font-size:0.82rem;font-weight:700;color:var(--text-primary);">🚖 Color per carrera (€)</div>
-                        <div class="obj-inputs">
-                            <div><div style="font-size:0.6rem;color:#ff00aa;text-align:center;margin-bottom:2px;">→Roig</div><input type="number" id="obj_carrera_0" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff4444;text-align:center;margin-bottom:2px;">→Taronja</div><input type="number" id="obj_carrera_1" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#ff9800;text-align:center;margin-bottom:2px;">→Verd</div><input type="number" id="obj_carrera_2" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#4caf50;text-align:center;margin-bottom:2px;">→V.Brill</div><input type="number" id="obj_carrera_3" class="form-input"></div>
-                            <div><div style="font-size:0.6rem;color:#00e676;text-align:center;margin-bottom:2px;">→Fuscia</div><input type="number" id="obj_carrera_4" class="form-input"></div>
+                <div class="obj-cat-block">
+                    <div class="obj-cat-title">🚖 Color per carrera (€)</div>
+                    <div class="obj-color-boxes">
+                        <div class="obj-color-box" style="border-color:#ff00aa;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
+                            <input type="number" id="obj_carrera_0" placeholder="fins a">
+                            <div class="obj-color-box-range">0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff4444;">
+                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
+                            <input type="number" id="obj_carrera_1" placeholder="fins a">
+                            <div class="obj-color-box-range">t0 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff9800;">
+                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
+                            <input type="number" id="obj_carrera_2" placeholder="fins a">
+                            <div class="obj-color-box-range">t1 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#4caf50;">
+                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
+                            <input type="number" id="obj_carrera_3" placeholder="fins a">
+                            <div class="obj-color-box-range">t2 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#00e676;">
+                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
+                            <input type="number" id="obj_carrera_4" placeholder="fins a">
+                            <div class="obj-color-box-range">t3 → val</div>
+                        </div>
+                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
+                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
+                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
+                            <div class="obj-color-box-range">automàtic</div>
                         </div>
                     </div>
-                    <div class="obj-stripe" style="background:#ff4444;margin-left:6px;"></div>
                 </div>
 
                 <div style="display:flex;gap:0.75rem;margin-top:0.25rem;">
@@ -1127,8 +1279,69 @@
         </div>
     </div>
 
-    <!-- GASTOS MODAL -->
-    <!-- ════ MODAL: DESPESES DEL MES ════ -->
+    <!-- AFEGIR / EDITAR DESPESA MODAL -->
+    <div class="modal" id="despesaModal">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h2 class="modal-title" id="despesaModalTitle">💸 Nova Despesa</h2>
+                <button class="modal-close" onclick="tancarDespesaModal()">×</button>
+            </div>
+            <div id="alertContainerDespesa"></div>
+            <div class="form-group">
+                <label class="form-label">Nom</label>
+                <input type="text" id="despesaNom" class="form-input" placeholder="Ex: Gasolina BP" autocomplete="off">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Import (€)</label>
+                <input type="number" id="despesaImport" class="form-input" step="0.01" min="0" placeholder="0.00" inputmode="decimal">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Data</label>
+                <input type="date" id="despesaData" class="form-input">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tipus</label>
+                <div style="display:flex;gap:0.5rem;">
+                    <button type="button" id="despesaTipusManual" class="btn btn-primary" style="flex:1;" onclick="selectDespesaTipus('manual')">Manual</button>
+                    <button type="button" id="despesaTipusFix" class="btn btn-secondary" style="flex:1;" onclick="selectDespesaTipus('fix_mensual')">Fix Mensual</button>
+                </div>
+                <div style="font-size:0.72rem;color:var(--text-secondary);margin-top:0.4rem;" id="despesaTipusHelp">S'afegirà manualment quan ho indiquis.</div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Categoria</label>
+                <select id="despesaCategoria" class="form-input"></select>
+            </div>
+            <input type="hidden" id="despesaEditId" value="">
+            <div class="modal-actions">
+                <button class="btn btn-primary" style="flex:1;" onclick="guardarDespesa()">💾 Guardar</button>
+                <button class="btn btn-secondary" onclick="tancarDespesaModal()">Cancel·lar</button>
+            </div>
+            <div id="despesaDeleteBtn" style="display:none;margin-top:0.75rem;">
+                <button class="btn btn-danger" style="width:100%;" onclick="eliminarDespesa()">🗑️ Eliminar aquesta despesa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CATEGORIES DESPESES MODAL -->
+    <div class="modal" id="categoriesDespesesModal">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h2 class="modal-title">🏷️ Categories de Despeses</h2>
+                <button class="modal-close" onclick="tancarCategoriesDespesesModal()">×</button>
+            </div>
+            <p style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:0.75rem;line-height:1.5;">
+                Gestiona les categories. Pots afegir-ne de noves o eliminar les que no usis (les predefinides no es poden eliminar si hi ha despeses associades).
+            </p>
+            <div id="categoriesLlista" style="margin-bottom:1rem;max-height:300px;overflow-y:auto;"></div>
+            <div style="display:flex;gap:0.5rem;">
+                <input type="text" id="novaCategoriaInput" class="form-input" placeholder="Nova categoria..." style="flex:1;">
+                <button class="btn btn-primary" onclick="afegirCategoria()">Afegir</button>
+            </div>
+            <div class="modal-actions" style="margin-top:1rem;">
+                <button class="btn btn-secondary" style="width:100%;" onclick="tancarCategoriesDespesesModal()">Tancar</button>
+            </div>
+        </div>
+    </div>
     <div class="modal" id="gastosModal">
         <div class="modal-content">
             <div class="modal-header">
@@ -1175,56 +1388,42 @@
         // INDEXEDDB CONFIGURATION
         // ==========================================
         const DB_NAME = 'TaxiFacturacioDB';
-        const DB_VERSION = 4;
+        const DB_VERSION = 7;
         const STORE_NAME = 'facturacio_data';
         const GASTOS_STORE_NAME = 'gastos_data';
         const CARRERES_STORE_NAME = 'carreres_data';
         const SETTINGS_STORE_NAME = 'settings_data';
+        const DESPESES_STORE_NAME = 'despeses_detall';
+        const CATEGORIES_STORE_NAME = 'categories_despeses';
         let db = null;
 
+        // initDB gestiona tots els stores (v1-v6): facturacio, gastos, carreres, settings, despeses, categories
         async function initDB() {
             return new Promise((resolve, reject) => {
                 const request = indexedDB.open(DB_NAME, DB_VERSION);
-                
-                request.onerror = () => {
-                    console.error('Error opening database:', request.error);
-                    reject(request.error);
-                };
-                
-                request.onsuccess = () => {
-                    db = request.result;
-                    console.log('Database opened successfully');
-                    resolve(db);
-                };
-                
+                request.onerror = () => { reject(request.error); };
+                request.onsuccess = () => { db = request.result; resolve(db); };
                 request.onupgradeneeded = (event) => {
-                    const db = event.target.result;
-                    
-                    // Store de facturación
-                    if (!db.objectStoreNames.contains(STORE_NAME)) {
-                        const objectStore = db.createObjectStore(STORE_NAME, { keyPath: 'fecha' });
-                        objectStore.createIndex('mes_anio', 'mes_anio', { unique: false });
-                        console.log('Facturacio object store created');
+                    const dbInst = event.target.result;
+                    if (!dbInst.objectStoreNames.contains(STORE_NAME)) {
+                        const s = dbInst.createObjectStore(STORE_NAME, { keyPath: 'fecha' });
+                        s.createIndex('mes_anio', 'mes_anio', { unique: false });
                     }
-                    
-                    // Store de gastos
-                    if (!db.objectStoreNames.contains(GASTOS_STORE_NAME)) {
-                        const gastosStore = db.createObjectStore(GASTOS_STORE_NAME, { keyPath: 'mes_anio' });
-                        console.log('Gastos object store created');
+                    if (!dbInst.objectStoreNames.contains(GASTOS_STORE_NAME))
+                        dbInst.createObjectStore(GASTOS_STORE_NAME, { keyPath: 'mes_anio' });
+                    if (!dbInst.objectStoreNames.contains(CARRERES_STORE_NAME)) {
+                        const cs = dbInst.createObjectStore(CARRERES_STORE_NAME, { keyPath: 'id' });
+                        cs.createIndex('fecha', 'fecha', { unique: false });
                     }
-
-                    // Store de carreres (nou v3)
-                    if (!db.objectStoreNames.contains(CARRERES_STORE_NAME)) {
-                        const carreresStore = db.createObjectStore(CARRERES_STORE_NAME, { keyPath: 'id' });
-                        carreresStore.createIndex('fecha', 'fecha', { unique: false });
-                        console.log('Carreres object store created');
+                    if (!dbInst.objectStoreNames.contains(SETTINGS_STORE_NAME))
+                        dbInst.createObjectStore(SETTINGS_STORE_NAME, { keyPath: 'key' });
+                    if (!dbInst.objectStoreNames.contains(DESPESES_STORE_NAME)) {
+                        const ds = dbInst.createObjectStore(DESPESES_STORE_NAME, { keyPath: 'id' });
+                        ds.createIndex('data', 'data', { unique: false });
+                        ds.createIndex('mes_anio', 'mes_anio', { unique: false });
                     }
-
-                    // Store de configuració/estat (v4)
-                    if (!db.objectStoreNames.contains(SETTINGS_STORE_NAME)) {
-                        db.createObjectStore(SETTINGS_STORE_NAME, { keyPath: 'key' });
-                        console.log('Settings object store created');
-                    }
+                    if (!dbInst.objectStoreNames.contains(CATEGORIES_STORE_NAME))
+                        dbInst.createObjectStore(CATEGORIES_STORE_NAME, { keyPath: 'id' });
                 };
             });
         }
@@ -1308,7 +1507,7 @@
             }
             
             try {
-                return new Promise((resolve, reject) => {
+                return new Promise((resolve) => {
                     const transaction = db.transaction([STORE_NAME], 'readwrite');
                     const objectStore = transaction.objectStore(STORE_NAME);
                     
@@ -1316,35 +1515,15 @@
                     const clearRequest = objectStore.clear();
                     
                     clearRequest.onsuccess = () => {
-                        // Add all records
-                        let addedCount = 0;
-                        let hasError = false;
-                        
-                        if (data.length === 0) {
-                            resolve(true);
-                            return;
-                        }
-                        
-                        data.forEach((record, index) => {
-                            const addRequest = objectStore.add(record);
-                            
-                            addRequest.onsuccess = () => {
-                                addedCount++;
-                                if (addedCount === data.length && !hasError) {
-                                    console.log('Data saved successfully:', addedCount, 'records');
-                                }
-                            };
-                            
-                            addRequest.onerror = () => {
-                                console.error('Error adding record:', addRequest.error);
-                                hasError = true;
-                            };
+                        // Usem put (upsert) en lloc de add per evitar errors de clau duplicada
+                        data.forEach((record) => {
+                            objectStore.put(record);
                         });
                     };
                     
                     clearRequest.onerror = () => {
                         console.error('Error clearing data:', clearRequest.error);
-                        reject(false);
+                        resolve(false);
                     };
                     
                     transaction.oncomplete = () => {
@@ -1353,7 +1532,7 @@
                     
                     transaction.onerror = () => {
                         console.error('Transaction error:', transaction.error);
-                        reject(false);
+                        resolve(false);
                     };
                 });
             } catch (error) {
@@ -1455,10 +1634,7 @@
             }
         }
 
-        function getGastosForMonth(mesAnio) {
-            const gastos = gastosData.find(g => g.mes_anio === mesAnio);
-            return gastos ? gastos.gastos : 0;
-        }
+        // getGastosForMonth is defined in the DESPESES DETALL section (hybrid version)
 
         // ==========================================
         // VARIABLES GLOBALES
@@ -1741,6 +1917,7 @@
             if (page === 'add') updateAllDaysTable();
             if (page === 'torns') updateTornsView();
             if (page === 'carreres-global') loadAndRenderGlobalCarreres();
+            if (page === 'despeses') { despesesFilterMesAvui(); }
         }
 
         // ==========================================
@@ -2219,6 +2396,13 @@
                 const gastos = getGastosForMonth(mesAnio);
                 const beneficios = Math.round(ingresos - gastos);
                 
+                // Indica si els gastos venen de despeses detallades o de valor manual llegat
+                const despesesDetallMes = despesesData.filter(d => d.mes_anio === mesAnio && !d.plantilla);
+                const gastosLabel = despesesDetallMes.length > 0
+                    ? `${despesesDetallMes.length} despeses · ${Math.round(gastos)}€`
+                    : `Valor manual · ${Math.round(gastos)}€`;
+                const gastosIcon = despesesDetallMes.length > 0 ? '📋' : '✏️';
+                
                 const beneficiosColor = getObjectiuColor(beneficios, loadObjectius().beneficis);
                 
                 html += `
@@ -2227,7 +2411,7 @@
                             <div class="month-card-left">
                                 <div class="month-card-title">${monthName} ${year}</div>
                                 <div class="month-card-subtitle">
-                                    Ingressos: ${Math.round(ingresos)}€ · Gastos: ${Math.round(gastos)}€
+                                    Ingressos: ${Math.round(ingresos)}€ · ${gastosIcon} ${gastosLabel}
                                 </div>
                             </div>
                             <div style="text-align: right;">
@@ -2314,10 +2498,23 @@
             document.getElementById('gastosAmount').value = currentGastos;
             
             updateGastosPreview(ingresos, currentGastos);
+
+            // Avís si el mes ja té despeses detallades
+            const despesesDetallMes = despesesData.filter(d => d.mes_anio === mesAnio && !d.plantilla);
+            const alertEl = document.getElementById('alertContainerGastos');
+            if (despesesDetallMes.length > 0) {
+                alertEl.innerHTML = `<div style="background:#1a3a2a;border:1px solid #4caf50;border-radius:8px;padding:0.7rem 1rem;font-size:0.78rem;color:#a5d6a7;margin-bottom:0.75rem;line-height:1.5;">
+                    📋 <strong>Aquest mes té ${despesesDetallMes.length} despesa(es) detallades</strong> (total: ${despesesDetallMes.reduce((s,d)=>s+(parseFloat(d.import)||0),0).toFixed(2)}€).<br>
+                    El valor de gastos s'agafa de les despeses detallades. Edita-les des de <a href="#" onclick="closeGastosModal();navigateTo('despeses');return false;" style="color:#69f0ae;font-weight:600;">💸 Despeses</a>.
+                </div>`;
+            } else {
+                alertEl.innerHTML = `<div style="background:#1a2a3a;border:1px solid #2196f3;border-radius:8px;padding:0.7rem 1rem;font-size:0.78rem;color:#90caf9;margin-bottom:0.75rem;line-height:1.5;">
+                    ✏️ <strong>Valor manual llegat</strong>. Pots modificar-lo aquí, o bé afegir despeses detallades des de <a href="#" onclick="closeGastosModal();navigateTo('despeses');return false;" style="color:#82b1ff;font-weight:600;">💸 Despeses</a>.
+                </div>`;
+            }
             
             document.getElementById('gastosModal').classList.add('active');
             
-            // Actualizar preview cuando cambia el input
             document.getElementById('gastosAmount').oninput = function() {
                 const newGastos = parseFloat(this.value) || 0;
                 updateGastosPreview(ingresos, newGastos);
@@ -3266,12 +3463,17 @@
                 return;
             }
             try {
-                // Esborrar els tres stores en una sola transacció
+                // Esborrar els stores en una sola transacció
                 await new Promise((resolve, reject) => {
-                    const tx = db.transaction([STORE_NAME, GASTOS_STORE_NAME, CARRERES_STORE_NAME], 'readwrite');
+                    const storeNames = [STORE_NAME, GASTOS_STORE_NAME, CARRERES_STORE_NAME];
+                    if (db.objectStoreNames.contains(DESPESES_STORE_NAME)) storeNames.push(DESPESES_STORE_NAME);
+                    if (db.objectStoreNames.contains(CATEGORIES_STORE_NAME)) storeNames.push(CATEGORIES_STORE_NAME);
+                    const tx = db.transaction(storeNames, 'readwrite');
                     tx.objectStore(STORE_NAME).clear();
                     tx.objectStore(GASTOS_STORE_NAME).clear();
                     tx.objectStore(CARRERES_STORE_NAME).clear();
+                    if (db.objectStoreNames.contains(DESPESES_STORE_NAME)) tx.objectStore(DESPESES_STORE_NAME).clear();
+                    if (db.objectStoreNames.contains(CATEGORIES_STORE_NAME)) tx.objectStore(CATEGORIES_STORE_NAME).clear();
                     tx.oncomplete = () => resolve();
                     tx.onerror = () => reject(tx.error);
                     tx.onabort = () => reject(tx.error);
@@ -3287,6 +3489,8 @@
                 allData = [];
                 filteredData = [];
                 gastosData = [];
+                despesesData = [];
+                categoriesData = [];
 
                 populateYearFilters();
                 updateDashboard();
@@ -3312,11 +3516,16 @@
             const storedData = await getStoredData();
             const storedGastos = await getStoredGastos();
             const storedCarreres = await getAllCarreres();
+            const storedDespeses = await getAllDespeses();
+            const storedCategories = await getCategories();
             const exportObj = {
-                version: 3,
+                version: 5,
                 facturacio: storedData,
                 gastos: storedGastos,
-                carreres: storedCarreres
+                carreres: storedCarreres,
+                despeses_detall: storedDespeses,
+                categories_despeses: storedCategories,
+                objectius: loadObjectius()
             };
             const dataStr = JSON.stringify(exportObj, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
@@ -3337,12 +3546,17 @@
             const storedData = await getStoredData();
             const storedGastos = await getStoredGastos();
             const storedCarreres = await getAllCarreres();
+            const storedDespeses = await getAllDespeses();
+            const storedCategories = await getCategories();
             const exportObj = {
-                version: 3,
+                version: 5,
                 exportat: new Date().toISOString(),
                 facturacio: storedData,
                 gastos: storedGastos,
-                carreres: storedCarreres
+                carreres: storedCarreres,
+                despeses_detall: storedDespeses,
+                categories_despeses: storedCategories,
+                objectius: loadObjectius()
             };
             const dataStr = JSON.stringify(exportObj, null, 2);
             const blob = new Blob([dataStr], { type: 'application/json' });
@@ -3401,8 +3615,33 @@
                         await bulkSaveCarreres(carreresDataImport);
                     }
 
+                    // Desar despeses detall si n'hi ha (v4+)
+                    if (parsed.despeses_detall && parsed.despeses_detall.length > 0) {
+                        if (db && db.objectStoreNames.contains(DESPESES_STORE_NAME)) {
+                            const tx = db.transaction([DESPESES_STORE_NAME], 'readwrite');
+                            const s = tx.objectStore(DESPESES_STORE_NAME);
+                            s.clear();
+                            parsed.despeses_detall.forEach(d => s.put(d));
+                        }
+                    }
+                    // Desar categories si n'hi ha (v4+)
+                    if (parsed.categories_despeses && parsed.categories_despeses.length > 0) {
+                        if (db && db.objectStoreNames.contains(CATEGORIES_STORE_NAME)) {
+                            const tx = db.transaction([CATEGORIES_STORE_NAME], 'readwrite');
+                            const s = tx.objectStore(CATEGORIES_STORE_NAME);
+                            s.clear();
+                            parsed.categories_despeses.forEach(c => s.put(c));
+                        }
+                    }
+
+                    // Restaurar objectius si n'hi ha (v5+)
+                    if (parsed.objectius) {
+                        await saveObjectius(_mergeObjectius(parsed.objectius));
+                    }
+
                     await loadData();
                     await loadGastosData();
+                    await loadDespesesData();
                     populateYearFilters();
                     updateDashboard();
                     updateMesosView();
@@ -3410,7 +3649,9 @@
                     updateAllDaysTable();
 
                     const numCarreres = carreresDataImport ? carreresDataImport.length : 0;
-                    alert(`Dades importades:\n• ${facturacioData.length} dies de facturació\n• ${numCarreres} carreres individuals`);
+                    const numDespeses = parsed.despeses_detall ? parsed.despeses_detall.length : 0;
+                    const objTxt = parsed.objectius ? '\n• Objectius restaurats' : '';
+                    alert(`Dades importades:\n• ${facturacioData.length} dies de facturació\n• ${numCarreres} carreres individuals\n• ${numDespeses} despeses detallades${objTxt}`);
                 } catch (error) {
                     console.error('Error importing:', error);
                     alert('Error en importar les dades. Comprova el format del fitxer.');
@@ -3684,6 +3925,7 @@
         async function initApp() {
             try {
                 await initDB();
+                await initObjectius();
                 
                 const response = await fetch('https://raw.githubusercontent.com/rogerboullosa/facturacion/refs/heads/main/taxi_data_updated.json');
                 datosIniciales = await response.json();
@@ -3741,6 +3983,18 @@
             } catch (error) {
                 console.error('Error loading gastos:', error);
                 gastosData = [];
+            }
+
+            // Cargar datos de despeses detall
+            try {
+                await ensureCategoriesDefault();
+                await loadDespesesData();
+                await checkIAfegirGastosFixosMensuals();
+                console.log('Despeses detall carregades:', despesesData.length);
+            } catch (error) {
+                console.error('Error loading despeses:', error);
+                despesesData = [];
+                categoriesData = [];
             }
             
             populateYearFilters();
@@ -4623,26 +4877,49 @@
             carrera:   [5,    8,    15,   30,   45]
         };
 
-        function loadObjectius() {
-            try {
-                const saved = localStorage.getItem('taxi_objectius');
-                if (saved) {
-                    const parsed = JSON.parse(saved);
-                    // Merge with defaults to handle missing keys
-                    return {
-                        mensual:   parsed.mensual   || OBJECTIUS_DEFAULT.mensual,
-                        diari:     parsed.diari     || OBJECTIUS_DEFAULT.diari,
-                        hora:      parsed.hora      || OBJECTIUS_DEFAULT.hora,
-                        beneficis: parsed.beneficis || OBJECTIUS_DEFAULT.beneficis,
-                        carrera:   parsed.carrera   || OBJECTIUS_DEFAULT.carrera
-                    };
-                }
-            } catch(e) {}
-            return JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT));
+        // Cache en memòria — permet que loadObjectius() segueixi sent síncrona
+        let _objectiusCache = null;
+
+        function _mergeObjectius(parsed) {
+            return {
+                mensual:   parsed.mensual   || OBJECTIUS_DEFAULT.mensual,
+                diari:     parsed.diari     || OBJECTIUS_DEFAULT.diari,
+                hora:      parsed.hora      || OBJECTIUS_DEFAULT.hora,
+                beneficis: parsed.beneficis || OBJECTIUS_DEFAULT.beneficis,
+                carrera:   parsed.carrera   || OBJECTIUS_DEFAULT.carrera
+            };
         }
 
-        function saveObjectius(obj) {
-            localStorage.setItem('taxi_objectius', JSON.stringify(obj));
+        // Càrrega inicial async: IDB → fallback LS (migració progressiva) → defaults
+        async function initObjectius() {
+            try {
+                const idbVal = await getSetting('taxi_objectius', null);
+                if (idbVal) {
+                    _objectiusCache = _mergeObjectius(JSON.parse(idbVal));
+                    localStorage.removeItem('taxi_objectius');
+                    return;
+                }
+                // Migració: si existia a LS, moure a IDB
+                const lsVal = localStorage.getItem('taxi_objectius');
+                if (lsVal) {
+                    _objectiusCache = _mergeObjectius(JSON.parse(lsVal));
+                    await setSetting('taxi_objectius', lsVal);
+                    localStorage.removeItem('taxi_objectius');
+                    return;
+                }
+            } catch(e) {}
+            _objectiusCache = JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT));
+        }
+
+        // Síncrona (llegeix del cache) — totes les crides existents segueixen funcionant
+        function loadObjectius() {
+            return _objectiusCache || JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT));
+        }
+
+        async function saveObjectius(obj) {
+            _objectiusCache = obj;
+            await setSetting('taxi_objectius', JSON.stringify(obj));
+            localStorage.removeItem('taxi_objectius');
         }
 
         // Aplica la lògica de 6 colors (igual que getCarreraColor) amb umbrals configurables
@@ -5740,7 +6017,7 @@
                 const digit = parseInt(key);
                 if (isNaN(digit)) return;
                 const newVal = _numpadCents * 10 + digit;
-                if (newVal > 99999) return; // màxim 999,99€
+                if (newVal > 999999) return; // màxim 9999,99€
                 _numpadCents = newVal;
             }
             renderNumpad();
@@ -6254,7 +6531,7 @@
             document.getElementById('objectiusModal').classList.remove('active');
         }
 
-        function desarObjectius() {
+        async function desarObjectius() {
             const obj = { mensual: [], diari: [], hora: [], beneficis: [], carrera: [] };
             let valid = true;
             ['mensual','diari','hora','beneficis','carrera'].forEach(cat => {
@@ -6272,7 +6549,7 @@
                 alert('⚠️ Els valors han de ser números i en ordre ascendent dins de cada categoria.');
                 return;
             }
-            saveObjectius(obj);
+            await saveObjectius(obj);
             tancarObjectiusModal();
             // Refresca totes les vistes
             updateDashboard();
@@ -6281,14 +6558,517 @@
             updateBeneficisView();
         }
 
-        function resetObjectius() {
+        async function resetObjectius() {
             if (!confirm('Restablir tots els objectius als valors per defecte?')) return;
-            saveObjectius(JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT)));
+            await saveObjectius(JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT)));
             obrirObjectius(); // reopen to show defaults
         }
 
+        // ==========================================
+        // DESPESES DETALL - INDEXEDDB
+        // ==========================================
+        // (DESPESES_STORE_NAME i CATEGORIES_STORE_NAME definits a la secció de constants DB)
+        // initDB ja gestiona tots els stores (inclosos DESPESES i CATEGORIES) - veure definició principal
+
+        const CATEGORIES_DEFAULT = [
+            'Coche','Seguro','Parking','App','Gasolina',
+            'Autònomos','Seguro Personal','Préstamos','Personal','Deudas SS'
+        ];
+
+        // ── Categories DB ──
+        async function getCategories() {
+            if (!db) return CATEGORIES_DEFAULT.map((n,i) => ({id:`cat_${i}`,nom:n,predefinida:true}));
+            return new Promise(resolve => {
+                try {
+                    const tx = db.transaction([CATEGORIES_STORE_NAME], 'readonly');
+                    const s = tx.objectStore(CATEGORIES_STORE_NAME);
+                    const r = s.getAll();
+                    r.onsuccess = () => resolve(r.result && r.result.length > 0 ? r.result : []);
+                    r.onerror = () => resolve([]);
+                } catch(e) { resolve([]); }
+            });
+        }
+
+        async function ensureCategoriesDefault() {
+            const cats = await getCategories();
+            if (cats.length > 0) return;
+            const defaults = CATEGORIES_DEFAULT.map((n,i) => ({id:`cat_default_${i}`,nom:n,predefinida:true}));
+            if (!db) return;
+            const tx = db.transaction([CATEGORIES_STORE_NAME], 'readwrite');
+            const s = tx.objectStore(CATEGORIES_STORE_NAME);
+            defaults.forEach(c => s.put(c));
+        }
+
+        async function saveCategoria(cat) {
+            if (!db) return false;
+            return new Promise(resolve => {
+                const tx = db.transaction([CATEGORIES_STORE_NAME], 'readwrite');
+                const s = tx.objectStore(CATEGORIES_STORE_NAME);
+                s.put(cat);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        }
+
+        async function deleteCategoria(id) {
+            if (!db) return false;
+            return new Promise(resolve => {
+                const tx = db.transaction([CATEGORIES_STORE_NAME], 'readwrite');
+                const s = tx.objectStore(CATEGORIES_STORE_NAME);
+                s.delete(id);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        }
+
+        // ── Despeses DB ──
+        async function getAllDespeses() {
+            if (!db) return [];
+            return new Promise(resolve => {
+                try {
+                    const tx = db.transaction([DESPESES_STORE_NAME], 'readonly');
+                    const s = tx.objectStore(DESPESES_STORE_NAME);
+                    const r = s.getAll();
+                    r.onsuccess = () => resolve(r.result || []);
+                    r.onerror = () => resolve([]);
+                } catch(e) { resolve([]); }
+            });
+        }
+
+        async function saveDespesa(despesa) {
+            if (!db) return false;
+            return new Promise(resolve => {
+                const tx = db.transaction([DESPESES_STORE_NAME], 'readwrite');
+                const s = tx.objectStore(DESPESES_STORE_NAME);
+                s.put(despesa);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        }
+
+        async function deleteDespesaDB(id) {
+            if (!db) return false;
+            return new Promise(resolve => {
+                const tx = db.transaction([DESPESES_STORE_NAME], 'readwrite');
+                const s = tx.objectStore(DESPESES_STORE_NAME);
+                s.delete(id);
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => resolve(false);
+            });
+        }
+
+        // Cache en memòria
+        let despesesData = [];
+        let categoriesData = [];
+
+        async function loadDespesesData() {
+            despesesData = await getAllDespeses();
+            categoriesData = await getCategories();
+        }
+
+        // ==========================================
+        // GETGASTOSFORMONTH - HYBRID (manual legacy + despeses detall)
+        // ==========================================
+        // La data de "tall": a partir d'aquest mes, usem les despeses detallades
+        // Per als mesos anteriors conservem el valor manual de gastosData
+        // El tall és dinàmic: si hi ha alguna despesa detallada per a un mes,
+        // aquell mes usa la suma de despeses detallades.
+        function getGastosForMonth(mesAnio) {
+            // Si hi ha despeses detallades per a aquest mes, usar-les
+            const despesesMes = despesesData.filter(d => d.mes_anio === mesAnio);
+            if (despesesMes.length > 0) {
+                return despesesMes.reduce((sum, d) => sum + (parseFloat(d.import) || 0), 0);
+            }
+            // Fallback: valor manual antic
+            const gastos = gastosData.find(g => g.mes_anio === mesAnio);
+            return gastos ? gastos.gastos : 0;
+        }
+
+        // ==========================================
+        // AUTO-ADDICIÓ GASTOS FIXOS MENSUALS
+        // ==========================================
+        async function checkIAfegirGastosFixosMensuals() {
+            const avui = new Date();
+            const diaDelMes = avui.getDate();
+            if (diaDelMes !== 1) return; // Només el dia 1
+
+            const pad = n => String(n).padStart(2,'0');
+            const mesAnio = `${avui.getFullYear()}-${pad(avui.getMonth()+1)}`;
+            const dataStr = `${avui.getFullYear()}-${pad(avui.getMonth()+1)}-01`;
+
+            // Comprova si ja s'han afegit els fixos per aquest mes
+            const jaExisteixen = despesesData.filter(d => d.mes_anio === mesAnio && d.tipus === 'fix_mensual' && d.auto_afegit);
+            if (jaExisteixen.length > 0) return; // Ja estan
+
+            // Busca totes les despeses fixes
+            const gastosFixos = despesesData.filter(d => d.tipus === 'fix_mensual' && d.plantilla);
+            if (gastosFixos.length === 0) return;
+
+            for (const gf of gastosFixos) {
+                const nova = {
+                    id: `desp_auto_${mesAnio}_${gf.id}_${Date.now()}`,
+                    nom: gf.nom,
+                    import: gf.import,
+                    data: dataStr,
+                    mes_anio: mesAnio,
+                    tipus: 'fix_mensual',
+                    categoria: gf.categoria,
+                    auto_afegit: true,
+                    plantilla_id: gf.id
+                };
+                await saveDespesa(nova);
+            }
+            await loadDespesesData();
+        }
+
+        // ==========================================
+        // UI DESPESES PAGE
+        // ==========================================
+        let despesesFilterCat = 'tots';
+        let despesaTipusSeleccionat = 'manual';
+        let despesaEditantId = null;
+
+        function despesesFilterMesAvui() {
+            const avui = new Date();
+            const pad = n => String(n).padStart(2,'0');
+            document.getElementById('despesesFilterMes').value = `${avui.getFullYear()}-${pad(avui.getMonth()+1)}`;
+            renderDespesesPage();
+        }
+
+        async function renderDespesesPage() {
+            await loadDespesesData();
+            const filterMes = document.getElementById('despesesFilterMes')?.value || '';
+
+            // Render filter category buttons
+            const catBtnsEl = document.getElementById('despesesFilterCatBtns');
+            if (catBtnsEl) {
+                const cats = ['tots', ...categoriesData.map(c => c.nom)];
+                catBtnsEl.innerHTML = cats.map(c =>
+                    `<button class="dia-filter-btn${despesesFilterCat===c?' active':''}" onclick="despesesFilterCat='${c}';renderDespesesPage()">${c==='tots'?'Totes':c}</button>`
+                ).join('');
+            }
+
+            // Filtrar
+            let filtered = [...despesesData].filter(d => !d.plantilla);
+            if (filterMes) filtered = filtered.filter(d => d.mes_anio === filterMes);
+            if (despesesFilterCat !== 'tots') filtered = filtered.filter(d => d.categoria === despesesFilterCat);
+            filtered.sort((a,b) => (b.data||'').localeCompare(a.data||''));
+
+            // Resum del mes
+            const resEl = document.getElementById('despesesResumMes');
+            if (resEl && filterMes) {
+                const totalMes = despesesData.filter(d => d.mes_anio === filterMes && !d.plantilla)
+                    .reduce((sum,d) => sum + (parseFloat(d.import)||0), 0);
+                const legacy = gastosData.find(g => g.mes_anio === filterMes);
+                const legacyHtml = legacy && despesesData.filter(d=>d.mes_anio===filterMes&&!d.plantilla).length===0
+                    ? `<div style="font-size:0.75rem;color:var(--text-secondary);margin-top:0.3rem;">⚠️ Valor manual (llegat): ${legacy.gastos}€</div>` : '';
+                resEl.innerHTML = `
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.85rem 1rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:0.8rem;color:var(--text-secondary);">Total despeses ${filterMes}</span>
+                            <span style="font-size:1.4rem;font-weight:700;color:#ff6b6b;">${Math.round(totalMes*100)/100}€</span>
+                        </div>
+                        ${legacyHtml}
+                    </div>`;
+            } else if (resEl) { resEl.innerHTML = ''; }
+
+            // Llista
+            const llistaEl = document.getElementById('despesesLlista');
+            if (!llistaEl) return;
+
+            if (filtered.length === 0) {
+                llistaEl.innerHTML = '<div style="text-align:center;color:var(--text-secondary);padding:2rem 0;">Cap despesa trobada.<br>Prem ➕ Nova despesa per afegir-ne una.</div>';
+                return;
+            }
+
+            // Agrupar per mes si no hi ha filtre de mes
+            if (!filterMes) {
+                const grups = {};
+                filtered.forEach(d => {
+                    if (!grups[d.mes_anio]) grups[d.mes_anio] = [];
+                    grups[d.mes_anio].push(d);
+                });
+                const mesos = Object.keys(grups).sort().reverse();
+                llistaEl.innerHTML = mesos.map(mes => {
+                    const [y,m] = mes.split('-');
+                    const total = grups[mes].reduce((s,d) => s + (parseFloat(d.import)||0), 0);
+                    const items = grups[mes].map(d => renderDespesaItem(d)).join('');
+                    return `
+                        <div style="margin-bottom:1rem;">
+                            <div style="display:flex;justify-content:space-between;align-items:center;padding:0.5rem 0.25rem;margin-bottom:0.4rem;border-bottom:1px solid var(--border);">
+                                <span style="font-weight:700;color:var(--text-primary);">${monthNames[m]} ${y}</span>
+                                <span style="font-weight:700;color:#ff6b6b;">${Math.round(total*100)/100}€</span>
+                            </div>
+                            ${items}
+                        </div>`;
+                }).join('');
+            } else {
+                llistaEl.innerHTML = filtered.map(d => renderDespesaItem(d)).join('');
+            }
+        }
+
+        function renderDespesaItem(d) {
+            const tipusIcon = d.tipus === 'fix_mensual' ? '🔁' : '📝';
+            const autoIcon = d.auto_afegit ? ' <span style="font-size:0.65rem;color:var(--text-secondary);background:var(--bg-secondary);border-radius:4px;padding:1px 4px;">auto</span>' : '';
+            return `
+                <div class="carrera-item" onclick="obrirEditarDespesa('${d.id}')" style="padding:0.75rem 0.85rem;margin-bottom:0.4rem;">
+                    <span style="font-size:1rem;margin-right:0.4rem;">${tipusIcon}</span>
+                    <div style="flex:1;min-width:0;">
+                        <div style="font-weight:600;font-size:0.9rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${d.nom||'Sense nom'}${autoIcon}</div>
+                        <div style="font-size:0.72rem;color:var(--text-secondary);">${d.categoria||'Sense cat.'} · ${d.data||''}</div>
+                    </div>
+                    <span style="font-weight:700;color:#ff6b6b;font-size:1.05rem;margin-left:0.75rem;">${parseFloat(d.import||0).toFixed(2)}€</span>
+                    <span class="carrera-item-arrow">›</span>
+                </div>`;
+        }
+
+        // ── Modal afegir/editar despesa ──
+        function selectDespesaTipus(tipus) {
+            despesaTipusSeleccionat = tipus;
+            const btnManual = document.getElementById('despesaTipusManual');
+            const btnFix = document.getElementById('despesaTipusFix');
+            const help = document.getElementById('despesaTipusHelp');
+            if (tipus === 'manual') {
+                btnManual.className = 'btn btn-primary';
+                btnFix.className = 'btn btn-secondary';
+                if (help) help.textContent = 'S\'afegirà manualment quan ho indiquis.';
+            } else {
+                btnManual.className = 'btn btn-secondary';
+                btnFix.className = 'btn btn-primary';
+                if (help) help.textContent = 'Es crearà una plantilla que s\'afegirà automàticament cada dia 1 de mes.';
+            }
+        }
+
+        async function obrirAfegirDespesa() {
+            despesaEditantId = null;
+            document.getElementById('despesaModalTitle').textContent = '💸 Nova Despesa';
+            document.getElementById('despesaNom').value = '';
+            document.getElementById('despesaImport').value = '';
+            const avui = new Date();
+            const pad = n => String(n).padStart(2,'0');
+            document.getElementById('despesaData').value = `${avui.getFullYear()}-${pad(avui.getMonth()+1)}-${pad(avui.getDate())}`;
+            document.getElementById('despesaEditId').value = '';
+            document.getElementById('despesaDeleteBtn').style.display = 'none';
+            selectDespesaTipus('manual');
+            await omplirSelectCategories('despesaCategoria');
+            document.getElementById('despesaModal').classList.add('active');
+        }
+
+        async function obrirEditarDespesa(id) {
+            await loadDespesesData();
+            const d = despesesData.find(x => x.id === id);
+            if (!d) return;
+            despesaEditantId = id;
+            document.getElementById('despesaModalTitle').textContent = '✏️ Editar Despesa';
+            document.getElementById('despesaNom').value = d.nom || '';
+            document.getElementById('despesaImport').value = d.import || '';
+            document.getElementById('despesaData').value = d.data || '';
+            document.getElementById('despesaEditId').value = id;
+            document.getElementById('despesaDeleteBtn').style.display = 'block';
+            selectDespesaTipus(d.tipus || 'manual');
+            await omplirSelectCategories('despesaCategoria', d.categoria);
+            document.getElementById('despesaModal').classList.add('active');
+        }
+
+        async function omplirSelectCategories(selectId, selected) {
+            await loadDespesesData();
+            const sel = document.getElementById(selectId);
+            if (!sel) return;
+            sel.innerHTML = categoriesData.map(c =>
+                `<option value="${c.nom}" ${c.nom===selected?'selected':''}>${c.nom}</option>`
+            ).join('');
+        }
+
+        function tancarDespesaModal() {
+            document.getElementById('despesaModal').classList.remove('active');
+            despesaEditantId = null;
+        }
+
+        async function guardarDespesa() {
+            const nom = document.getElementById('despesaNom').value.trim();
+            const imp = parseFloat(document.getElementById('despesaImport').value);
+            const data = document.getElementById('despesaData').value;
+            const cat = document.getElementById('despesaCategoria').value;
+            const tipus = despesaTipusSeleccionat;
+
+            if (!nom) { alert('Cal indicar un nom.'); return; }
+            if (isNaN(imp) || imp < 0) { alert('Cal indicar un import vàlid.'); return; }
+            if (!data && tipus !== 'fix_mensual') { alert('Cal indicar una data.'); return; }
+
+            const pad = n => String(n).padStart(2,'0');
+            let mesAnio = '';
+            if (data) {
+                const d = new Date(data + 'T12:00:00');
+                mesAnio = `${d.getFullYear()}-${pad(d.getMonth()+1)}`;
+            }
+
+            if (tipus === 'fix_mensual' && !despesaEditantId) {
+                // Crear plantilla (plantilla:true, no apareixerà a la llista normal)
+                const plantilla = {
+                    id: `desp_plantilla_${Date.now()}`,
+                    nom, import: imp, data: data || '', mes_anio: mesAnio,
+                    tipus: 'fix_mensual', categoria: cat,
+                    plantilla: true
+                };
+                await saveDespesa(plantilla);
+                await loadDespesesData();
+                tancarDespesaModal();
+                renderDespesesPage();
+                updateBeneficisView();
+                return;
+            }
+
+            const id = despesaEditantId || `desp_${Date.now()}_${Math.random().toString(36).slice(2,7)}`;
+            const despesa = {
+                id, nom, import: imp, data, mes_anio: mesAnio,
+                tipus, categoria: cat,
+                auto_afegit: despesaEditantId ? (despesesData.find(x=>x.id===despesaEditantId)?.auto_afegit || false) : false
+            };
+
+            await saveDespesa(despesa);
+            await loadDespesesData();
+            tancarDespesaModal();
+            renderDespesesPage();
+            updateBeneficisView();
+        }
+
+        async function eliminarDespesa() {
+            if (!despesaEditantId) return;
+            if (!confirm('Eliminar aquesta despesa?')) return;
+            await deleteDespesaDB(despesaEditantId);
+            await loadDespesesData();
+            tancarDespesaModal();
+            renderDespesesPage();
+            updateBeneficisView();
+        }
+
+        // ── Modal categories ──
+        async function obrirCategoriesDespeses() {
+            if (typeof toggleMenu === 'function') toggleMenu();
+            await loadDespesesData();
+            renderCategoriesLlista();
+            document.getElementById('categoriesDespesesModal').classList.add('active');
+        }
+
+        function tancarCategoriesDespesesModal() {
+            document.getElementById('categoriesDespesesModal').classList.remove('active');
+        }
+
+        function renderCategoriesLlista() {
+            const el = document.getElementById('categoriesLlista');
+            if (!el) return;
+            el.innerHTML = categoriesData.map(c => `
+                <div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid var(--border);">
+                    <span style="flex:1;font-size:0.9rem;">${c.nom}</span>
+                    <button class="btn btn-danger" style="padding:0.3rem 0.6rem;font-size:0.8rem;" onclick="eliminarCategoria('${c.id}')">🗑️</button>
+                </div>`).join('') || '<div style="color:var(--text-secondary);font-size:0.85rem;padding:0.5rem 0;">Cap categoria. Afegeix-ne una a sota.</div>';
+        }
+
+        async function afegirCategoria() {
+            const input = document.getElementById('novaCategoriaInput');
+            const nom = input?.value.trim();
+            if (!nom) return;
+            if (categoriesData.find(c => c.nom.toLowerCase() === nom.toLowerCase())) {
+                alert('Ja existeix aquesta categoria.'); return;
+            }
+            const nova = { id: `cat_custom_${Date.now()}`, nom, predefinida: false };
+            await saveCategoria(nova);
+            await loadDespesesData();
+            renderCategoriesLlista();
+            if (input) input.value = '';
+        }
+
+        async function eliminarCategoria(id) {
+            // Comprova si té despeses associades
+            const cat = categoriesData.find(c => c.id === id);
+            if (!cat) return;
+            const enUs = despesesData.filter(d => d.categoria === cat.nom && !d.plantilla);
+            if (enUs.length > 0) {
+                alert(`No es pot eliminar: hi ha ${enUs.length} despesa(es) amb aquesta categoria.`);
+                return;
+            }
+            if (!confirm(`Eliminar la categoria "${cat.nom}"?`)) return;
+            await deleteCategoria(id);
+            await loadDespesesData();
+            renderCategoriesLlista();
+        }
+
+        function resetDB() {
+            if (!confirm('⚠️ Això esborrarà la BD local. Assegura\'t d\'haver exportat el JSON primer.\n\nContinuar?')) return;
+            if (db) { db.close(); db = null; }
+            const req = indexedDB.deleteDatabase('TaxiFacturacioDB');
+            req.onsuccess = () => { alert('BD esborrada. Ara importa el JSON i recarrega.'); location.reload(); };
+            req.onerror = () => alert('Error esborrant la BD.');
+            req.onblocked = () => { alert('La BD està bloquejada. Tanca altres pestanyes amb la mateixa app i torna a intentar-ho.'); };
+        }
+
         initApp();
-    </script>
+
+        // =========================
+// FIX 1: evitar crash inicial
+// =========================
+async function ensureCategoriesDefault() {
+    try {
+        const cats = await getCategories?.() || [];
+        if (cats.length === 0 && typeof saveCategoria === 'function') {
+            const defaultCats = [
+                { id: 'cat_combustible', nom: 'Combustible', predefinida: true },
+                { id: 'cat_manteniment', nom: 'Manteniment', predefinida: true },
+                { id: 'cat_asseguranca', nom: 'Assegurança', predefinida: true },
+                { id: 'cat_altres', nom: 'Altres', predefinida: true }
+            ];
+            for (const c of defaultCats) {
+                await saveCategoria(c);
+            }
+        }
+    } catch (e) {
+        console.error('ensureCategoriesDefault error:', e);
+    }
+}
+
+
+// =========================
+// FIX 2: asegurar mes_anio
+// =========================
+function normalizarMesAnioDespesa(despesa) {
+    if (!despesa.mes_anio && despesa.data) {
+        const d = new Date(despesa.data + 'T12:00:00');
+        despesa.mes_anio = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+    }
+    return despesa;
+}
+
+
+// =========================
+// FIX 3: parche seguro saveDespesa
+// =========================
+if (typeof saveDespesa === 'function') {
+    const originalSave = saveDespesa;
+    saveDespesa = async function(despesa) {
+        despesa = normalizarMesAnioDespesa(despesa);
+        return originalSave(despesa);
+    };
+}
+
+
+// =========================
+// FIX 4: proteger initApp
+// =========================
+if (typeof initApp === 'function') {
+    const originalInit = initApp;
+    initApp = async function() {
+        try {
+            await ensureCategoriesDefault();
+            await originalInit();
+        } catch (e) {
+            console.error('initApp crash recuperado:', e);
+            const loading = document.getElementById('loading');
+            if (loading) loading.style.display = 'none';
+        }
+    };
+}
+
+        </script>
 </body>
 </html>
 
