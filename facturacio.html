@@ -7262,7 +7262,7 @@
         // AUTO-DESPESES APP (15% de cada carrera App)
         // ==========================================
         async function registrarDespesaApp(carrera) {
-            if (!carrera || carrera.pagament !== 'app') return;
+            if (!carrera || carrera.origenCarrera !== 'app_client') return;
             const imp = parseFloat(carrera.import) || 0;
             if (imp <= 0) return;
             await loadDespesesData();
@@ -7296,7 +7296,7 @@
             await loadDespesesData();
             const despesaId = `desp_app_${carrera.id}`;
             // Si ara és App, crea/actualitza
-            if (carrera.pagament === 'app') {
+            if (carrera.origenCarrera === 'app_client') {
                 await registrarDespesaApp(carrera);
             } else {
                 // Si ha deixat de ser App, elimina la despesa auto si existia
