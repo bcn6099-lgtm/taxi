@@ -651,6 +651,13 @@
                     </button>
                 </div>
                 <div class="import-cat-resum" id="importCatResum"></div>
+                <!-- Propina -->
+                <div style="display:flex;align-items:center;gap:0.75rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.85rem;margin-bottom:0.75rem;">
+                    <span style="font-size:1.1rem;">🤑</span>
+                    <label style="font-size:0.8rem;color:var(--text-secondary);flex:1;white-space:nowrap;">Propina (€)</label>
+                    <input type="number" id="carreraPropina" class="form-input" step="0.01" min="0" placeholder="0,00" inputmode="decimal"
+                        style="width:100px;padding:0.4rem 0.6rem;text-align:right;font-size:1rem;font-weight:600;">
+                </div>
                 <button class="btn-fi-carrera" id="btnFiCarrera" onclick="finalitzarCarrera()">💾 Guardar Carrera</button>
             </div>
         </div>
@@ -708,6 +715,13 @@
                 </div>
                 <label class="form-label" style="text-align:center;display:block;font-size:0.875rem;margin-bottom:0.5rem;">Import (€)</label>
                 <input type="text" id="carreraDetailImport" class="carrera-detail-importe-edit" placeholder="0,00" inputmode="decimal" onfocus="this.select();" autocomplete="off">
+                <!-- Propina -->
+                <div style="display:flex;align-items:center;gap:0.75rem;background:var(--bg-card);border:1px solid var(--border);border-radius:10px;padding:0.6rem 0.85rem;margin-top:0.75rem;">
+                    <span style="font-size:1.1rem;">🤑</span>
+                    <label style="font-size:0.8rem;color:var(--text-secondary);flex:1;white-space:nowrap;">Propina (€)</label>
+                    <input type="number" id="carreraDetailPropina" class="form-input" step="0.01" min="0" placeholder="0,00" inputmode="decimal"
+                        style="width:100px;padding:0.4rem 0.6rem;text-align:right;font-size:1rem;font-weight:600;">
+                </div>
                 <!-- Correcció de km (opcional) -->
                 <details style="margin-top:0.85rem;">
                     <summary style="font-size:0.78rem;color:var(--text-secondary);cursor:pointer;user-select:none;padding:0.4rem 0;">🛣️ Corregir km (opcional)</summary>
@@ -2260,7 +2274,11 @@
         // ==========================================
         // MESOS VIEW
         // ==========================================
-        function updateMesosView() {
+        async function updateMesosView() {
+            // Assegurar que tenim les carreres carregades (per les propines)
+            if (!globalCarreresData || globalCarreresData.length === 0) {
+                globalCarreresData = await getAllCarreres();
+            }
             const yearFilter = document.getElementById('yearFilterMesos').value;
             const monthFilter = document.getElementById('monthFilterMesos').value;
             
@@ -2291,6 +2309,16 @@
                 
                 if (d.observacions && d.observacions.trim() !== '') {
                     monthsWithObservations.add(mesAnio);
+                }
+            });
+
+            // Agregar propines per mes des de globalCarreresData
+            const propinesMes = {};
+            (globalCarreresData || []).forEach(c => {
+                const p = parseFloat(c.propina) || 0;
+                if (p > 0 && c.fecha) {
+                    const mes = c.fecha.substring(0, 7);
+                    propinesMes[mes] = (propinesMes[mes] || 0) + p;
                 }
             });
 
@@ -2332,12 +2360,18 @@
                     year2019Label = `<span style="color: ${color}">${arrow}${Math.abs(change).toFixed(1)}% (2019)</span>`;
                 }
 
+                const propinesMesActual = propinesMes[mesAnio] || 0;
+                const propinesHtml = propinesMesActual > 0
+                    ? `<div style="font-size:0.75rem;color:#ffd54f;margin-top:0.2rem;">🤑 Propines: ${formatCurrency(Math.round(propinesMesActual*100)/100)}</div>`
+                    : '';
+
                 html += `
                     <div class="month-card" onclick="openMonthDetail('${mesAnio}')">
                         <div class="month-card-header">
                             <div class="month-card-left">
                                 <div class="month-card-title">${monthName} ${year}</div>
                                 <div class="month-card-subtitle">${mData.dias} dies · ${mData.servicios} serveis</div>
+                                ${propinesHtml}
                             </div>
                             <div style="text-align: right;">
                                 <div class="month-card-revenue" style="color: ${revenueColor}">
@@ -3879,6 +3913,9 @@
             document.getElementById('carrera-detail-page').style.display = 'block';
 
             document.getElementById('carreraDetailImport').value = formatImport(c.import);
+            // Propina
+            const _detailPropEl = document.getElementById('carreraDetailPropina');
+            if (_detailPropEl) _detailPropEl.value = c.propina > 0 ? c.propina : '';
 
             // Km correcció
             const kmOcEl2 = document.getElementById('carreraDetailKmOcupat');
@@ -5017,7 +5054,7 @@
                     <span class="carrera-item-num">#${carreresAvui.length - i}</span>
                     ${hora ? `<span class="carrera-item-hora">${hora}</span>` : ''}
                     <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera] || 'CAR'}</span><span class="pagament-badge">${PAGAMENT_ICONS[c.pagament] || 'EFE'}</span>${_aeroportBadge}
-                    <span class="carrera-item-amount" style="flex:1;text-align:right;color:${color};">${formatEur(imp)}${kmTag}</span>
+                    <span class="carrera-item-amount" style="flex:1;text-align:right;color:${color};">${formatEur(imp)}${c.propina > 0 ? `<span style='font-size:0.7rem;color:#ffd54f;margin-left:0.3rem;'>+${formatEur(c.propina)}🤑</span>` : ''}${kmTag}</span>
                     <span class="carrera-item-arrow">›</span>
                 </div>`;
             }).join('');
@@ -5477,6 +5514,8 @@
 
             // Nova carrera
             document.getElementById('carreraImport').value = '';
+            const _propinaEl = document.getElementById('carreraPropina');
+            if (_propinaEl) _propinaEl.value = '';
             const _impDisp = document.getElementById('carreraImportVal');
             if (_impDisp) { _impDisp.textContent = '0,00'; _impDisp.style.color = 'var(--text-secondary)'; }
             carreraHoraInici = new Date();
@@ -5575,12 +5614,15 @@
 
             const horaFi = new Date();
             const fmtHora = d => d ? d.toLocaleTimeString('ca-ES', { hour: '2-digit', minute: '2-digit' }) : null;
+            const _propinaRaw = document.getElementById('carreraPropina')?.value;
+            const propinaVal = _propinaRaw ? (parseFloat(_propinaRaw.replace(',','.')) || 0) : 0;
             const novaCarrera = {
                 id: `${getTodayStr()}_${Date.now()}`,
                 fecha: getTodayStr(),
                 origen: carreraOrigenActual,
                 desti: destiAddr,
                 import: importVal,
+                propina: propinaVal > 0 ? propinaVal : undefined,
                 pagament: pagamentSeleccionat,
                 origenCarrera: origenCarreraSeleccionat,
                 tarifa: tarifaSeleccionada,
@@ -5631,6 +5673,9 @@
             document.getElementById('carrera-detail-page').style.display = 'block';
 
             document.getElementById('carreraDetailImport').value = formatImport(c.import);
+            // Propina
+            const _detailPropEl = document.getElementById('carreraDetailPropina');
+            if (_detailPropEl) _detailPropEl.value = c.propina > 0 ? c.propina : '';
 
             // Km correcció
             const kmOcEl = document.getElementById('carreraDetailKmOcupat');
@@ -5693,6 +5738,9 @@
                 c.aeroport = aeroportDetailSeleccionat;
                 if (kmOcupat !== undefined) c.kmOcupat = kmOcupat;
                 if (kmLliure !== undefined) c.kmLliure = kmLliure;
+                const _detPropRaw = document.getElementById('carreraDetailPropina')?.value;
+                c.propina = _detPropRaw ? (parseFloat(_detPropRaw.replace(',','.')) || 0) : 0;
+                if (c.propina <= 0) delete c.propina;
                 await updateCarreraInStorage(c);
                 // Actualitzar despesa App si canvia pagament
                 await actualitzarDespesaApp(c);
@@ -5709,6 +5757,10 @@
                 carreresAvui[cursaEditantIndex].aeroport = aeroportDetailSeleccionat;
                 if (kmOcupat !== undefined) carreresAvui[cursaEditantIndex].kmOcupat = kmOcupat;
                 if (kmLliure !== undefined) carreresAvui[cursaEditantIndex].kmLliure = kmLliure;
+                const _jPropRaw = document.getElementById('carreraDetailPropina')?.value;
+                const _jPropVal = _jPropRaw ? (parseFloat(_jPropRaw.replace(',','.')) || 0) : 0;
+                if (_jPropVal > 0) carreresAvui[cursaEditantIndex].propina = _jPropVal;
+                else delete carreresAvui[cursaEditantIndex].propina;
                 await updateCarreraInStorage(carreresAvui[cursaEditantIndex]);
                 // Actualitzar despesa App si canvia pagament
                 await actualitzarDespesaApp(carreresAvui[cursaEditantIndex]);
