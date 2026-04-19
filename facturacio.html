@@ -580,17 +580,7 @@
                             <i class="fa-solid fa-route" style="font-size:1.1rem;"></i><span class="label">App</span>
                         </button>
                     </div>
-                    <div class="pagament-selector" style="margin-bottom:0.5rem;">
-                        <button class="btn-pagament" id="cronPagEfectiu" onclick="selectPagament('efectiu')" type="button">
-                            <i class="fa-solid fa-money-bills" style="font-size:1.1rem;"></i><span class="label">Efectiu</span>
-                        </button>
-                        <button class="btn-pagament" id="cronPagTargeta" onclick="selectPagament('targeta')" type="button">
-                            <i class="fa-solid fa-credit-card" style="font-size:1.1rem;"></i><span class="label">Targeta</span>
-                        </button>
-                        <button class="btn-pagament" id="cronPagApp" onclick="selectPagament('app')" type="button">
-                            <i class="fa-solid fa-mobile-screen" style="font-size:1.1rem;"></i><span class="label">Cobro App</span>
-                        </button>
-                    </div>
+                    <div class="pagament-selector" id="pagamentBtnsCron" style="margin-bottom:0.5rem;"></div>
                     <div class="pagament-selector">
                         <button class="btn-pagament" id="cronAeroportNo" onclick="selectAeroport('ciutat')" type="button">
                             <i class="fa-solid fa-city" style="font-size:1.1rem;"></i><span class="label">Ciutat</span>
@@ -630,17 +620,7 @@
                         <i class="fa-solid fa-route" style="font-size:1.1rem;"></i><span class="label">App</span>
                     </button>
                 </div>
-                <div class="pagament-selector">
-                    <button class="btn-pagament" id="pagEfectiu" onclick="selectPagament('efectiu')" type="button">
-                        <i class="fa-solid fa-money-bills" style="font-size:1.1rem;"></i><span class="label">Efectiu</span>
-                    </button>
-                    <button class="btn-pagament" id="pagTargeta" onclick="selectPagament('targeta')" type="button">
-                        <i class="fa-solid fa-credit-card" style="font-size:1.1rem;"></i><span class="label">Targeta</span>
-                    </button>
-                    <button class="btn-pagament" id="pagApp" onclick="selectPagament('app')" type="button">
-                        <i class="fa-solid fa-mobile-screen" style="font-size:1.1rem;"></i><span class="label">Cobro App</span>
-                    </button>
-                </div>
+                <div class="pagament-selector" id="pagamentBtnsImport"></div>
                 <div class="pagament-selector">
                     <button class="btn-pagament" id="aeroportNo" onclick="selectAeroport('ciutat')" type="button">
                         <i class="fa-solid fa-city" style="font-size:1.1rem;"></i><span class="label">Ciutat</span>
@@ -692,17 +672,7 @@
                     </button>
                 </div>
                 <!-- Pagament -->
-                <div class="pagament-selector">
-                    <button class="btn-pagament" id="detailPagEfectiu" onclick="selectPagamentDetail('efectiu')" type="button">
-                        <i class="fa-solid fa-money-bills" style="font-size:1.1rem;"></i><span class="label">Efectiu</span>
-                    </button>
-                    <button class="btn-pagament" id="detailPagTargeta" onclick="selectPagamentDetail('targeta')" type="button">
-                        <i class="fa-solid fa-credit-card" style="font-size:1.1rem;"></i><span class="label">Targeta</span>
-                    </button>
-                    <button class="btn-pagament" id="detailPagApp" onclick="selectPagamentDetail('app')" type="button">
-                        <i class="fa-solid fa-mobile-screen" style="font-size:1.1rem;"></i><span class="label">Cobro App</span>
-                    </button>
-                </div>
+                <div class="pagament-selector" id="pagamentBtnsDetail"></div>
                 <!-- Aeroport -->
                 <div class="pagament-selector">
                     <button class="btn-pagament" id="detailAeroportNo" onclick="selectAeroportDetail('ciutat')" type="button">
@@ -3660,19 +3630,27 @@
                     // Desar despeses detall si n'hi ha (v4+)
                     if (parsed.despeses_detall && parsed.despeses_detall.length > 0) {
                         if (db && db.objectStoreNames.contains(DESPESES_STORE_NAME)) {
-                            const tx = db.transaction([DESPESES_STORE_NAME], 'readwrite');
-                            const s = tx.objectStore(DESPESES_STORE_NAME);
-                            s.clear();
-                            parsed.despeses_detall.forEach(d => s.put(d));
+                            await new Promise((res, rej) => {
+                                const tx = db.transaction([DESPESES_STORE_NAME], 'readwrite');
+                                const s = tx.objectStore(DESPESES_STORE_NAME);
+                                s.clear();
+                                parsed.despeses_detall.forEach(d => s.put(d));
+                                tx.oncomplete = () => res();
+                                tx.onerror = () => rej(tx.error);
+                            });
                         }
                     }
                     // Desar categories si n'hi ha (v4+)
                     if (parsed.categories_despeses && parsed.categories_despeses.length > 0) {
                         if (db && db.objectStoreNames.contains(CATEGORIES_STORE_NAME)) {
-                            const tx = db.transaction([CATEGORIES_STORE_NAME], 'readwrite');
-                            const s = tx.objectStore(CATEGORIES_STORE_NAME);
-                            s.clear();
-                            parsed.categories_despeses.forEach(c => s.put(c));
+                            await new Promise((res, rej) => {
+                                const tx = db.transaction([CATEGORIES_STORE_NAME], 'readwrite');
+                                const s = tx.objectStore(CATEGORIES_STORE_NAME);
+                                s.clear();
+                                parsed.categories_despeses.forEach(c => s.put(c));
+                                tx.oncomplete = () => res();
+                                tx.onerror = () => rej(tx.error);
+                            });
                         }
                     }
 
@@ -3689,6 +3667,7 @@
                     updateMesosView();
                     updateHistoricView();
                     updateAllDaysTable();
+                    renderDespesesPage();
 
                     const numCarreres = carreresDataImport ? carreresDataImport.length : 0;
                     const numDespeses = parsed.despeses_detall ? parsed.despeses_detall.length : 0;
@@ -7429,6 +7408,31 @@
                 await loadDespesesData();
             }
         }
+
+        // ── Generador reutilitzable de botons de pagament ──
+        // Genera efectiu/targeta/app mantenint els IDs originals que usa selectPagament i selectPagamentDetail
+        function renderBtnsPagament(containerId, onclickFn, idPrefix) {
+            const container = document.getElementById(containerId);
+            if (!container) return;
+            const items = [
+                { val: 'efectiu', idSuffix: 'Efectiu', icon: 'fa-money-bills',  label: 'Efectiu'   },
+                { val: 'targeta', idSuffix: 'Targeta', icon: 'fa-credit-card',   label: 'Targeta'   },
+                { val: 'app',     idSuffix: 'App',     icon: 'fa-mobile-screen', label: 'Cobro App' },
+            ];
+            container.innerHTML = items.map(({ val, idSuffix, icon, label }) => `
+                <button class="btn-pagament" id="${idPrefix}${idSuffix}"
+                        onclick="${onclickFn}('${val}')" type="button">
+                    <i class="fa-solid ${icon}" style="font-size:1.1rem;"></i>
+                    <span class="label">${label}</span>
+                </button>`).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            // idPrefix coincideix exactament amb els IDs originals usats per selectPagament / selectPagamentDetail
+            renderBtnsPagament('pagamentBtnsCron',   'selectPagament',       'cronPag');
+            renderBtnsPagament('pagamentBtnsImport', 'selectPagament',       'pag');
+            renderBtnsPagament('pagamentBtnsDetail', 'selectPagamentDetail', 'detailPag');
+        });
 
         initApp();
 
