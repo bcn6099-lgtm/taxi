@@ -5814,10 +5814,21 @@
             if (!driveAccessToken) return false; // necessitem token vàlid (ja autenticat prèviament)
 
             try {
-                const storedData    = await getStoredData();
-                const storedGastos  = await getStoredGastos();
-                const storedCarreres = await getAllCarreres();
-                const exportObj = { version: 3, facturacio: storedData, gastos: storedGastos, carreres: storedCarreres };
+                const storedData       = await getStoredData();
+                const storedGastos     = await getStoredGastos();
+                const storedCarreres   = await getAllCarreres();
+                const storedDespeses   = await getAllDespeses();
+                const storedCategories = await getCategories();
+                const exportObj = {
+                    version: 5,
+                    exportat: new Date().toISOString(),
+                    facturacio: storedData,
+                    gastos: storedGastos,
+                    carreres: storedCarreres,
+                    despeses_detall: storedDespeses,
+                    categories_despeses: storedCategories,
+                    objectius: loadObjectius()
+                };
                 const dataStr = JSON.stringify(exportObj);
                 const now = new Date();
                 const pad = n => String(n).padStart(2,'0');
@@ -5949,7 +5960,18 @@
             const storedData = await getStoredData();
             const storedGastos = await getStoredGastos();
             const storedCarreres = await getAllCarreres();
-            const exportObj = { version: 3, facturacio: storedData, gastos: storedGastos, carreres: storedCarreres };
+            const storedDespeses = await getAllDespeses();
+            const storedCategories = await getCategories();
+            const exportObj = {
+                version: 5,
+                exportat: new Date().toISOString(),
+                facturacio: storedData,
+                gastos: storedGastos,
+                carreres: storedCarreres,
+                despeses_detall: storedDespeses,
+                categories_despeses: storedCategories,
+                objectius: loadObjectius()
+            };
             const dataStr = JSON.stringify(exportObj, null, 2);
             const now = new Date();
             const pad = n => String(n).padStart(2, '0');
