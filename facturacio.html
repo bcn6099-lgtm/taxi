@@ -17,7 +17,7 @@
 <!-- Android / Chrome -->
 <link rel="icon" href="taxi_ico2.png">
 <meta name="theme-color" content="#ffc107">
-    <link rel="stylesheet" href="facturacio.css">
+    <link rel="stylesheet" href="facturacio4.css">
     <style>
         /* ── Numpad Modal ── */
         .numpad-btn {
@@ -73,8 +73,8 @@
         </div>
         <div class="sidebar-menu">
             <a class="menu-item" href="facturacio.html" style="display:block;text-decoration:none;">🏠 Inici</a>
+            <div class="menu-item" onclick="navigateTo('jornada')">📅 Avui</div>
             <div class="menu-item" onclick="navigateTo('torns')">🚕 Torns</div>
-            <div class="menu-item" onclick="navigateTo('dashboard')">📈 Resum</div>
             <div class="menu-item" onclick="navigateTo('carreres-global')">🚖 Carreres</div>
             <div class="menu-item" onclick="navigateTo('dies')">📅 Dies</div>
             <div class="menu-item" onclick="navigateTo('mesos')">📆 Mesos</div>
@@ -107,6 +107,18 @@
             <!-- ── PÀGINA: RESUM GENERAL (Dashboard) ── -->
             <div id="dashboard" class="page active">
                 <h1 class="page-title">📈 Resum General</h1>
+
+                <!-- Pastilla Torn Obert -->
+                <div id="tornObertBanner" style="display:none;margin-bottom:1rem;">
+                    <button onclick="navigateTo('jornada')"
+                        style="width:100%;background:#ff6d00;color:#fff;border:none;border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:1.1rem;font-weight:800;box-shadow:0 0 18px rgba(255,109,0,0.5);letter-spacing:0.02em;">
+                        <span style="display:flex;align-items:center;gap:0.6rem;">
+                            <span style="font-size:1.4rem;">🟢</span>
+                            <span>Torn obert</span>
+                        </span>
+                        <span style="font-size:0.9rem;font-weight:600;opacity:0.9;">Veure carreres →</span>
+                    </button>
+                </div>
 
                 <div class="filters">
                     <div class="filters-row">
@@ -292,6 +304,15 @@
                 <div class="chart-container" style="height: 500px;">
                     <canvas id="historicChart" height="80"></canvas>
                 </div>
+
+                <div class="chart-container" style="height: 400px;">
+                    <div class="chart-header">
+                        <h2 class="chart-title">Beneficis Mensuals</h2>
+                    </div>
+                    <div style="position:relative;height:340px;">
+                        <canvas id="beneficisChart" height="80"></canvas>
+                    </div>
+                </div>
                 
                 <div class="table-container" id="historicTableContainer"></div>
             </div>
@@ -359,10 +380,6 @@
                     </div>
                 </div>
                 
-                <div class="chart-container" style="height: 500px;">
-                    <canvas id="beneficisChart" height="80"></canvas>
-                </div>
-
                 <div id="beneficisContainer"></div>
             </div>
 
@@ -1903,13 +1920,14 @@
 
             if (page === 'dies') updateDiesView();
             if (page === 'mesos') updateMesosView();
-            if (page === 'historic') updateHistoricView();
+            if (page === 'historic') { updateHistoricView(); updateBeneficisView(); }
             if (page === 'comparison') updateComparisonView();
             if (page === 'beneficis') updateBeneficisView();
             if (page === 'add') updateAllDaysTable();
             if (page === 'torns') updateTornsView();
             if (page === 'carreres-global') loadAndRenderGlobalCarreres();
             if (page === 'despeses') { despesesFilterMesAvui(); }
+            if (page === 'dashboard') { updateDashboard(); updateTornObertBanner(); }
         }
 
         // ==========================================
@@ -2481,7 +2499,7 @@
                     scales: {
                         y: {
                             beginAtZero: true,
-                            max: 7000,
+                            max: 4000,
                             grid: { color: '#404040' },
                             ticks: {
                                 color: '#b0b0b0',
@@ -3861,7 +3879,7 @@
                         <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera]||''}</span>
                         <span class="pagament-badge">${PAGAMENT_ICONS[c.pagament]||''}</span>
                         ${_aeroportBadge2}
-                        <span style="flex:1;text-align:right;font-weight:700;color:${color};font-size:1rem;">${formatEur(imp)}${c.propina > 0 ? `<span style='font-size:0.7rem;color:#ffd54f;margin-left:0.3rem;'>+${formatEur(c.propina)}🤑</span>` : ''}${kmTag}</span>
+                        <span style="flex:1;text-align:right;font-weight:700;color:${color};font-size:1rem;">${c.propina > 0 ? `<span style='font-size:0.7rem;color:#ffd54f;margin-right:0.35rem;'>🤑+${formatEur(c.propina)}</span>` : ''}${formatEur(imp)}${kmTag}</span>
                         <span style="color:var(--text-secondary);font-size:0.9rem;margin-left:0.5rem;">›</span>
                     </div>`;
                 });
@@ -4043,9 +4061,12 @@
 
             setTimeout(() => {
                 document.getElementById('loading').style.display = 'none';
-                // Mostrar jornada com a vista inicial
-                mostrarJornadaRoot();
-                updateJornadaUI();
+                // Mostrar dashboard com a vista inicial
+                mostrarMainContent();
+                document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+                document.getElementById('dashboard').classList.add('active');
+                updateDashboard();
+                updateTornObertBanner();
             }, 500);
         }
 
@@ -4847,6 +4868,13 @@
             document.getElementById('mainContent').style.display = 'block';
         }
 
+        // Mostra/amaga la pastilla "Torn obert" al dashboard
+        function updateTornObertBanner() {
+            const banner = document.getElementById('tornObertBanner');
+            if (!banner) return;
+            banner.style.display = jornadaActiva ? 'block' : 'none';
+        }
+
         // Mostra el llistat de carreres (dins jornada-root)
         function mostrarPaginaCarreres() {
             document.getElementById('jornada-home').style.display = 'none';
@@ -5037,7 +5065,7 @@
                     <span class="carrera-item-num">#${carreresAvui.length - i}</span>
                     ${hora ? `<span class="carrera-item-hora">${hora}</span>` : ''}
                     <span class="pagament-badge">${ORIGEN_CARRERA_ICONS[c.origenCarrera] || 'CAR'}</span><span class="pagament-badge">${PAGAMENT_ICONS[c.pagament] || 'EFE'}</span>${_aeroportBadge}
-                    <span class="carrera-item-amount" style="flex:1;text-align:right;color:${color};">${formatEur(imp)}${c.propina > 0 ? `<span style='font-size:0.7rem;color:#ffd54f;margin-left:0.3rem;'>+${formatEur(c.propina)}🤑</span>` : ''}${kmTag}</span>
+                    <span class="carrera-item-amount" style="flex:1;text-align:right;color:${color};">${c.propina > 0 ? `<span style='font-size:0.7rem;color:#ffd54f;margin-right:0.35rem;'>🤑+${formatEur(c.propina)}</span>` : ''}${formatEur(imp)}${kmTag}</span>
                     <span class="carrera-item-arrow">›</span>
                 </div>`;
             }).join('');
