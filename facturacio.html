@@ -76,6 +76,7 @@
             <div class="menu-item" onclick="navigateTo('jornada')">📅 Avui</div>
             <div class="menu-item" onclick="navigateTo('torns')">🚕 Torns</div>
             <div class="menu-item" onclick="navigateTo('carreres-global')">🚖 Carreres</div>
+            <div class="menu-item" onclick="navigateTo('heatmap')">🔥 Mapa de Calor</div>
             <div class="menu-item" onclick="navigateTo('dies')">📅 Dies</div>
             <div class="menu-item" onclick="navigateTo('mesos')">📆 Mesos</div>
             <div class="menu-item" onclick="navigateTo('historic')">📋 Històric</div>
@@ -218,6 +219,95 @@
                 </div>
 
                 <div id="globalCarreresLlista"></div>
+            </div>
+
+            <!-- HEATMAP PAGE -->
+            <!-- ── PÀGINA: MAPA DE CALOR HORARI ── -->
+            <div id="heatmap" class="page">
+                <h1 class="page-title">🔥 Mapa de Calor</h1>
+
+                <!-- Filtres de dates -->
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.85rem 1rem;margin-bottom:0.75rem;display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;">
+                    <div style="display:flex;align-items:center;gap:0.4rem;flex:1;min-width:130px;">
+                        <span style="font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">Des de</span>
+                        <input type="date" id="hmDataDes" class="form-input" style="padding:0.4rem 0.5rem;font-size:0.85rem;" onchange="renderHeatmap()">
+                    </div>
+                    <div style="display:flex;align-items:center;gap:0.4rem;flex:1;min-width:130px;">
+                        <span style="font-size:0.75rem;color:var(--text-secondary);white-space:nowrap;">Fins a</span>
+                        <input type="date" id="hmDataFins" class="form-input" style="padding:0.4rem 0.5rem;font-size:0.85rem;" onchange="renderHeatmap()">
+                    </div>
+                    <div style="display:flex;gap:0.3rem;flex-wrap:wrap;">
+                        <button class="dia-filter-btn" id="hmPreset7"   onclick="setHmDatePreset(7)">7d</button>
+                        <button class="dia-filter-btn" id="hmPreset30"  onclick="setHmDatePreset(30)">30d</button>
+                        <button class="dia-filter-btn" id="hmPreset60"  onclick="setHmDatePreset(60)">2m</button>
+                        <button class="dia-filter-btn" id="hmPreset0"   onclick="setHmDatePreset(0)">Tot</button>
+                    </div>
+                </div>
+
+                <!-- Filtre origen -->
+                <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.75rem 1rem;margin-bottom:0.75rem;display:flex;gap:0.4rem;flex-wrap:wrap;align-items:center;">
+                    <span style="font-size:0.75rem;color:var(--text-secondary);margin-right:0.25rem;">Origen:</span>
+                    <button class="dia-filter-btn active" id="hmOrigen-tots"      onclick="setHmOrigen('tots')">Tots</button>
+                    <button class="dia-filter-btn"        id="hmOrigen-carrer"    onclick="setHmOrigen('carrer')"><i class="fa-solid fa-hand"></i> Carrer</button>
+                    <button class="dia-filter-btn"        id="hmOrigen-app_client" onclick="setHmOrigen('app_client')"><i class="fa-solid fa-route"></i> App</button>
+                </div>
+
+                <!-- Toggle mode CARRERES / IMPORT / MITJANA -->
+                <div style="display:flex;justify-content:center;gap:0;margin-bottom:0.9rem;">
+                    <button class="dia-filter-btn active" id="hmBtnCount"  onclick="setHmMode('count')"  style="border-radius:6px 0 0 6px;border-right:0;font-size:0.75rem;padding:0.45rem 0.9rem;letter-spacing:0.04em;">CARRERES</button>
+                    <button class="dia-filter-btn"        id="hmBtnImport" onclick="setHmMode('import')" style="border-radius:0;font-size:0.75rem;padding:0.45rem 0.9rem;letter-spacing:0.04em;">IMPORT €</button>
+                    <button class="dia-filter-btn"        id="hmBtnAvg"    onclick="setHmMode('avg')"    style="border-radius:0 6px 6px 0;border-left:0;font-size:0.75rem;padding:0.45rem 0.9rem;letter-spacing:0.04em;">MITJANA €</button>
+                </div>
+
+                <!-- Grid heatmap -->
+                <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+                    <div id="hmGrid" style="
+                        display:grid;
+                        grid-template-columns:38px repeat(15,1fr);
+                        grid-template-rows:auto repeat(7,1fr);
+                        gap:3px;
+                        min-width:480px;
+                        max-width:860px;
+                        margin:0 auto;
+                    "></div>
+                </div>
+
+                <!-- Llegenda gradient -->
+                <div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:14px;font-size:11px;color:var(--text-secondary);font-family:'Share Tech Mono',monospace;">
+                    <span>0</span>
+                    <canvas id="hmLegendCanvas" style="width:140px;height:12px;border-radius:3px;"></canvas>
+                    <span id="hmLegendMax">—</span>
+                </div>
+
+                <!-- Stats -->
+                <div style="display:flex;justify-content:center;gap:12px;margin-top:16px;flex-wrap:wrap;">
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.7rem 1.1rem;text-align:center;min-width:90px;">
+                        <div id="hmStatCarreres" style="font-size:1.25rem;font-weight:700;color:var(--accent);">—</div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);letter-spacing:0.07em;margin-top:2px;">CARRERES</div>
+                    </div>
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.7rem 1.1rem;text-align:center;min-width:90px;">
+                        <div id="hmStatHoraPic" style="font-size:1.25rem;font-weight:700;color:var(--accent);">—</div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);letter-spacing:0.07em;margin-top:2px;">HORA PIC</div>
+                    </div>
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.7rem 1.1rem;text-align:center;min-width:90px;">
+                        <div id="hmStatDiaMillor" style="font-size:1.25rem;font-weight:700;color:var(--accent);">—</div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);letter-spacing:0.07em;margin-top:2px;">DIA MILLOR</div>
+                    </div>
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.7rem 1.1rem;text-align:center;min-width:90px;">
+                        <div id="hmStatAvg" style="font-size:1.25rem;font-weight:700;color:var(--accent);">—</div>
+                        <div style="font-size:0.62rem;color:var(--text-secondary);letter-spacing:0.07em;margin-top:2px;">MITJANA/CARRERA</div>
+                    </div>
+                </div>
+
+                <!-- Tooltip flotant -->
+                <div id="hmTooltip" style="
+                    display:none;position:fixed;
+                    background:var(--bg-card);border:1px solid var(--accent);
+                    color:var(--text-primary);padding:10px 14px;border-radius:8px;
+                    font-size:12px;pointer-events:none;z-index:200;min-width:155px;
+                    box-shadow:0 0 18px rgba(255,193,7,0.25);line-height:1.85;
+                    font-family:'Share Tech Mono',monospace;
+                "></div>
             </div>
 
             <!-- DIES VIEW PAGE -->
@@ -1928,6 +2018,7 @@
             if (page === 'carreres-global') loadAndRenderGlobalCarreres();
             if (page === 'despeses') { despesesFilterMesAvui(); }
             if (page === 'dashboard') { updateDashboard(); updateTornObertBanner(); }
+            if (page === 'heatmap') loadAndRenderHeatmap();
         }
 
         // ==========================================
@@ -7480,6 +7571,312 @@
             renderBtnsPagament('pagamentBtnsImport', 'selectPagament',       'pag');
             renderBtnsPagament('pagamentBtnsDetail', 'selectPagamentDetail', 'detailPag');
         });
+
+        // ==========================================
+        // MAPA DE CALOR HORARI
+        // ==========================================
+        const HM_DIES   = ['Dil','Dim','Dic','Dij','Div','Dis','Diu'];
+        const HM_HORES  = [7,8,9,10,11,12,13,14,15,16,17,18,19,20,21];
+        let hmMode      = 'count';   // 'count' | 'import' | 'avg'
+        let hmOrigen    = 'tots';    // 'tots' | 'carrer' | 'app_client'
+        let hmCOUNT     = {};
+        let hmIMPORTS   = {};
+
+        // Inicialitza les estructures buides
+        function hmResetData() {
+            hmCOUNT   = {};
+            hmIMPORTS = {};
+            for (let d = 0; d < 7; d++) {
+                hmCOUNT[d]   = {};
+                hmIMPORTS[d] = {};
+                for (const h of HM_HORES) {
+                    hmCOUNT[d][h]   = 0;
+                    hmIMPORTS[d][h] = 0;
+                }
+            }
+        }
+
+        // Carrega totes les carreres i agrega per dow/hora
+        async function loadAndRenderHeatmap() {
+            // Preset 30d per defecte si no hi ha dates posades
+            const desEl  = document.getElementById('hmDataDes');
+            const finsEl = document.getElementById('hmDataFins');
+            if (!desEl.value && !finsEl.value) {
+                setHmDatePreset(30);
+                return; // setHmDatePreset ja crida renderHeatmap
+            }
+            await renderHeatmap();
+        }
+
+        function setHmDatePreset(dies) {
+            const avui = new Date();
+            const pad  = n => String(n).padStart(2,'0');
+            const toS  = d => `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
+            const avuiS = toS(avui);
+            const desEl  = document.getElementById('hmDataDes');
+            const finsEl = document.getElementById('hmDataFins');
+            if (!desEl || !finsEl) return;
+            if (dies === 0) {
+                desEl.value  = '';
+                finsEl.value = '';
+            } else {
+                const from = new Date(avui);
+                from.setDate(from.getDate() - dies + 1);
+                desEl.value  = toS(from);
+                finsEl.value = avuiS;
+            }
+            // Marcar botó actiu
+            [7, 30, 60, 0].forEach(d => {
+                const b = document.getElementById('hmPreset' + d);
+                if (b) b.classList.toggle('active', d === dies);
+            });
+            renderHeatmap();
+        }
+
+        function setHmOrigen(val) {
+            hmOrigen = val;
+            ['tots','carrer','app_client'].forEach(o => {
+                const b = document.getElementById('hmOrigen-' + o);
+                if (b) b.classList.toggle('active', o === val);
+            });
+            renderHeatmap();
+        }
+
+        function setHmMode(m) {
+            hmMode = m;
+            ['count','import','avg'].forEach(k => {
+                const b = document.getElementById('hmBtn' + k.charAt(0).toUpperCase() + k.slice(1));
+                if (b) b.classList.toggle('active', k === m);
+            });
+            renderHeatmap();
+        }
+
+        async function renderHeatmap() {
+            hmResetData();
+
+            // Llegir filtres
+            const desVal  = document.getElementById('hmDataDes')?.value  || '';
+            const finsVal = document.getElementById('hmDataFins')?.value || '';
+
+            // Obtenir totes les carreres de IndexedDB
+            let carreres = [];
+            try { carreres = await getAllCarreres(); } catch(e) { carreres = []; }
+
+            // Filtrar per dates i origen
+            let total = 0;
+            for (const c of carreres) {
+                const fecha = c.fecha || '';
+                if (desVal  && fecha < desVal)  continue;
+                if (finsVal && fecha > finsVal) continue;
+                if (hmOrigen !== 'tots' && (c.origenCarrera || 'carrer') !== hmOrigen) continue;
+
+                // Hora d'inici: pot ser HH:MM o HH:MM:SS
+                const horaStr = c.horaInici || c.hora || '';
+                if (!horaStr) continue;
+                const hNum = parseInt(horaStr.split(':')[0], 10);
+                if (isNaN(hNum) || hNum < HM_HORES[0] || hNum > HM_HORES[HM_HORES.length - 1]) continue;
+
+                // Dia de la setmana (0=Diu JS → 6 nostre; 1=Dil JS → 0 nostre)
+                const dt  = new Date(fecha + 'T12:00:00');
+                const jsD = dt.getDay(); // 0=Diu,1=Dil,...,6=Dis
+                const dow = jsD === 0 ? 6 : jsD - 1; // 0=Dil..6=Diu
+
+                const imp = parseFloat(c.import) || 0;
+                hmCOUNT[dow][hNum]   = (hmCOUNT[dow][hNum]   || 0) + 1;
+                hmIMPORTS[dow][hNum] = (hmIMPORTS[dow][hNum] || 0) + imp;
+                total++;
+            }
+
+            // Dibuixar
+            _drawHmGrid();
+            _drawHmLegend(_hmGetMax());
+            _updateHmStats(total);
+        }
+
+        function _hmGetValue(dow, h) {
+            const c   = hmCOUNT[dow]?.[h]   || 0;
+            const imp = hmIMPORTS[dow]?.[h]  || 0;
+            if (hmMode === 'count')  return c;
+            if (hmMode === 'import') return imp;
+            if (hmMode === 'avg')    return c > 0 ? imp / c : 0;
+            return 0;
+        }
+
+        function _hmGetMax() {
+            let mx = 0;
+            for (let d = 0; d < 7; d++)
+                for (const h of HM_HORES) {
+                    const v = _hmGetValue(d, h);
+                    if (v > mx) mx = v;
+                }
+            return mx;
+        }
+
+        // Gradient: fosc → ambre → or → blanc
+        function _hmColor(ratio) {
+            if (ratio <= 0) return 'var(--bg-secondary, #1a1a1a)';
+            const stops = [
+                [0,   [20, 12, 0]],
+                [0.3, [130, 65, 0]],
+                [0.65,[255, 195, 0]],
+                [1.0, [255, 242, 185]],
+            ];
+            for (let i = 0; i < stops.length - 1; i++) {
+                const [t0, c0] = stops[i];
+                const [t1, c1] = stops[i+1];
+                if (ratio >= t0 && ratio <= t1) {
+                    const t = (ratio - t0) / (t1 - t0);
+                    const r = Math.round(c0[0] + (c1[0]-c0[0])*t);
+                    const g = Math.round(c0[1] + (c1[1]-c0[1])*t);
+                    const b = Math.round(c0[2] + (c1[2]-c0[2])*t);
+                    return `rgb(${r},${g},${b})`;
+                }
+            }
+            return 'rgb(255,242,185)';
+        }
+
+        function _drawHmGrid() {
+            const grid  = document.getElementById('hmGrid');
+            if (!grid) return;
+            const maxVal = _hmGetMax();
+            grid.innerHTML = '';
+
+            // Cantonada buida
+            const corner = document.createElement('div');
+            corner.style.cssText = 'width:38px;';
+            grid.appendChild(corner);
+
+            // Etiquetes hores
+            for (const h of HM_HORES) {
+                const el = document.createElement('div');
+                el.style.cssText = 'text-align:center;font-size:10px;color:var(--accent);padding:3px 1px;font-family:"Orbitron",sans-serif;letter-spacing:0;';
+                el.textContent = h + 'h';
+                grid.appendChild(el);
+            }
+
+            // Files per dia
+            for (let dow = 0; dow < 7; dow++) {
+                const dayEl = document.createElement('div');
+                dayEl.style.cssText = 'display:flex;align-items:center;justify-content:flex-end;padding-right:6px;font-size:10px;color:var(--accent);font-family:"Orbitron",sans-serif;white-space:nowrap;';
+                dayEl.textContent = HM_DIES[dow];
+                grid.appendChild(dayEl);
+
+                for (const h of HM_HORES) {
+                    const v   = _hmGetValue(dow, h);
+                    const c   = hmCOUNT[dow]?.[h]   || 0;
+                    const imp = hmIMPORTS[dow]?.[h]  || 0;
+                    const ratio = maxVal > 0 ? v / maxVal : 0;
+
+                    const cell = document.createElement('div');
+                    cell.style.cssText = `
+                        aspect-ratio:1;border-radius:4px;cursor:${v > 0 ? 'pointer' : 'default'};
+                        position:relative;transition:transform 0.12s,box-shadow 0.12s;
+                        border:1px solid transparent;
+                        background:${_hmColor(ratio)};
+                    `;
+
+                    if (v > 0) {
+                        cell.addEventListener('mouseenter', (e) => _hmShowTip(e, dow, h, c, imp));
+                        cell.addEventListener('mousemove',  (e) => _hmMoveTip(e));
+                        cell.addEventListener('mouseleave', _hmHideTip);
+                        cell.addEventListener('touchstart', (e) => { e.preventDefault(); _hmShowTip(e.touches[0], dow, h, c, imp); }, {passive:false});
+                        cell.addEventListener('touchend', _hmHideTip);
+                        cell.style.cursor = 'pointer';
+                        cell.onmouseenter = function() {
+                            this.style.transform = 'scale(1.12)';
+                            this.style.zIndex = '10';
+                            this.style.borderColor = 'var(--accent)';
+                            this.style.boxShadow = '0 0 10px rgba(255,193,7,0.5)';
+                        };
+                        cell.onmouseleave = function() {
+                            this.style.transform = '';
+                            this.style.zIndex = '';
+                            this.style.borderColor = 'transparent';
+                            this.style.boxShadow = '';
+                            _hmHideTip();
+                        };
+                    }
+                    grid.appendChild(cell);
+                }
+            }
+        }
+
+        function _drawHmLegend(maxVal) {
+            const canvas = document.getElementById('hmLegendCanvas');
+            if (!canvas) return;
+            canvas.width  = 280;
+            canvas.height = 24;
+            const ctx  = canvas.getContext('2d');
+            const grad = ctx.createLinearGradient(0, 0, 280, 0);
+            for (let i = 0; i <= 20; i++) {
+                const col = _hmColor(i / 20);
+                // Convertir rgb() a valor CSS per al gradient
+                grad.addColorStop(i / 20, col === 'var(--bg-secondary, #1a1a1a)' ? '#1a1a1a' : col);
+            }
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, 280, 24);
+            const fmt = hmMode === 'count' ? Math.round(maxVal) : maxVal.toFixed(1) + '€';
+            const el = document.getElementById('hmLegendMax');
+            if (el) el.textContent = fmt || '0';
+        }
+
+        function _updateHmStats(totalCarreres) {
+            // Hora pic
+            let bestH = 0, bestHVal = 0;
+            for (const h of HM_HORES) {
+                let tot = 0;
+                for (let d = 0; d < 7; d++) tot += hmCOUNT[d]?.[h] || 0;
+                if (tot > bestHVal) { bestHVal = tot; bestH = h; }
+            }
+            // Millor dia
+            let bestD = 0, bestDVal = 0;
+            for (let d = 0; d < 7; d++) {
+                let tot = 0;
+                for (const h of HM_HORES) tot += hmCOUNT[d]?.[h] || 0;
+                if (tot > bestDVal) { bestDVal = tot; bestD = d; }
+            }
+            // Mitjana global
+            let totalImp = 0, totalC = 0;
+            for (let d = 0; d < 7; d++)
+                for (const h of HM_HORES) {
+                    totalC   += hmCOUNT[d]?.[h]   || 0;
+                    totalImp += hmIMPORTS[d]?.[h]  || 0;
+                }
+            const avg = totalC > 0 ? (totalImp / totalC).toFixed(2) : '—';
+
+            const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+            set('hmStatCarreres',  totalCarreres || '0');
+            set('hmStatHoraPic',   bestHVal > 0 ? bestH + 'h' : '—');
+            set('hmStatDiaMillor', bestDVal > 0 ? HM_DIES[bestD] : '—');
+            set('hmStatAvg',       avg !== '—' ? avg + '€' : '—');
+        }
+
+        function _hmShowTip(e, dow, h, c, imp) {
+            const avg = c > 0 ? (imp / c).toFixed(2) : '—';
+            const tt  = document.getElementById('hmTooltip');
+            if (!tt) return;
+            tt.innerHTML = `
+                <div style="color:var(--accent);font-family:'Orbitron',sans-serif;font-size:10px;margin-bottom:5px;">${HM_DIES[dow]} · ${h}:00–${h+1}:00</div>
+                🚖 Carreres: <strong>${c}</strong><br>
+                💶 Import: <strong>${imp.toFixed(2)}€</strong><br>
+                📊 Mitjana: <strong>${avg}€</strong>
+            `;
+            tt.style.display = 'block';
+            _hmMoveTip(e);
+        }
+        function _hmMoveTip(e) {
+            const tt = document.getElementById('hmTooltip');
+            if (!tt) return;
+            let x = e.clientX + 14, y = e.clientY - 10;
+            if (x + 185 > window.innerWidth)  x = e.clientX - 185;
+            if (y + 110 > window.innerHeight) y = e.clientY - 110;
+            tt.style.left = x + 'px';
+            tt.style.top  = y + 'px';
+        }
+        function _hmHideTip() {
+            const tt = document.getElementById('hmTooltip');
+            if (tt) tt.style.display = 'none';
+        }
 
         initApp();
 
