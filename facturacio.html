@@ -7060,7 +7060,12 @@
             const tipusIcon = d.auto_app ? '📱' : (d.tipus === 'fix_mensual' ? '🔁' : '📝');
             const autoIcon = d.auto_afegit ? ' <span style="font-size:0.65rem;color:var(--text-secondary);background:var(--bg-secondary);border-radius:4px;padding:1px 4px;">auto</span>' : '';
             const appIcon = d.auto_app ? ' <span style="font-size:0.65rem;color:#69f0ae;background:var(--bg-secondary);border-radius:4px;padding:1px 4px;">app auto</span>' : '';
-            const isReadOnly = d.auto_app; // Les despeses App auto no s'editen manualment
+            // Les despeses auto_app no s'editen, però es poden eliminar manualment si han quedat orpan
+            const isReadOnly = d.auto_app;
+            const deleteBtn = isReadOnly
+                ? `<button onclick="event.stopPropagation();eliminarDespesaAutoApp('${d.id.replace(/'/g,"\'")}')"
+                    style="background:none;border:none;cursor:pointer;font-size:1.1rem;padding:0.2rem 0.4rem;color:#ff6b6b;opacity:0.7;flex-shrink:0;"
+                    title="Eliminar gasto auto (carreras ja no és App)">🗑</button>` : '';
             return `
                 <div class="carrera-item" ${isReadOnly ? '' : `onclick="obrirEditarDespesa('${d.id}')"`} style="padding:0.75rem 0.85rem;margin-bottom:0.4rem;${isReadOnly?'cursor:default;opacity:0.85;':''}">
                     <span style="font-size:1rem;margin-right:0.4rem;">${tipusIcon}</span>
@@ -7069,8 +7074,17 @@
                         <div style="font-size:0.72rem;color:var(--text-secondary);">${d.categoria||'Sense cat.'} · ${d.data||''}</div>
                     </div>
                     <span style="font-weight:700;color:#ff6b6b;font-size:1.05rem;margin-left:0.75rem;">${parseFloat(d.import||0).toFixed(2)}€</span>
+                    ${deleteBtn}
                     <span class="carrera-item-arrow">${isReadOnly ? '' : '›'}</span>
                 </div>`;
+        }
+
+        async function eliminarDespesaAutoApp(id) {
+            if (!confirm('Eliminar aquest gasto generat automàticament?')) return;
+            await deleteDespesaDB(id);
+            await loadDespesesData();
+            renderDespesesPage();
+            if (typeof updateBeneficisView === 'function') updateBeneficisView();
         }
 
         // ── Modal afegir/editar despesa ──
@@ -7435,28 +7449,34 @@
         async function actualitzarDespesaApp(carrera) {
             if (!carrera) return;
             await loadDespesesData();
-            const despesaId = `desp_app_${carrera.id}`;
             // Si ara és App, crea/actualitza
             if (carrera.origenCarrera === 'app_client') {
                 await registrarDespesaApp(carrera);
             } else {
                 // Si ha deixat de ser App, elimina la despesa auto si existia
-                const existing = despesesData.find(d => d.id === despesaId);
-                if (existing) {
-                    await deleteDespesaDB(despesaId);
-                    await loadDespesesData();
+                // Cerca per id canònic I per carrera_id (per si l'id no coincideix exactament)
+                const despesaId = `desp_app_${carrera.id}`;
+                const candidates = despesesData.filter(d =>
+                    d.id === despesaId || (d.auto_app && d.carrera_id === carrera.id)
+                );
+                for (const d of candidates) {
+                    await deleteDespesaDB(d.id);
                 }
+                if (candidates.length > 0) await loadDespesesData();
             }
         }
 
         async function eliminarDespesaApp(carreraId) {
             await loadDespesesData();
+            // Cerca per id canònic I per carrera_id
             const despesaId = `desp_app_${carreraId}`;
-            const existing = despesesData.find(d => d.id === despesaId);
-            if (existing) {
-                await deleteDespesaDB(despesaId);
-                await loadDespesesData();
+            const candidates = despesesData.filter(d =>
+                d.id === despesaId || (d.auto_app && d.carrera_id === carreraId)
+            );
+            for (const d of candidates) {
+                await deleteDespesaDB(d.id);
             }
+            if (candidates.length > 0) await loadDespesesData();
         }
 
         // ── Generador reutilitzable de botons de pagament ──
