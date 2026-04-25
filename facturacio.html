@@ -4542,99 +4542,154 @@
                 btn.textContent = '🧠 Analitzant amb Gemini...';
 
                 // ── Payload compacte ──
-                const payload = {
-                    periode: { inici: dataInici, fi: dataFi },
-                    resum_dies: resums.map(d => ({
-                        fecha: d.fecha,
-                        ingressos: d.ingresos_dia || 0,
-                        serveis: d.servicios_dia || 0,
-                        hores: d.horas_trabajadas || null,
-                        eur_hora: d.media_ingresos_hora || null,
-                        observacions: d.observacions || null
-                    })),
-                    carreres: carreres.map(c => ({
-                        fecha: c.fecha,
-                        horaInici: c.horaInici || c.hora,
-                        horaFi: c.horaFi || null,
-                        km: c.km || null,
-                        import: parseFloat(c.import) || 0,
-                        pagament: c.pagament,
-                        tarifa: c.tarifa,
-                        aeroport: c.aeroport || false,
-                        origen: c.origen || null,
-                        desti: c.desti || null
-                    }))
+                // ── Pre-càlcul de KPIs en JS (evita enviar totes les carreres a Gemini) ──
+                const r2 = n => Math.round(n * 100) / 100;
+                const totalIng     = r2(resums.reduce((s,d) => s + (d.ingresos_dia||0), 0));
+                const totalCarr    = carreres.length;
+                const totalKm      = r2(carreres.reduce((s,c) => s + (parseFloat(c.km)||0), 0)) || null;
+                const horesTot     = resums.reduce((s,d) => s + (d.horas_trabajadas||0), 0);
+                const eurHoraMitja = horesTot > 0 ? r2(totalIng / horesTot) : null;
+                const eurCarrMitja = totalCarr > 0 ? r2(totalIng / totalCarr) : 0;
+                const imports      = carreres.map(c => parseFloat(c.import)||0);
+                const carrMesCara  = r2(Math.max(...imports, 0));
+                const kmArr        = carreres.map(c => parseFloat(c.km)||0).filter(k => k > 0);
+                const carrMesLlKm  = kmArr.length ? r2(Math.max(...kmArr)) : null;
+                const ingPerDia    = resums.map(d => ({ fecha: d.fecha, ing: r2(d.ingresos_dia||0), serv: d.servicios_dia||0 }));
+                const ingsOrd      = [...ingPerDia].sort((a,b) => b.ing - a.ing);
+                const millorDia    = ingsOrd[0] || null;
+                const pitjorDia    = ingsOrd[ingsOrd.length-1] || null;
+                const ingMitjaD    = resums.length > 0 ? r2(totalIng / resums.length) : 0;
+
+                // Distribució pagament
+                const pgCount = { efectiu:0, targeta:0, app:0, altres:0 };
+                carreres.forEach(c => {
+                    const p = (c.pagament||'').toLowerCase();
+                    if (p.includes('efectiu')) pgCount.efectiu++;
+                    else if (p.includes('targeta') || p.includes('visa') || p.includes('card')) pgCount.targeta++;
+                    else if (p.includes('app') || p.includes('cabify') || p.includes('bolt') || p.includes('uber')) pgCount.app++;
+                    else pgCount.altres++;
+                });
+                const pgTotal = totalCarr || 1;
+                const distPag = {
+                    efectiu: Math.round(pgCount.efectiu/pgTotal*100),
+                    targeta: Math.round(pgCount.targeta/pgTotal*100),
+                    app:     Math.round(pgCount.app/pgTotal*100),
+                    altres:  Math.round(pgCount.altres/pgTotal*100)
                 };
 
-                const prompt = `Ets un analista de dades expert en mobilitat urbana i gestió de taxis a Barcelona.
-Analitza les dades d'un taxista del període ${dataInici} al ${dataFi} i retorna ÚNICAMENT un objecte JSON vàlid, sense cap text addicional, sense markdown, sense blocs de codi.
+                // Distribució tarifa
+                const tarCount = { taxímetre:0, tarifa3:0 };
+                carreres.forEach(c => {
+                    const t = (c.tarifa||'').toLowerCase();
+                    if (t.includes('t3') || t.includes('tarifa3') || t.includes('tarifa 3')) tarCount.tarifa3++;
+                    else tarCount.taxímetre++;
+                });
+                const distTar = {
+                    taxímetre: Math.round(tarCount.taxímetre/pgTotal*100),
+                    tarifa3:   Math.round(tarCount.tarifa3/pgTotal*100)
+                };
 
-DADES:
+                // Millors dies de setmana
+                const diesSetm = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+                const byDow = {};
+                resums.forEach(d => {
+                    const dow = diesSetm[new Date(d.fecha).getDay()];
+                    if (!byDow[dow]) byDow[dow] = { sum:0, n:0 };
+                    byDow[dow].sum += d.ingresos_dia||0;
+                    byDow[dow].n++;
+                });
+                const millDiesSm = diesSetm.slice(1).concat(['Diumenge']).map(dia => ({
+                    dia, mitja: byDow[dia] ? r2(byDow[dia].sum/byDow[dia].n) : 0, n: byDow[dia]?.n||0
+                }));
+
+                // Franja horària
+                const franges = { mati:0, migdia:0, tarda:0, nit:0 };
+                carreres.forEach(c => {
+                    const h = parseInt((c.horaInici||c.hora||'00:00').split(':')[0]);
+                    if (h >= 6 && h < 12) franges.mati++;
+                    else if (h >= 12 && h < 17) franges.migdia++;
+                    else if (h >= 17 && h < 22) franges.tarda++;
+                    else franges.nit++;
+                });
+                const fTotal = totalCarr || 1;
+                const distFr = {
+                    mati:   Math.round(franges.mati/fTotal*100),
+                    migdia: Math.round(franges.migdia/fTotal*100),
+                    tarda:  Math.round(franges.tarda/fTotal*100),
+                    nit:    Math.round(franges.nit/fTotal*100)
+                };
+
+                // Rutes freqüents (top 5)
+                const rutaCount = {};
+                carreres.forEach(c => {
+                    if (c.origen && c.desti) {
+                        const k = (c.origen.slice(0,30) + '→' + c.desti.slice(0,30));
+                        rutaCount[k] = (rutaCount[k]||0) + 1;
+                    }
+                });
+                const topRutes = Object.entries(rutaCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
+                    .map(([r,n]) => ({ ruta: r, vegades: n }));
+
+                // Millor hora del dia per ingressos
+                const byHora = {};
+                carreres.forEach(c => {
+                    const h = parseInt((c.horaInici||c.hora||'00:00').split(':')[0]);
+                    if (!byHora[h]) byHora[h] = { sum:0, n:0 };
+                    byHora[h].sum += parseFloat(c.import)||0;
+                    byHora[h].n++;
+                });
+                const millorHora = Object.entries(byHora)
+                    .map(([h,v]) => ({ hora: parseInt(h), mitja: r2(v.sum/v.n) }))
+                    .sort((a,b) => b.mitja - a.mitja)[0] || null;
+
+                // Payload compacte per a Gemini (sense carreres individuals)
+                const payload = {
+                    periode: { inici: dataInici, fi: dataFi, dies_treballats: resums.length },
+                    kpis_calculats: {
+                        ingressos_totals: totalIng,
+                        total_carreres: totalCarr,
+                        km_totals: totalKm,
+                        eur_hora_mitja: eurHoraMitja,
+                        eur_carrera_mitja: eurCarrMitja,
+                        carrera_mes_cara: carrMesCara,
+                        carrera_mes_llarga_km: carrMesLlKm,
+                        millor_dia: millorDia,
+                        pitjor_dia: pitjorDia,
+                        ingressos_per_dia_mitja: ingMitjaD
+                    },
+                    ingressos_per_dia: ingPerDia,
+                    distribucio_pagament: distPag,
+                    distribucio_tarifa: distTar,
+                    millors_dies_setmana: millDiesSm,
+                    franja_horaria: distFr,
+                    top_rutes: topRutes,
+                    millor_hora: millorHora,
+                    observacions_dies: resums.filter(d => d.observacions).map(d => ({ fecha: d.fecha, obs: d.observacions }))
+                };
+
+                const prompt = `Ets un analista expert en gestió de taxis a Barcelona.
+Tens les dades ja pre-calculades d'un taxista del ${dataInici} al ${dataFi}.
+Retorna ÚNICAMENT un objecte JSON vàlid, sense text addicional, sense markdown.
+
+DADES PRE-CALCULADES:
 ${JSON.stringify(payload)}
 
-Retorna exactament aquest JSON (tots els camps obligatoris):
-{
-  "resum_executiu": "2-3 frases destacant el més important del període com un analista professional. Menciona xifres concretes.",
-  "kpis": {
-    "ingressos_totals": <número>,
-    "dies_treballats": <número>,
-    "total_carreres": <número>,
-    "km_totals": <número o null si no hi ha dades km>,
-    "eur_hora_mitja": <número o null>,
-    "eur_carrera_mitja": <número>,
-    "carrera_mes_llarga_km": <número o null>,
-    "carrera_mes_cara": <número>,
-    "millor_dia_ingressos": <número>,
-    "pitjor_dia_ingressos": <número>,
-    "ingressos_per_dia_mitja": <número>
-  },
-  "records": [
-    {"emoji":"🏆","titol":"Millor dia","valor":"XXX €","detall":"dia i context"},
-    {"emoji":"⚡","titol":"Carrera més ràpida/cara","valor":"XXX €","detall":"ruta i hora"},
-    {"emoji":"📍","titol":"Ruta més freqüent","valor":"origen → destí","detall":"quantes vegades"},
-    {"emoji":"💰","titol":"Millor hora del dia","valor":"HH:00h","detall":"mitja en aquesta franja"},
-    {"emoji":"🚀","titol":"Millor setmana","valor":"dates","detall":"total i comparativa"}
-  ],
-  "tendencies": [
-    {"titol":"...","descripcio":"...","sentiment":"positiu"},
-    {"titol":"...","descripcio":"...","sentiment":"negatiu"},
-    {"titol":"...","descripcio":"...","sentiment":"neutral"},
-    {"titol":"...","descripcio":"...","sentiment":"positiu"}
-  ],
-  "distribucio_pagament": {"efectiu":<0-100>,"targeta":<0-100>,"app":<0-100>,"altres":<0-100>},
-  "distribucio_tarifa": {"taxímetre":<0-100>,"tarifa3":<0-100>},
-  "millors_dies_setmana": [
-    {"dia":"Dilluns","mitja_ingressos":<número>,"num_dies":<número>},
-    {"dia":"Dimarts","mitja_ingressos":<número>,"num_dies":<número>},
-    {"dia":"Dimecres","mitja_ingressos":<número>,"num_dies":<número>},
-    {"dia":"Dijous","mitja_ingressos":<número>,"num_dies":<número>},
-    {"dia":"Divendres","mitja_ingressos":<número>,"num_dies":<número>},
-    {"dia":"Dissabte","mitja_ingressos":<número>,"num_dies":<número>},
-    {"dia":"Diumenge","mitja_ingressos":<número>,"num_dies":<número>}
-  ],
-  "ingressos_per_dia": [
-    {"fecha":"YYYY-MM-DD","ingressos":<número>,"carreres":<número>}
-  ],
-  "franja_horaria": {"mati":<0-100>,"migdia":<0-100>,"tarda":<0-100>,"nit":<0-100>},
-  "consells": [
-    {"emoji":"💡","titol":"...","text":"consell concret i accionable basat en les dades"},
-    {"emoji":"📈","titol":"...","text":"..."},
-    {"emoji":"🎯","titol":"...","text":"..."}
-  ],
-  "valoracio_general": <1-10>
-}`;
+Retorna aquest JSON exacte:
+{"resum_executiu":"2-3 frases amb xifres concretes destacant el més important","kpis":{"ingressos_totals":${totalIng},"dies_treballats":${resums.length},"total_carreres":${totalCarr},"km_totals":${totalKm},"eur_hora_mitja":${eurHoraMitja},"eur_carrera_mitja":${eurCarrMitja},"carrera_mes_llarga_km":${carrMesLlKm},"carrera_mes_cara":${carrMesCara},"millor_dia_ingressos":${millorDia?.ing||0},"pitjor_dia_ingressos":${pitjorDia?.ing||0},"ingressos_per_dia_mitja":${ingMitjaD}},"records":[{"emoji":"🏆","titol":"Millor dia","valor":"${millorDia?.ing||0} €","detall":"descriu el millor dia"},{"emoji":"⚡","titol":"Carrera més cara","valor":"${carrMesCara} €","detall":"context d'aquesta carrera"},{"emoji":"📍","titol":"Ruta més freqüent","valor":"${topRutes[0]?.ruta||'—'}","detall":"${topRutes[0]?.vegades||0} vegades"},{"emoji":"💰","titol":"Millor hora","valor":"${millorHora ? millorHora.hora+'h' : '—'}","detall":"mitja ${millorHora?.mitja||0} € per carrera"},{"emoji":"🚀","titol":"Millor dia setmana","valor":"?","detall":"analitza els patrons"}],"tendencies":[{"titol":"...","descripcio":"...","sentiment":"positiu"},{"titol":"...","descripcio":"...","sentiment":"negatiu"},{"titol":"...","descripcio":"...","sentiment":"neutral"},{"titol":"...","descripcio":"...","sentiment":"positiu"}],"distribucio_pagament":${JSON.stringify(distPag)},"distribucio_tarifa":${JSON.stringify(distTar)},"millors_dies_setmana":${JSON.stringify(millDiesSm.map(d=>({dia:d.dia,mitja_ingressos:d.mitja,num_dies:d.n})))},"ingressos_per_dia":${JSON.stringify(ingPerDia.map(d=>({fecha:d.fecha,ingressos:d.ing,carreres:d.serv})))},"franja_horaria":${JSON.stringify(distFr)},"consells":[{"emoji":"💡","titol":"...","text":"consell concret basat en les dades"},{"emoji":"📈","titol":"...","text":"..."},{"emoji":"🎯","titol":"...","text":"..."}],"valoracio_general":0}
+
+Omple els camps "..." i "valoracio_general" amb anàlisi real. Els camps numèrics ja estan calculats, NO els canviïs.`;
 
                 // ── Crida API Gemini ──
                 const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
                 const resp = await fetch(endpoint, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: { 'Content-Type': 'application/json; charset=utf-8' },
                     body: JSON.stringify({
                         contents: [{ parts: [{ text: prompt }] }],
                         generationConfig: {
                             temperature: 0.3,
-                            maxOutputTokens: 4096,
-                            responseMimeType: 'application/json'
+                            maxOutputTokens: 8192
+                            // responseMimeType omès: causa problemes amb models de raonament 2.5
                         }
                     })
                 });
@@ -4646,17 +4701,39 @@ Retorna exactament aquest JSON (tots els camps obligatoris):
                 }
 
                 const data = await resp.json();
-                const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                // Gemini 2.5 retorna parts múltiples (thought + text). Agafem només text real.
+                const allParts = data?.candidates?.[0]?.content?.parts || [];
+                const rawText = allParts
+                    .filter(p => p.text && !p.thought)
+                    .map(p => p.text)
+                    .join('').trim();
+
                 if (!rawText) throw new Error('Resposta buida de la IA. Comprova la clau API.');
 
-                // ── Parse JSON ──
+                const finishReason = data?.candidates?.[0]?.finishReason || '';
+                if (finishReason === 'MAX_TOKENS') {
+                    throw new Error('Resposta tallada per límit de tokens. Redueix el rang de dates.');
+                }
+
+                // ── Parse JSON robust ──
                 let analisi;
                 try {
-                    const clean = rawText.replace(/^```json\s*/,'').replace(/```\s*$/,'').trim();
-                    analisi = JSON.parse(clean);
+                    let clean = rawText
+                        .replace(/^```json[\s\S]*?\n/, '')
+                        .replace(/^```\s*\n?/, '')
+                        .replace(/\n?```\s*$/, '')
+                        .trim();
+                    try {
+                        analisi = JSON.parse(clean);
+                    } catch (_) {
+                        const m = clean.match(/\{[\s\S]*\}/);
+                        if (!m) throw new Error('cap bloc JSON al text');
+                        analisi = JSON.parse(m[0]);
+                    }
                 } catch(e) {
-                    console.error('Raw response:', rawText);
-                    throw new Error('La IA no ha retornat JSON vàlid. Prova amb un rang de dates més petit.');
+                    console.error('[Gemini] rawText:', rawText.slice(0, 500));
+                    throw new Error('JSON invàlid: ' + e.message);
                 }
 
                 btn.textContent = '🎨 Generant informe...';
