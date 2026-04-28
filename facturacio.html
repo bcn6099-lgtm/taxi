@@ -78,47 +78,6 @@
         </div>
     </div>
 
-    <!-- ════ MODAL ANÀLISI IA ════ -->
-    <div id="analisiModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:9998;align-items:center;justify-content:center;padding:1rem;">
-        <div style="background:var(--bg-primary);border-radius:20px;width:100%;max-width:440px;padding:1.75rem;position:relative;">
-            <button onclick="tancarModalAnalisi()" style="position:absolute;top:1rem;right:1rem;background:none;border:none;color:var(--text-secondary);font-size:1.4rem;cursor:pointer;line-height:1;">✕</button>
-            <h2 style="margin:0 0 0.25rem;font-size:1.15rem;">🧠 Anàlisi IA</h2>
-            <p style="margin:0 0 1.25rem;font-size:0.8rem;color:var(--text-secondary);">Genera un informe analitzat per IA amb gràfics i insights del teu rendiment.</p>
-
-            <div style="display:flex;flex-direction:column;gap:0.9rem;">
-                <div>
-                    <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:0.35rem;">Data inici</label>
-                    <input type="date" id="analisiDataInici" style="width:100%;padding:0.6rem 0.8rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;">
-                </div>
-                <div>
-                    <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:0.35rem;">Data fi</label>
-                    <input type="date" id="analisiDataFi" style="width:100%;padding:0.6rem 0.8rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;">
-                </div>
-                <div>
-                    <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:0.35rem;">Clau API Google AI Studio
-                        <span style="font-weight:400;color:var(--text-secondary);"> — <a href="https://aistudio.google.com/apikey" target="_blank" style="color:var(--accent);">Obtenir clau gratuïta</a></span>
-                    </label>
-                    <input type="password" id="analisiApiKey" placeholder="AIza..." style="width:100%;padding:0.6rem 0.8rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;box-sizing:border-box;font-family:monospace;">
-                </div>
-                <div>
-                    <label style="font-size:0.78rem;font-weight:600;display:block;margin-bottom:0.35rem;">Model</label>
-                    <select id="analisiModel" style="width:100%;padding:0.6rem 0.8rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.85rem;box-sizing:border-box;"></select>
-                </div>
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;">
-                    <button onclick="analisiSetRange(7)" style="flex:1;padding:0.45rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;font-size:0.78rem;cursor:pointer;color:var(--text-primary);">Última setmana</button>
-                    <button onclick="analisiSetRange(30)" style="flex:1;padding:0.45rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;font-size:0.78rem;cursor:pointer;color:var(--text-primary);">Últim mes</button>
-                    <button onclick="analisiSetRange(90)" style="flex:1;padding:0.45rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:8px;font-size:0.78rem;cursor:pointer;color:var(--text-primary);">Últims 3 mesos</button>
-                </div>
-            </div>
-
-            <button onclick="generarAnalisiIA()" id="analisiBtn"
-                style="margin-top:1.25rem;width:100%;padding:0.85rem;background:var(--accent);color:#000;border:none;border-radius:12px;font-size:1rem;font-weight:700;cursor:pointer;">
-                ✨ Generar informe
-            </button>
-            <div id="analisiStatus" style="margin-top:0.75rem;font-size:0.8rem;text-align:center;color:var(--text-secondary);min-height:1.2rem;"></div>
-        </div>
-    </div>
-
     <!-- ════ PANTALLA DE CÀRREGA ════ -->
     <div class="loading-screen" id="loading">
         <div class="loading-spinner"></div>
@@ -152,20 +111,9 @@
             <div class="menu-item" onclick="obrirCategoriesDespeses()">🏷️ Cat. Despeses</div>
             <a class="menu-item" href="https://bcn6099-lgtm.github.io/taxi/analisi.html" target="_blank" style="display:block;text-decoration:none;">📊 Informe 2018-2026</a>
             <div class="menu-divider"></div>
-            <div class="menu-item" onclick="exportJSON()">💾 Exportar JSON (local)</div>
-            <div class="menu-item" onclick="exportarADrive()">☁️ Exportar a Drive</div>
-            <div class="menu-item" onclick="document.getElementById('importFile').click()">📂 Importar JSON</div>
-            <div class="menu-item" onclick="obrirModalCSV()">🚖 Importar CSV Taxímetre</div>
-            <div class="menu-item" onclick="obrirObjectius()">🎯 Objectius</div>
-            <div class="menu-item" onclick="obrirModalAnalisi()">🧠 Anàlisi IA</div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" onclick="obrirConfigDrive()">⚙️ Configurar Drive</div>
-            <div class="menu-divider"></div>
-            <div class="menu-item" onclick="mostrarDiagnostic()" style="color:#888;font-size:0.8rem;" hidden>🔍 Diagnòstic torn</div>
-            <div class="menu-item" onclick="resetDB()" style="color:#ff7043;font-size:0.8rem;" hidden>🔧 Reset BD (debug)</div>
-            <div class="menu-item danger" onclick="confirmDeleteAllData()">🗑️ Esborrar totes les dades</div>
+            <div class="menu-item" onclick="navigateTo('configuracio')">⚙️ Configuració</div>
             <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
-    <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
+            <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
     </div>
 
@@ -636,6 +584,44 @@
 
                 <div id="tornsLlista"></div>
                 <div id="tornsPaginacio" style="display:flex;justify-content:center;align-items:center;gap:0.5rem;padding:1rem 0 1.5rem;flex-wrap:wrap;"></div>
+            </div>
+
+            <!-- ── PÀGINA: CONFIGURACIÓ ── -->
+            <div id="configuracio" class="page">
+                <h1 class="page-title">⚙️ Configuració</h1>
+
+                <div style="display:flex;flex-direction:column;gap:0.75rem;">
+
+                    <!-- Exportar / Importar -->
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;">
+                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:var(--text-secondary);margin-bottom:0.85rem;text-transform:uppercase;">Exportar / Importar</div>
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                            <button onclick="exportJSON()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">💾 Exportar JSON (local)</button>
+                            <button onclick="exportarADrive()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">☁️ Exportar a Drive</button>
+                            <button onclick="document.getElementById('importFile').click()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">📂 Importar JSON</button>
+                            <button onclick="obrirModalCSV()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">🚖 Importar CSV Taxímetre</button>
+                        </div>
+                    </div>
+
+                    <!-- Objectius -->
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;">
+                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:var(--text-secondary);margin-bottom:0.85rem;text-transform:uppercase;">Objectius</div>
+                        <button onclick="obrirObjectius()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">🎯 Objectius</button>
+                    </div>
+
+                    <!-- Google Drive -->
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;">
+                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:var(--text-secondary);margin-bottom:0.85rem;text-transform:uppercase;">Google Drive</div>
+                        <button onclick="obrirConfigDrive()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">⚙️ Configurar Drive</button>
+                    </div>
+
+                    <!-- Zona de perill -->
+                    <div style="background:var(--bg-card);border:1px solid #ff704344;border-radius:14px;padding:1.1rem 1.25rem;">
+                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:#ff7043;margin-bottom:0.85rem;text-transform:uppercase;">Zona de perill</div>
+                        <button onclick="confirmDeleteAllData()" style="width:100%;padding:0.8rem 1rem;background:rgba(255,112,67,0.1);border:1px solid #ff704366;border-radius:10px;color:#ff7043;font-size:0.9rem;text-align:left;cursor:pointer;font-weight:600;">🗑️ Esborrar totes les dades</button>
+                    </div>
+
+                </div>
             </div>
 
         </div>
@@ -2088,6 +2074,7 @@
             if (page === 'despeses') { despesesFilterMesAvui(); }
             if (page === 'dashboard') { updateDashboard(); updateTornObertBanner(); }
             if (page === 'heatmap') loadAndRenderHeatmap();
+            if (page === 'configuracio') { /* no cal inicialització */ }
         }
 
         // ==========================================
@@ -4449,567 +4436,6 @@
             };
 
             renderModal();
-        }
-
-        // ==========================================
-        // ANÀLISI IA (Google Gemini)
-        // ==========================================
-        const ANALISI_APIKEY_KEY = 'analisi_gemini_key';
-        const GEMINI_MODELS = [
-            { id: 'gemini-2.5-flash', label: 'Gemini 2.5 Flash (ràpid, gratuït ✓)' },
-            { id: 'gemini-2.5-pro',   label: 'Gemini 2.5 Pro (millor qualitat)'     },
-            { id: 'gemini-2.0-flash', label: 'Gemini 2.0 Flash'                     },
-        ];
-
-        function obrirModalAnalisi() {
-            const fi = new Date();
-            const inici = new Date(); inici.setDate(fi.getDate() - 29);
-            const fmt = d => d.toISOString().slice(0,10);
-            document.getElementById('analisiDataInici').value = fmt(inici);
-            document.getElementById('analisiDataFi').value    = fmt(fi);
-
-            // Restore saved key & model
-            const saved = localStorage.getItem(ANALISI_APIKEY_KEY);
-            if (saved) document.getElementById('analisiApiKey').value = saved;
-
-            // Populate model selector
-            const sel = document.getElementById('analisiModel');
-            if (sel && sel.options.length === 0) {
-                GEMINI_MODELS.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.id; opt.textContent = m.label;
-                    sel.appendChild(opt);
-                });
-                const savedModel = localStorage.getItem('analisi_gemini_model');
-                if (savedModel) sel.value = savedModel;
-            }
-
-            document.getElementById('analisiStatus').textContent = '';
-            document.getElementById('analisiStatus').style.color = 'var(--text-secondary)';
-            document.getElementById('analisiBtn').disabled = false;
-            document.getElementById('analisiBtn').textContent = '✨ Generar informe';
-            document.getElementById('analisiModal').style.display = 'flex';
-            const sidebar = document.getElementById('sidebar');
-            if (sidebar && sidebar.classList.contains('open')) sidebar.classList.remove('open');
-        }
-
-        function tancarModalAnalisi() {
-            document.getElementById('analisiModal').style.display = 'none';
-        }
-
-        function analisiSetRange(dies) {
-            const fi = new Date();
-            const inici = new Date(); inici.setDate(fi.getDate() - (dies - 1));
-            const fmt = d => d.toISOString().slice(0,10);
-            document.getElementById('analisiDataInici').value = fmt(inici);
-            document.getElementById('analisiDataFi').value    = fmt(fi);
-        }
-
-        async function generarAnalisiIA() {
-            const dataInici = document.getElementById('analisiDataInici').value;
-            const dataFi    = document.getElementById('analisiDataFi').value;
-            const apiKey    = document.getElementById('analisiApiKey').value.trim();
-            const model     = document.getElementById('analisiModel')?.value || 'gemini-1.5-flash';
-            const status    = document.getElementById('analisiStatus');
-            const btn       = document.getElementById('analisiBtn');
-
-            const setStatus = (msg, color) => { status.textContent = msg; status.style.color = color || 'var(--text-secondary)'; };
-
-            if (!dataInici || !dataFi)  { setStatus('⚠️ Selecciona un rang de dates.', '#f44336'); return; }
-            if (dataFi < dataInici)     { setStatus('⚠️ La data fi ha de ser posterior.', '#f44336'); return; }
-            if (!apiKey)                { setStatus('⚠️ Introdueix la clau API de Google AI Studio.', '#f44336'); return; }
-
-            localStorage.setItem(ANALISI_APIKEY_KEY, apiKey);
-            localStorage.setItem('analisi_gemini_model', model);
-            btn.disabled = true;
-            btn.textContent = '⏳ Recollint dades...';
-            setStatus('Llegint la base de dades local...');
-
-            try {
-                // ── Recollir dades ──
-                const totesCarreres = await getAllCarreresFromDB();
-                const totsResum     = await getStoredData();
-
-                const carreres = totesCarreres.filter(c => c.fecha >= dataInici && c.fecha <= dataFi);
-                const resums   = totsResum.filter(d => d.fecha >= dataInici && d.fecha <= dataFi);
-
-                if (carreres.length === 0 && resums.length === 0) {
-                    setStatus('⚠️ No hi ha dades en aquest rang de dates.', '#f44336');
-                    btn.disabled = false; btn.textContent = '✨ Generar informe'; return;
-                }
-
-                setStatus(`📊 ${carreres.length} carreres i ${resums.length} dies trobats. Analitzant...`);
-                btn.textContent = '🧠 Analitzant amb Gemini...';
-
-                // ── Payload compacte ──
-                // ── Pre-càlcul de KPIs en JS (evita enviar totes les carreres a Gemini) ──
-                const r2 = n => Math.round(n * 100) / 100;
-                const totalIng     = r2(resums.reduce((s,d) => s + (d.ingresos_dia||0), 0));
-                const totalCarr    = carreres.length;
-                const totalKm      = r2(carreres.reduce((s,c) => s + (parseFloat(c.km)||0), 0)) || null;
-                const horesTot     = resums.reduce((s,d) => s + (d.horas_trabajadas||0), 0);
-                const eurHoraMitja = horesTot > 0 ? r2(totalIng / horesTot) : null;
-                const eurCarrMitja = totalCarr > 0 ? r2(totalIng / totalCarr) : 0;
-                const imports      = carreres.map(c => parseFloat(c.import)||0);
-                const carrMesCara  = r2(Math.max(...imports, 0));
-                const kmArr        = carreres.map(c => parseFloat(c.km)||0).filter(k => k > 0);
-                const carrMesLlKm  = kmArr.length ? r2(Math.max(...kmArr)) : null;
-                const ingPerDia    = resums.map(d => ({ fecha: d.fecha, ing: r2(d.ingresos_dia||0), serv: d.servicios_dia||0 }));
-                const ingsOrd      = [...ingPerDia].sort((a,b) => b.ing - a.ing);
-                const millorDia    = ingsOrd[0] || null;
-                const pitjorDia    = ingsOrd[ingsOrd.length-1] || null;
-                const ingMitjaD    = resums.length > 0 ? r2(totalIng / resums.length) : 0;
-
-                // Distribució pagament
-                const pgCount = { efectiu:0, targeta:0, app:0, altres:0 };
-                carreres.forEach(c => {
-                    const p = (c.pagament||'').toLowerCase();
-                    if (p.includes('efectiu')) pgCount.efectiu++;
-                    else if (p.includes('targeta') || p.includes('visa') || p.includes('card')) pgCount.targeta++;
-                    else if (p.includes('app') || p.includes('cabify') || p.includes('bolt') || p.includes('uber')) pgCount.app++;
-                    else pgCount.altres++;
-                });
-                const pgTotal = totalCarr || 1;
-                const distPag = {
-                    efectiu: Math.round(pgCount.efectiu/pgTotal*100),
-                    targeta: Math.round(pgCount.targeta/pgTotal*100),
-                    app:     Math.round(pgCount.app/pgTotal*100),
-                    altres:  Math.round(pgCount.altres/pgTotal*100)
-                };
-
-                // Distribució tarifa
-                const tarCount = { taxímetre:0, tarifa3:0 };
-                carreres.forEach(c => {
-                    const t = (c.tarifa||'').toLowerCase();
-                    if (t.includes('t3') || t.includes('tarifa3') || t.includes('tarifa 3')) tarCount.tarifa3++;
-                    else tarCount.taxímetre++;
-                });
-                const distTar = {
-                    taxímetre: Math.round(tarCount.taxímetre/pgTotal*100),
-                    tarifa3:   Math.round(tarCount.tarifa3/pgTotal*100)
-                };
-
-                // Millors dies de setmana
-                const diesSetm = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
-                const byDow = {};
-                resums.forEach(d => {
-                    const dow = diesSetm[new Date(d.fecha).getDay()];
-                    if (!byDow[dow]) byDow[dow] = { sum:0, n:0 };
-                    byDow[dow].sum += d.ingresos_dia||0;
-                    byDow[dow].n++;
-                });
-                const millDiesSm = diesSetm.slice(1).concat(['Diumenge']).map(dia => ({
-                    dia, mitja: byDow[dia] ? r2(byDow[dia].sum/byDow[dia].n) : 0, n: byDow[dia]?.n||0
-                }));
-
-                // Franja horària
-                const franges = { mati:0, migdia:0, tarda:0, nit:0 };
-                carreres.forEach(c => {
-                    const h = parseInt((c.horaInici||c.hora||'00:00').split(':')[0]);
-                    if (h >= 6 && h < 12) franges.mati++;
-                    else if (h >= 12 && h < 17) franges.migdia++;
-                    else if (h >= 17 && h < 22) franges.tarda++;
-                    else franges.nit++;
-                });
-                const fTotal = totalCarr || 1;
-                const distFr = {
-                    mati:   Math.round(franges.mati/fTotal*100),
-                    migdia: Math.round(franges.migdia/fTotal*100),
-                    tarda:  Math.round(franges.tarda/fTotal*100),
-                    nit:    Math.round(franges.nit/fTotal*100)
-                };
-
-                // Rutes freqüents (top 5)
-                const rutaCount = {};
-                carreres.forEach(c => {
-                    if (c.origen && c.desti) {
-                        const k = (c.origen.slice(0,30) + '→' + c.desti.slice(0,30));
-                        rutaCount[k] = (rutaCount[k]||0) + 1;
-                    }
-                });
-                const topRutes = Object.entries(rutaCount).sort((a,b)=>b[1]-a[1]).slice(0,5)
-                    .map(([r,n]) => ({ ruta: r, vegades: n }));
-
-                // Millor hora del dia per ingressos
-                const byHora = {};
-                carreres.forEach(c => {
-                    const h = parseInt((c.horaInici||c.hora||'00:00').split(':')[0]);
-                    if (!byHora[h]) byHora[h] = { sum:0, n:0 };
-                    byHora[h].sum += parseFloat(c.import)||0;
-                    byHora[h].n++;
-                });
-                const millorHora = Object.entries(byHora)
-                    .map(([h,v]) => ({ hora: parseInt(h), mitja: r2(v.sum/v.n) }))
-                    .sort((a,b) => b.mitja - a.mitja)[0] || null;
-
-                // Payload compacte per a Gemini (sense carreres individuals)
-                const payload = {
-                    periode: { inici: dataInici, fi: dataFi, dies_treballats: resums.length },
-                    kpis_calculats: {
-                        ingressos_totals: totalIng,
-                        total_carreres: totalCarr,
-                        km_totals: totalKm,
-                        eur_hora_mitja: eurHoraMitja,
-                        eur_carrera_mitja: eurCarrMitja,
-                        carrera_mes_cara: carrMesCara,
-                        carrera_mes_llarga_km: carrMesLlKm,
-                        millor_dia: millorDia,
-                        pitjor_dia: pitjorDia,
-                        ingressos_per_dia_mitja: ingMitjaD
-                    },
-                    ingressos_per_dia: ingPerDia,
-                    distribucio_pagament: distPag,
-                    distribucio_tarifa: distTar,
-                    millors_dies_setmana: millDiesSm,
-                    franja_horaria: distFr,
-                    top_rutes: topRutes,
-                    millor_hora: millorHora,
-                    observacions_dies: resums.filter(d => d.observacions).map(d => ({ fecha: d.fecha, obs: d.observacions }))
-                };
-
-                const prompt = `Ets un analista expert en gestió de taxis a Barcelona.
-Tens les dades ja pre-calculades d'un taxista del ${dataInici} al ${dataFi}.
-
-CONTEXT IMPORTANT DEL TAXISTA (tingues-ho en compte per interpretar les dades i evitar comentaris erronis):
-- No treballa mai en horari nocturn. No facis cap comentari sobre activitat nocturna.
-- Té festa sempre els divendres i els caps de setmana quan el número del dia del mes és imparell. Per tant, absències en aquests dies són normals i esperades.
-- Als mesos parells treballa principalment a la ciutat (serveis urbans) perquè té prohibit els serveis des de l'aeroport: això implica més temps ocupat i una mitjana per hora més alta.
-- Als mesos imparells fa més serveis des de l'aeroport: això redueix el temps ocupat però augmenta l'import per carrera. Una mitjana per hora més baixa en mesos imparells és normal i esperada, no un problema.
-
-Retorna ÚNICAMENT un objecte JSON vàlid, sense text addicional, sense markdown.
-
-DADES PRE-CALCULADES:
-${JSON.stringify(payload)}
-
-Retorna aquest JSON exacte:
-{"resum_executiu":"2-3 frases amb xifres concretes destacant el més important","kpis":{"ingressos_totals":${totalIng},"dies_treballats":${resums.length},"total_carreres":${totalCarr},"km_totals":${totalKm},"eur_hora_mitja":${eurHoraMitja},"eur_carrera_mitja":${eurCarrMitja},"carrera_mes_llarga_km":${carrMesLlKm},"carrera_mes_cara":${carrMesCara},"millor_dia_ingressos":${millorDia?.ing||0},"pitjor_dia_ingressos":${pitjorDia?.ing||0},"ingressos_per_dia_mitja":${ingMitjaD}},"records":[{"emoji":"🏆","titol":"Millor dia","valor":"${millorDia?.ing||0} €","detall":"descriu el millor dia"},{"emoji":"⚡","titol":"Carrera més cara","valor":"${carrMesCara} €","detall":"context d'aquesta carrera"},{"emoji":"📍","titol":"Ruta més freqüent","valor":"${topRutes[0]?.ruta||'—'}","detall":"${topRutes[0]?.vegades||0} vegades"},{"emoji":"💰","titol":"Millor hora","valor":"${millorHora ? millorHora.hora+'h' : '—'}","detall":"mitja ${millorHora?.mitja||0} € per carrera"},{"emoji":"🚀","titol":"Millor dia setmana","valor":"?","detall":"analitza els patrons"}],"tendencies":[{"titol":"...","descripcio":"...","sentiment":"positiu"},{"titol":"...","descripcio":"...","sentiment":"negatiu"},{"titol":"...","descripcio":"...","sentiment":"neutral"},{"titol":"...","descripcio":"...","sentiment":"positiu"}],"distribucio_pagament":${JSON.stringify(distPag)},"distribucio_tarifa":${JSON.stringify(distTar)},"millors_dies_setmana":${JSON.stringify(millDiesSm.map(d=>({dia:d.dia,mitja_ingressos:d.mitja,num_dies:d.n})))},"ingressos_per_dia":${JSON.stringify(ingPerDia.map(d=>({fecha:d.fecha,ingressos:d.ing,carreres:d.serv})))},"franja_horaria":${JSON.stringify(distFr)},"consells":[{"emoji":"💡","titol":"...","text":"consell concret basat en les dades"},{"emoji":"📈","titol":"...","text":"..."},{"emoji":"🎯","titol":"...","text":"..."}],"valoracio_general":0}
-
-Omple els camps "..." i "valoracio_general" amb anàlisi real. Els camps numèrics ja estan calculats, NO els canviïs.`;
-
-                // ── Crida API Gemini ──
-                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-                const resp = await fetch(endpoint, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json; charset=utf-8' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: prompt }] }],
-                        generationConfig: {
-                            temperature: 0.3,
-                            maxOutputTokens: 8192
-                            // responseMimeType omès: causa problemes amb models de raonament 2.5
-                        }
-                    })
-                });
-
-                if (!resp.ok) {
-                    const err = await resp.json().catch(() => ({}));
-                    const msg = err?.error?.message || `Error HTTP ${resp.status}`;
-                    throw new Error(msg);
-                }
-
-                const data = await resp.json();
-
-                // Gemini 2.5 retorna parts múltiples (thought + text). Agafem només text real.
-                const allParts = data?.candidates?.[0]?.content?.parts || [];
-                const rawText = allParts
-                    .filter(p => p.text && !p.thought)
-                    .map(p => p.text)
-                    .join('').trim();
-
-                if (!rawText) throw new Error('Resposta buida de la IA. Comprova la clau API.');
-
-                const finishReason = data?.candidates?.[0]?.finishReason || '';
-                if (finishReason === 'MAX_TOKENS') {
-                    throw new Error('Resposta tallada per límit de tokens. Redueix el rang de dates.');
-                }
-
-                // ── Parse JSON robust ──
-                let analisi;
-                try {
-                    let clean = rawText
-                        .replace(/^```json[\s\S]*?\n/, '')
-                        .replace(/^```\s*\n?/, '')
-                        .replace(/\n?```\s*$/, '')
-                        .trim();
-                    try {
-                        analisi = JSON.parse(clean);
-                    } catch (_) {
-                        const m = clean.match(/\{[\s\S]*\}/);
-                        if (!m) throw new Error('cap bloc JSON al text');
-                        analisi = JSON.parse(m[0]);
-                    }
-                } catch(e) {
-                    console.error('[Gemini] rawText:', rawText.slice(0, 500));
-                    throw new Error('JSON invàlid: ' + e.message);
-                }
-
-                btn.textContent = '🎨 Generant informe...';
-                setStatus('Obrint informe en nova pestanya...');
-
-                const htmlInforme = generarHTMLInforme(analisi, dataInici, dataFi);
-                const blob = new Blob([htmlInforme], { type: 'text/html;charset=utf-8' });
-                const url  = URL.createObjectURL(blob);
-
-                // ── Descàrrega automàtica amb nom informe_AAAA-MM-DD.html ──
-                const avui = new Date().toISOString().slice(0, 10);
-                const linkDl = document.createElement('a');
-                linkDl.href = url;
-                linkDl.download = `informe_${avui}.html`;
-                document.body.appendChild(linkDl);
-                linkDl.click();
-                document.body.removeChild(linkDl);
-
-                // ── Obrir en nova pestanya ──
-                window.open(url, '_blank');
-                setTimeout(() => URL.revokeObjectURL(url), 120000);
-
-                tancarModalAnalisi();
-
-            } catch(err) {
-                console.error('Error anàlisi IA:', err);
-                setStatus('❌ ' + err.message, '#f44336');
-                btn.disabled = false;
-                btn.textContent = '✨ Generar informe';
-            }
-        }
-
-        function generarHTMLInforme(a, dataInici, dataFi, payload) {
-            const fmt = d => { if(!d) return '—'; const p = d.split('-'); return `${p[2]}/${p[1]}/${p[0]}`; };
-            const eur = n => n != null ? `${parseFloat(n).toFixed(2).replace('.',',')} €` : '—';
-            const pct = n => n != null ? `${Math.round(n)}%` : '0%';
-            const scoreColor = s => s >= 8 ? '#4caf50' : s >= 6 ? '#ff9800' : '#f44336';
-            const sentimentColor = s => s === 'positiu' ? '#4caf50' : s === 'negatiu' ? '#f44336' : '#ff9800';
-
-            // Dades per al gràfic de barres
-            const dies = (a.ingressos_per_dia || []).slice(-60); // màx 60 dies
-            const maxIng = Math.max(...dies.map(d => d.ingressos), 1);
-
-            const barresHTML = dies.map(d => {
-                const h = Math.max(4, Math.round((d.ingressos / maxIng) * 120));
-                const color = d.ingressos > (a.kpis.ingressos_per_dia_mitja * 1.2) ? '#4caf50'
-                            : d.ingressos < (a.kpis.ingressos_per_dia_mitja * 0.8) ? '#f44336' : '#f5c842';
-                const dd = d.fecha ? d.fecha.slice(8) + '/' + d.fecha.slice(5,7) : '';
-                return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1;min-width:0;">
-                    <div style="font-size:9px;color:#888;">${eur(d.ingressos).replace(' €','')}</div>
-                    <div style="width:100%;max-width:28px;height:${h}px;background:${color};border-radius:4px 4px 0 0;transition:height 0.3s;" title="${d.fecha}: ${eur(d.ingressos)}"></div>
-                    <div style="font-size:8px;color:#888;white-space:nowrap;">${dd}</div>
-                </div>`;
-            }).join('');
-
-            // Donut pagament (SVG simple)
-            const pag = a.distribucio_pagament || {};
-            const donutSegments = (data, colors) => {
-                let offset = 0;
-                return Object.entries(data).filter(([,v]) => v > 0).map(([k, v], i) => {
-                    const pct2 = v / 100;
-                    const seg = `<circle cx="60" cy="60" r="40" fill="none" stroke="${colors[i % colors.length]}"
-                        stroke-width="20" stroke-dasharray="${pct2 * 251.3} ${251.3}"
-                        stroke-dashoffset="${-offset * 251.3}" transform="rotate(-90 60 60)"/>`;
-                    offset += pct2;
-                    return seg;
-                }).join('');
-            };
-            const pagColors = ['#f5c842','#4caf50','#2196f3','#9e9e9e'];
-            const pagKeys = Object.keys(pag).filter(k => pag[k] > 0);
-            const donutSVG = `<svg viewBox="0 0 120 120" width="120" height="120">
-                ${donutSegments(pag, pagColors)}
-                <circle cx="60" cy="60" r="28" fill="#1a1a2e"/>
-                <text x="60" y="64" text-anchor="middle" fill="#fff" font-size="11" font-weight="bold">${a.kpis.total_carreres}</text>
-                <text x="60" y="76" text-anchor="middle" fill="#888" font-size="8">carreres</text>
-            </svg>`;
-
-            // Millors dies setmana
-            const millorsDies = (a.millors_dies_setmana || []).sort((a,b) => b.mitja_ingressos - a.mitja_ingressos);
-            const maxDia = Math.max(...millorsDies.map(d => d.mitja_ingressos), 1);
-
-            return `<!DOCTYPE html>
-<html lang="ca">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Informe Taxi — ${fmt(dataInici)} al ${fmt(dataFi)}</title>
-<style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-         background: #0f0f1a; color: #e8e8f0; min-height: 100vh; padding: 1.5rem; }
-  .container { max-width: 860px; margin: 0 auto; }
-  h1 { font-size: 1.6rem; font-weight: 800; margin-bottom: 0.25rem; }
-  h2 { font-size: 1rem; font-weight: 700; margin-bottom: 0.75rem; color: #ccc; text-transform: uppercase; letter-spacing: 0.05em; }
-  .subtitle { font-size: 0.85rem; color: #888; margin-bottom: 2rem; }
-  .section { background: #1a1a2e; border-radius: 16px; padding: 1.25rem; margin-bottom: 1rem; }
-  .kpi-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
-  .kpi { background: #0f0f1a; border-radius: 12px; padding: 0.9rem; }
-  .kpi-val { font-size: 1.5rem; font-weight: 800; color: #f5c842; line-height: 1; margin-bottom: 0.2rem; }
-  .kpi-lbl { font-size: 0.72rem; color: #888; }
-  .records-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 0.6rem; }
-  .record { background: #0f0f1a; border-radius: 12px; padding: 0.85rem; display: flex; gap: 0.6rem; align-items: flex-start; }
-  .record-emoji { font-size: 1.4rem; line-height: 1; flex-shrink: 0; }
-  .record-val { font-size: 1rem; font-weight: 700; color: #f5c842; }
-  .record-titol { font-size: 0.78rem; font-weight: 600; color: #ccc; }
-  .record-detall { font-size: 0.7rem; color: #888; margin-top: 0.15rem; }
-  .tend { display: flex; gap: 0.6rem; align-items: flex-start; padding: 0.65rem; background: #0f0f1a; border-radius: 10px; margin-bottom: 0.5rem; }
-  .tend-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 4px; }
-  .tend-titol { font-size: 0.82rem; font-weight: 600; color: #ddd; }
-  .tend-desc { font-size: 0.75rem; color: #888; margin-top: 0.1rem; }
-  .consell { display: flex; gap: 0.75rem; padding: 0.75rem; background: #0f0f1a; border-radius: 10px; margin-bottom: 0.5rem; border-left: 3px solid #f5c842; }
-  .consell-emoji { font-size: 1.2rem; flex-shrink: 0; }
-  .consell-titol { font-size: 0.82rem; font-weight: 700; color: #f5c842; }
-  .consell-text { font-size: 0.76rem; color: #aaa; margin-top: 0.15rem; }
-  .bars { display: flex; align-items: flex-end; gap: 3px; height: 140px; padding: 1rem 0 0; overflow-x: auto; }
-  .score-ring { width: 90px; height: 90px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 900; flex-shrink: 0;
-    background: conic-gradient(${scoreColor(a.valoracio_general)} ${a.valoracio_general * 36}deg, #222 0deg); }
-  .score-inner { width: 70px; height: 70px; background: #1a1a2e; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-direction: column; }
-  .pag-llegenda { display: flex; flex-direction: column; gap: 0.4rem; justify-content: center; }
-  .pag-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
-  .pag-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
-  .dia-bar-wrap { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.4rem; }
-  .dia-label { font-size: 0.78rem; width: 75px; flex-shrink: 0; color: #ccc; }
-  .dia-bar-bg { flex: 1; background: #0f0f1a; border-radius: 4px; height: 20px; overflow: hidden; }
-  .dia-bar-fill { height: 100%; background: #f5c842; border-radius: 4px; display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
-  .dia-bar-val { font-size: 0.7rem; font-weight: 700; color: #000; }
-  .resum-executiu { font-size: 0.92rem; line-height: 1.65; color: #ddd; background: linear-gradient(135deg,rgba(245,200,66,0.08),transparent); border-radius: 12px; padding: 1rem 1.1rem; border-left: 3px solid #f5c842; }
-  @media(max-width:500px){ .kpi-grid{grid-template-columns:repeat(2,1fr);} .records-grid{grid-template-columns:1fr;} }
-  @media print { body{background:#fff;color:#000;} .section{background:#f5f5f5;border:1px solid #ddd;} }
-</style>
-</head>
-<body>
-<div class="container">
-
-  <!-- HEADER -->
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:0.5rem;">
-    <div>
-      <h1>🚕 Informe de rendiment</h1>
-      <div class="subtitle">${fmt(dataInici)} — ${fmt(dataFi)} · Generat per IA el ${fmt(new Date().toISOString().slice(0,10))}</div>
-    </div>
-    <div style="display:flex;align-items:center;gap:0.75rem;">
-      <div class="score-ring">
-        <div class="score-inner">
-          <span style="font-size:1.6rem;font-weight:900;color:${scoreColor(a.valoracio_general)}">${a.valoracio_general}</span>
-          <span style="font-size:0.6rem;color:#888;">/ 10</span>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- RESUM EXECUTIU -->
-  <div class="section" style="margin-bottom:1rem;">
-    <div class="resum-executiu">${a.resum_executiu || ''}</div>
-  </div>
-
-  <!-- KPIs -->
-  <div class="section">
-    <h2>📊 Indicadors clau</h2>
-    <div class="kpi-grid">
-      <div class="kpi"><div class="kpi-val">${eur(a.kpis.ingressos_totals)}</div><div class="kpi-lbl">Ingressos totals</div></div>
-      <div class="kpi"><div class="kpi-val">${a.kpis.dies_treballats}</div><div class="kpi-lbl">Dies treballats</div></div>
-      <div class="kpi"><div class="kpi-val">${a.kpis.total_carreres}</div><div class="kpi-lbl">Total carreres</div></div>
-      ${a.kpis.km_totals ? `<div class="kpi"><div class="kpi-val">${Math.round(a.kpis.km_totals)} km</div><div class="kpi-lbl">Km recorreguts</div></div>` : ''}
-      <div class="kpi"><div class="kpi-val">${eur(a.kpis.ingressos_per_dia_mitja)}</div><div class="kpi-lbl">Mitja/dia</div></div>
-      <div class="kpi"><div class="kpi-val">${eur(a.kpis.eur_carrera_mitja)}</div><div class="kpi-lbl">Mitja/carrera</div></div>
-      ${a.kpis.eur_hora_mitja ? `<div class="kpi"><div class="kpi-val">${eur(a.kpis.eur_hora_mitja)}</div><div class="kpi-lbl">€/hora</div></div>` : ''}
-      <div class="kpi"><div class="kpi-val">${eur(a.kpis.millor_dia_ingressos)}</div><div class="kpi-lbl">Millor dia</div></div>
-      <div class="kpi"><div class="kpi-val">${eur(a.kpis.carrera_mes_cara)}</div><div class="kpi-lbl">Carrera més cara</div></div>
-      ${a.kpis.carrera_mes_llarga_km ? `<div class="kpi"><div class="kpi-val">${a.kpis.carrera_mes_llarga_km} km</div><div class="kpi-lbl">Carrera + llarga</div></div>` : ''}
-    </div>
-  </div>
-
-  <!-- GRÀFIC BARRES -->
-  <div class="section">
-    <h2>📅 Ingressos per dia</h2>
-    <div style="display:flex;gap:0.6rem;margin-bottom:0.5rem;flex-wrap:wrap;font-size:0.72rem;color:#888;">
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#4caf50;display:inline-block;"></span> Per sobre de la mitja</span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#f5c842;display:inline-block;"></span> Dins de la mitja</span>
-      <span style="display:flex;align-items:center;gap:4px;"><span style="width:10px;height:10px;border-radius:2px;background:#f44336;display:inline-block;"></span> Per sota de la mitja</span>
-    </div>
-    <div class="bars">${barresHTML}</div>
-  </div>
-
-  <!-- RECORDS + PAGAMENT -->
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
-    <div class="section" style="margin-bottom:0;">
-      <h2>🏆 Rècords del període</h2>
-      <div style="display:flex;flex-direction:column;gap:0.5rem;">
-        ${(a.records || []).map(r => `
-        <div class="record">
-          <div class="record-emoji">${r.emoji}</div>
-          <div>
-            <div class="record-titol">${r.titol}</div>
-            <div class="record-val">${r.valor}</div>
-            <div class="record-detall">${r.detall}</div>
-          </div>
-        </div>`).join('')}
-      </div>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:1rem;">
-      <div class="section" style="margin-bottom:0;">
-        <h2>💳 Pagament</h2>
-        <div style="display:flex;gap:1rem;align-items:center;">
-          ${donutSVG}
-          <div class="pag-llegenda">
-            ${pagKeys.map((k,i) => `<div class="pag-item">
-              <div class="pag-dot" style="background:${pagColors[i]};"></div>
-              <span>${k.charAt(0).toUpperCase()+k.slice(1)}: <strong>${pct(pag[k])}</strong></span>
-            </div>`).join('')}
-          </div>
-        </div>
-      </div>
-      ${a.franja_horaria ? `<div class="section" style="margin-bottom:0;">
-        <h2>🕐 Franja horària</h2>
-        ${[['🌅 Matí (6-12h)','mati'],['☀️ Migdia (12-16h)','migdia'],['🌆 Tarda (16-20h)','tarda'],['🌙 Nit (20-6h)','nit']].map(([lbl,k]) =>
-          a.franja_horaria[k] > 0 ? `<div class="dia-bar-wrap">
-            <div class="dia-label" style="font-size:0.72rem;">${lbl}</div>
-            <div class="dia-bar-bg"><div class="dia-bar-fill" style="width:${a.franja_horaria[k]}%;background:#2196f3;">
-              <span class="dia-bar-val" style="color:#fff;">${Math.round(a.franja_horaria[k])}%</span>
-            </div></div>
-          </div>` : ''
-        ).join('')}
-      </div>` : ''}
-    </div>
-  </div>
-
-  <!-- MILLORS DIES SETMANA -->
-  ${millorsDies.length > 0 ? `<div class="section">
-    <h2>📆 Rendiment per dia de la setmana</h2>
-    ${millorsDies.map((d,i) => `<div class="dia-bar-wrap">
-      <div class="dia-label">${i===0?'🥇':i===1?'🥈':i===2?'🥉':'  '} ${d.dia}</div>
-      <div class="dia-bar-bg"><div class="dia-bar-fill" style="width:${Math.round((d.mitja_ingressos/maxDia)*100)}%;">
-        <span class="dia-bar-val">${eur(d.mitja_ingressos)}</span>
-      </div></div>
-      <span style="font-size:0.7rem;color:#888;flex-shrink:0;">(${d.num_dies} dies)</span>
-    </div>`).join('')}
-  </div>` : ''}
-
-  <!-- TENDÈNCIES -->
-  <div class="section">
-    <h2>📈 Tendències i patrons</h2>
-    ${(a.tendencies || []).map(t => `<div class="tend">
-      <div class="tend-dot" style="background:${sentimentColor(t.sentiment)};"></div>
-      <div>
-        <div class="tend-titol">${t.titol}</div>
-        <div class="tend-desc">${t.descripcio}</div>
-      </div>
-    </div>`).join('')}
-  </div>
-
-  <!-- CONSELLS IA -->
-  <div class="section">
-    <h2>💡 Consells i recomanacions</h2>
-    ${(a.consells || []).map(c => `<div class="consell">
-      <div class="consell-emoji">${c.emoji}</div>
-      <div>
-        <div class="consell-titol">${c.titol}</div>
-        <div class="consell-text">${c.text}</div>
-      </div>
-    </div>`).join('')}
-  </div>
-
-  <div style="text-align:center;font-size:0.72rem;color:#555;padding:1rem 0 0.5rem;">
-    Informe generat automàticament per IA · Taxi Control · ${new Date().toLocaleString('ca')}
-  </div>
-
-</div>
-</body>
-</html>`;
         }
 
                 // ==========================================
