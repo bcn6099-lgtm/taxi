@@ -4669,6 +4669,13 @@
 
                 const prompt = `Ets un analista expert en gestió de taxis a Barcelona.
 Tens les dades ja pre-calculades d'un taxista del ${dataInici} al ${dataFi}.
+
+CONTEXT IMPORTANT DEL TAXISTA (tingues-ho en compte per interpretar les dades i evitar comentaris erronis):
+- No treballa mai en horari nocturn. No facis cap comentari sobre activitat nocturna.
+- Té festa sempre els divendres i els caps de setmana quan el número del dia del mes és imparell. Per tant, absències en aquests dies són normals i esperades.
+- Als mesos parells treballa principalment a la ciutat (serveis urbans) perquè té prohibit els serveis des de l'aeroport: això implica més temps ocupat i una mitjana per hora més alta.
+- Als mesos imparells fa més serveis des de l'aeroport: això redueix el temps ocupat però augmenta l'import per carrera. Una mitjana per hora més baixa en mesos imparells és normal i esperada, no un problema.
+
 Retorna ÚNICAMENT un objecte JSON vàlid, sense text addicional, sense markdown.
 
 DADES PRE-CALCULADES:
@@ -4742,6 +4749,17 @@ Omple els camps "..." i "valoracio_general" amb anàlisi real. Els camps numèri
                 const htmlInforme = generarHTMLInforme(analisi, dataInici, dataFi);
                 const blob = new Blob([htmlInforme], { type: 'text/html;charset=utf-8' });
                 const url  = URL.createObjectURL(blob);
+
+                // ── Descàrrega automàtica amb nom informe_AAAA-MM-DD.html ──
+                const avui = new Date().toISOString().slice(0, 10);
+                const linkDl = document.createElement('a');
+                linkDl.href = url;
+                linkDl.download = `informe_${avui}.html`;
+                document.body.appendChild(linkDl);
+                linkDl.click();
+                document.body.removeChild(linkDl);
+
+                // ── Obrir en nova pestanya ──
                 window.open(url, '_blank');
                 setTimeout(() => URL.revokeObjectURL(url), 120000);
 
