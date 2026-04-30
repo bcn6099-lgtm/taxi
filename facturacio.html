@@ -699,7 +699,10 @@
                     <span class="carreres-total-value dseg7-total" id="carreresTotalValue">0,00€</span>
                     <span class="carreres-total-label">Total recaptat</span>
                 </div>
-
+                <div id="propinesTotalBar" style="display:none;flex-direction:column;align-items:center;justify-content:center;padding:0.3rem 0.75rem;border-left:1px solid var(--border);margin-left:0.5rem;">
+                    <span id="propinesTotalValue" style="font-size:1.1rem;font-weight:700;color:#ffd54f;">0,00€</span>
+                    <span style="font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.06em;">🤑 Propines</span>
+                </div>
             </div>
             <button class="btn-nova-carrera" id="btnIniciarCarrera" onclick="mostrarFormCarrera()">🟢 Iniciar Carrera</button>
             <button id="btnReprendreCarrera" style="display:none;width:calc(100% - 2rem);margin:0 1rem 0.75rem;background:#ffc107;color:#000;border:none;border-radius:12px;padding:1rem;font-size:1rem;font-weight:700;cursor:pointer;box-shadow:0 0 12px rgba(255,193,7,0.4);" onclick="mostrarFormCarrera()">
@@ -5738,6 +5741,19 @@
             const total = calcularTotalCarreres();
             const totalEl = document.getElementById('carreresTotalValue');
             if (totalEl) totalEl.textContent = formatEurDSEG(total);
+
+            // ── Suma propines ──
+            const totalPropines = Math.round(carreresAvui.reduce((s, c) => s + (parseFloat(c.propina) || 0), 0) * 100) / 100;
+            const propinesBar = document.getElementById('propinesTotalBar');
+            const propinesVal = document.getElementById('propinesTotalValue');
+            if (propinesBar && propinesVal) {
+                if (totalPropines > 0) {
+                    propinesVal.textContent = formatEur(totalPropines);
+                    propinesBar.style.display = 'flex';
+                } else {
+                    propinesBar.style.display = 'none';
+                }
+            }
 
             // (hores calculades al peu de la llista)
 
