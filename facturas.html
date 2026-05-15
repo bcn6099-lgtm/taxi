@@ -711,7 +711,7 @@ async function extractPDFData(file,apiKey){
         model:'pixtral-12b-2409',temperature:0,max_tokens:300,
         response_format:{type:'json_object'},
         messages:[
-          {role:'system',content:'Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. El camp 'cif' ha de ser el CIF o NIF del PROVEÏDOR (empresa emissora de la factura), mai del client. Si hi ha un segon número fiscal (del client o destinatari), posa'l a 'cif2'. Si no trobes un camp usa null.'},
+          {role:'system',content:`Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. El camp 'cif' ha de ser el CIF o NIF del PROVEÏDOR (empresa emissora de la factura), mai del client. Si hi ha un segon número fiscal (del client o destinatari), posa'l a 'cif2'. Si no trobes un camp usa null.`},
           {role:'user',content:[
             {type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},
             {type:'text',text:"Extreu les dades d'aquesta factura en JSON. Recorda: 'cif' = NIF/CIF del proveïdor (emissor), 'cif2' = NIF/CIF del client si n'hi ha."}
@@ -763,7 +763,7 @@ async function extractPDFData(file,apiKey){
         model:'mistral-small-latest',temperature:0,max_tokens:300,
         response_format:{type:'json_object'},
         messages:[
-          {role:'system',content:'Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. El camp 'cif' ha de ser el CIF o NIF del PROVEÏDOR (empresa emissora de la factura), mai del client. Si hi ha un segon número fiscal (del client o destinatari), posa'l a 'cif2'. Si no trobes un camp usa null.'},
+          {role:'system',content:`Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. El camp 'cif' ha de ser el CIF o NIF del PROVEÏDOR (empresa emissora de la factura), mai del client. Si hi ha un segon número fiscal (del client o destinatari), posa'l a 'cif2'. Si no trobes un camp usa null.`},
           {role:'user',content:[
             {type:'document_url',document_url:signedUrl},
             {type:'text',text:"Extreu les dades d'aquesta factura en JSON. Recorda: 'cif' = NIF/CIF del proveïdor (emissor), 'cif2' = NIF/CIF del client si n'hi ha."}
