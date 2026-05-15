@@ -221,6 +221,31 @@
         <strong>mistral-small-latest</strong> — Suficient per llegir factures. Inclòs al pla gratuït Experiment.
       </p>
     </div>
+    <div class="form-section" style="margin-top:20px">
+      <div class="form-section-title">El teu DNI / NIF</div>
+      <p style="font-size:13px;opacity:.7;margin-bottom:16px;line-height:1.6">
+        La IA de vegades extreu el teu DNI com a CIF del proveïdor. Indica'l aquí: si el detecta com a CIF principal, buscarà un segon número fiscal al document (el del proveïdor real).
+      </p>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>DNI / NIF propi</label>
+          <input type="text" id="cfg_dni" placeholder="Ex: 12345678Z" maxlength="20" autocomplete="off" style="text-transform:uppercase">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveDni()">DESAR DNI</button>
+      </div>
+      <div id="cfg_dni_status" style="margin-top:14px;font-size:13px;display:none"></div>
+    </div>
+    <div class="form-section" style="margin-top:20px;border-color:rgba(231,76,60,.2)">
+      <div class="form-section-title" style="color:#e74c3c">Zona de perill</div>
+      <p style="font-size:13px;opacity:.7;margin-bottom:16px;line-height:1.6">
+        Esborra totes les factures i proveïdors. Fes un backup (Exportar JSON) abans.
+      </p>
+      <div class="form-actions">
+        <button class="btn btn-danger" onclick="confirmClearAll()">ESBORRAR TOTES LES DADES</button>
+      </div>
+    </div>
   </div>
 
 </main>
@@ -229,6 +254,22 @@
 <script>
 // API key guardada a IndexedDB (gestiona-la des del menú ⚙ Configuració API)
 let _cachedApiKey = null;
+let _cachedDni = null;
+async function getMyDni(){
+  if(_cachedDni!==null) return _cachedDni;
+  try{
+    const tx=db.transaction('settings','readonly');
+    const r=tx.objectStore('settings').get('my_dni');
+    const val=await new Promise((res,rej)=>{r.onsuccess=e=>res(e.target.result?.value||'');r.onerror=rej});
+    _cachedDni=val.trim().toUpperCase();return _cachedDni;
+  }catch{return ''}
+}
+async function saveMyDni(dni){
+  _cachedDni=dni.trim().toUpperCase();
+  const tx=db.transaction('settings','readwrite');
+  tx.objectStore('settings').put({key:'my_dni',value:_cachedDni});
+  return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
+}
 async function getApiKey(){
   if(_cachedApiKey) return _cachedApiKey;
   try{
@@ -652,6 +693,12 @@ async function processBatch(files){
   toast(summary,'ok');
 }
 
+function cleanCif(raw, myDni){
+  if(!raw) return '';
+  const n = raw.trim().toUpperCase();
+  if(myDni && n === myDni) return '';
+  return n;
+}
 async function extractPDFData(file,apiKey){
   // Images: send as base64 image_url directly (no Files API needed)
   if(file.type.startsWith('image/')){
@@ -664,10 +711,10 @@ async function extractPDFData(file,apiKey){
         model:'pixtral-12b-2409',temperature:0,max_tokens:300,
         response_format:{type:'json_object'},
         messages:[
-          {role:'system',content:'Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, base, iva, total. Si no trobes un camp usa null.'},
+          {role:'system',content:'Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. El camp 'cif' ha de ser el CIF o NIF del PROVEÏDOR (empresa emissora de la factura), mai del client. Si hi ha un segon número fiscal (del client o destinatari), posa'l a 'cif2'. Si no trobes un camp usa null.'},
           {role:'user',content:[
             {type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},
-            {type:'text',text:"Extreu les dades d'aquesta factura en JSON."}
+            {type:'text',text:"Extreu les dades d'aquesta factura en JSON. Recorda: 'cif' = NIF/CIF del proveïdor (emissor), 'cif2' = NIF/CIF del client si n'hi ha."}
           ]}
         ]
       })
@@ -677,7 +724,10 @@ async function extractPDFData(file,apiKey){
     const rawText=data.choices?.[0]?.message?.content||'';
     if(!rawText) throw new Error('Resposta buida');
     const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
-    return {invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',cif:json.cif||'',base:+json.base||0,iva:+json.iva||0,total:+json.total||0};
+    const myDni1=await getMyDni();
+    const cifA=cleanCif(json.cif,myDni1);
+    const cifB=cifA===''?cleanCif(json.cif2,myDni1):'';
+    return {invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',cif:cifA||cifB,base:+json.base||0,iva:+json.iva||0,total:+json.total||0};
   }
   // PDFs: use Files API
   // Step 1 — upload file
@@ -713,10 +763,10 @@ async function extractPDFData(file,apiKey){
         model:'mistral-small-latest',temperature:0,max_tokens:300,
         response_format:{type:'json_object'},
         messages:[
-          {role:'system',content:'Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, base, iva, total. Si no trobes un camp usa null.'},
+          {role:'system',content:'Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. El camp 'cif' ha de ser el CIF o NIF del PROVEÏDOR (empresa emissora de la factura), mai del client. Si hi ha un segon número fiscal (del client o destinatari), posa'l a 'cif2'. Si no trobes un camp usa null.'},
           {role:'user',content:[
             {type:'document_url',document_url:signedUrl},
-            {type:'text',text:"Extreu les dades d'aquesta factura en JSON."}
+            {type:'text',text:"Extreu les dades d'aquesta factura en JSON. Recorda: 'cif' = NIF/CIF del proveïdor (emissor), 'cif2' = NIF/CIF del client si n'hi ha."}
           ]}
         ]
       })
@@ -740,9 +790,12 @@ async function extractPDFData(file,apiKey){
   const rawText=chatData.choices?.[0]?.message?.content||'';
   if(!rawText) throw new Error('Resposta buida');
   const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
+  const myDni2=await getMyDni();
+  const cifC=cleanCif(json.cif,myDni2);
+  const cifD=cifC===''?cleanCif(json.cif2,myDni2):'';
   return {
     invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',
-    cif:json.cif||'',base:+json.base||0,iva:+json.iva||0,total:+json.total||0
+    cif:cifC||cifD,base:+json.base||0,iva:+json.iva||0,total:+json.total||0
   };
 }
 
@@ -752,6 +805,19 @@ async function loadApiConfigPage(){
   const inp=document.getElementById('cfg_apikey');
   if(key){inp.value=key;showCfgStatus('✓ Clau configurada','ok')}
   else{inp.value='';showCfgStatus('No hi ha cap clau configurada','warn')}
+  const dni=await getMyDni();
+  const dniInp=document.getElementById('cfg_dni');
+  if(dniInp) dniInp.value=dni;
+  const dniSt=document.getElementById('cfg_dni_status');
+  if(dniSt&&dni){dniSt.textContent='✓ DNI configurat: '+dni;dniSt.style.color='#27ae60';dniSt.style.display='block';}
+}
+async function saveDni(){
+  const val=document.getElementById('cfg_dni').value.trim().toUpperCase();
+  if(!val){const st=document.getElementById('cfg_dni_status');st.textContent='Introdueix el teu DNI/NIF';st.style.color='#e74c3c';st.style.display='block';return;}
+  await saveMyDni(val);
+  const st=document.getElementById('cfg_dni_status');
+  st.textContent='✓ DNI desat: '+val;st.style.color='#27ae60';st.style.display='block';
+  toast('DNI desat','ok');
 }
 function showCfgStatus(msg,type){
   const el=document.getElementById('cfg_status');
@@ -850,7 +916,50 @@ async function renderProviders(){
   document.getElementById('provCount').textContent=data.length+' proveïdors';
   const el=document.getElementById('providerList');
   if(!data.length){el.innerHTML='<div class="empty-state"><div class="empty-text">Sense proveïdors</div></div>';return}
-  el.innerHTML=`<div class="prov-grid">${data.map(p=>`<div class="prov-row"><span class="prov-name">${p.name}</span><span class="prov-cif">${p.cif||'—'}</span><button class="btn-del" onclick="deleteProvider(${p.id})">✕</button></div>`).join('')}</div>`;
+  el.innerHTML=`<div class="prov-grid">${data.map(p=>`
+    <div class="prov-row" id="prov-row-${p.id}">
+      <span class="prov-name">${p.name}</span>
+      <span class="prov-cif" id="prov-cif-${p.id}" style="cursor:pointer;text-decoration:underline dotted" title="Clic per editar" onclick="editProviderCif(${p.id},'${(p.cif||'').replace(/'/g,String.fromCharCode(92)+String.fromCharCode(39))}')">
+        ${p.cif||'—'}
+      </span>
+      <button class="btn-del" onclick="deleteProvider(${p.id})">✕</button>
+    </div>`).join('')}</div>`;
+}
+async function editProviderCif(id, currentCif){
+  const span=document.getElementById('prov-cif-'+id);
+  if(!span)return;
+  span.outerHTML=`<span id="prov-cif-${id}" style="display:flex;gap:5px;align-items:center">
+    <input id="prov-cif-inp-${id}" type="text" value="${currentCif}" maxlength="20"
+      style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid rgba(128,128,128,.4);background:transparent;width:100px;text-transform:uppercase"
+      onkeydown="if(event.key==='Enter')saveProviderCif(${id});if(event.key==='Escape')renderProviders()">
+    <button class="btn btn-primary" style="padding:2px 8px;font-size:11px" onclick="saveProviderCif(${id})">✓</button>
+    <button class="btn btn-outline" style="padding:2px 6px;font-size:11px" onclick="renderProviders()">✕</button>
+  </span>`;
+  document.getElementById('prov-cif-inp-'+id)?.focus();
+}
+async function saveProviderCif(id){
+  const inp=document.getElementById('prov-cif-inp-'+id);
+  if(!inp)return;
+  const newCif=inp.value.trim().toUpperCase();
+  const all=await dbAll('providers');
+  const prov=all.find(p=>p.id===id);
+  if(!prov)return;
+  // Actualitzar el proveïdor
+  const tx=db.transaction('providers','readwrite');
+  tx.objectStore('providers').put({...prov,cif:newCif});
+  await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
+  // Actualitzar totes les factures d'aquest proveïdor
+  const invAll=await dbAll('invoices');
+  const toUpdate=invAll.filter(r=>normName(r.provider)===normName(prov.name));
+  for(const inv of toUpdate){
+    const tx2=db.transaction('invoices','readwrite');
+    tx2.objectStore('invoices').put({...inv,cif:newCif});
+    await new Promise((res,rej)=>{tx2.oncomplete=res;tx2.onerror=rej});
+  }
+  invalidateProviderCache();
+  renderProviders();
+  const n=toUpdate.length;
+  toast('CIF desat: '+(newCif||'buit')+(n?' · '+n+' factura'+(n!==1?'s':'')+' actualitzada'+(n!==1?'s':''):''), 'ok');
 }
 async function addProvider(){
   const name=document.getElementById('p_name').value.trim(),cif=document.getElementById('p_cif').value.trim().toUpperCase();
@@ -993,6 +1102,19 @@ async function importJSON(e){
   `;
   document.head.appendChild(s);
 })();
+// ===== CLEAR ALL =====
+async function confirmClearAll(){
+  const step1=confirm('⚠ ESBORRAR TOTES LES DADES\n\nAixò eliminarà totes les factures i proveïdors.\n\nVols exportar ara el backup JSON?');
+  if(step1) exportJSON();
+  const step2=confirm('Confirmes que vols esborrar TOTES les factures i proveïdors?\n\nAquesta acció no es pot desfer.');
+  if(!step2)return;
+  await dbClear('invoices');
+  await dbClear('providers');
+  invalidateProviderCache();
+  renderInvoices();
+  toast('Totes les dades esborrades','ok');
+}
+
 // ===== INIT =====
 async function init(){
   await initDB();
