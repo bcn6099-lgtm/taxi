@@ -277,15 +277,29 @@ function fmtDate(d){if(!d)return'—';try{return new Date(d+'T00:00:00').toLocal
 function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(()=>t.classList.remove('show'),3500)}
 
 // ===== DUPLICATE CHECK =====
-// Únic criteri: número de factura idèntic (case-insensitive).
-// Si no hi ha número informat, no es comprova res.
-async function checkDuplicate(invoiceNum, provider, total, excludeId=null) {
-  if (!invoiceNum || !invoiceNum.trim()) return null; // sense número → no comprovem
+// Criteri 1: número de factura idèntic (case-insensitive, sense espais).
+// Criteri 2 (fallback): mateixa data + mateix proveïdor (normalitzat) + mateix total.
+function normInvoiceNum(s){ return s?s.trim().toLowerCase().replace(/\s+/g,''):''; }
+async function checkDuplicate(invoiceNum, provider, total, date, excludeId=null) {
   const all = await dbAll('invoices');
   const candidates = all.filter(r => excludeId ? r.id !== excludeId : true);
-  const numNorm = invoiceNum.trim().toLowerCase();
-  const byNum = candidates.find(r => r.invoiceNum && r.invoiceNum.trim().toLowerCase() === numNorm);
-  if (byNum) return { match: byNum, reason: 'number' };
+  // Criteri 1: número de factura
+  const numNorm = normInvoiceNum(invoiceNum);
+  if (numNorm) {
+    const byNum = candidates.find(r => normInvoiceNum(r.invoiceNum) === numNorm);
+    if (byNum) return { match: byNum, reason: 'number' };
+  }
+  // Criteri 2: data + proveïdor + total (quan no hi ha número o no coincideix)
+  if (date && provider && total) {
+    const provNorm = normName(provider);
+    const totalNum = Math.round(+total * 100);
+    const byDateProvTotal = candidates.find(r =>
+      r.date === date &&
+      normName(r.provider) === provNorm &&
+      Math.round(+r.total * 100) === totalNum
+    );
+    if (byDateProvTotal) return { match: byDateProvTotal, reason: 'data_prov_total' };
+  }
   return null;
 }
 
@@ -297,7 +311,7 @@ function showDupWarning(inv, dupResult, onForce) {
   const r = dupResult.match;
   const reasonText = dupResult.reason === 'number'
     ? `Ja existeix una factura amb el número <strong>${r.invoiceNum}</strong>.`
-    : `Ja existeix una factura del mateix proveïdor amb el mateix import (${fmt(r.total)} €).`;
+    : `Ja existeix una factura del mateix proveïdor (${r.provider}), data i import (${fmt(r.total)} €).`;
 
   document.getElementById('dupAlertText').innerHTML = reasonText;
   document.getElementById('dupExisting').innerHTML = `
@@ -456,7 +470,7 @@ async function processPDF(file){
     catch(pe){ throw new Error('No s\'ha pogut llegir la resposta com a JSON. Text: '+rawText.slice(0,300)); }
     ['invoiceNum','date','provider','cif','base','iva','total'].forEach(k=>document.getElementById('ai_'+k).value=json[k]??'');
     document.getElementById('aiResult').style.display='block';
-    const dup = await checkDuplicate(json.invoiceNum, json.provider, json.total);
+    const dup = await checkDuplicate(json.invoiceNum, json.provider, json.total, json.date);
     if (dup) {
       showDupWarning(json, dup, ()=>{});
       toast('\u26a0 Possible factura duplicada!','err');
@@ -555,7 +569,7 @@ async function processBatch(files){
 
     const tryExtract=async()=>{
       const inv=await extractPDFData(it.file,apiKey);
-      const dup=await checkDuplicate(inv.invoiceNum,inv.provider,inv.total);
+      const dup=await checkDuplicate(inv.invoiceNum,inv.provider,inv.total,inv.date);
       if(dup){
         it.state='dup';
         it.detail=`Número duplicat: ${inv.invoiceNum||'—'}`;
@@ -757,7 +771,7 @@ async function saveFromAI(){
   };
   if(!inv.date||!inv.provider){toast('Comprova data i proveïdor','err');return}
 
-  const dup = await checkDuplicate(inv.invoiceNum, inv.provider, inv.total);
+  const dup = await checkDuplicate(inv.invoiceNum, inv.provider, inv.total, inv.date);
   if (dup) {
     showDupWarning(inv, dup, async ()=>{
       await ensureProvider(inv.provider,inv.cif);
@@ -796,7 +810,7 @@ async function saveManual(){
   };
   if(!inv.date||!inv.provider){toast('Selecciona data i proveïdor','err');return}
 
-  const dup = await checkDuplicate(inv.invoiceNum, inv.provider, inv.total);
+  const dup = await checkDuplicate(inv.invoiceNum, inv.provider, inv.total, inv.date);
   if (dup) {
     showDupWarning(inv, dup, async ()=>{
       await dbAdd('invoices',inv);
