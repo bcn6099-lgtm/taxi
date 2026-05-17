@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FACTURES // GESTOR v5</title>
+<title>FACTURES</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="style-1.css">
 <style>
@@ -1294,19 +1294,26 @@ async function exportExcel(){
   if(!filtered.length){toast('Sense factures per a '+year,'err');return}
   const wb=XLSX.utils.book_new();
   const byYear={};
-  filtered.forEach(r=>{const y=r.date?r.date.slice(0,4):'sense_any';(byYear[y]=byYear[y]||[]).push(r)});
+  filtered.forEach(r=>{const y=r.date?r.date.slice(0,4):'sense_any';if(!byYear[y])byYear[y]=[];byYear[y].push(r)});
   Object.keys(byYear).sort().forEach(y=>{
-    const rows=[
-      ['FECHA','PROVEEDOR','CIF','NUM. FACTURA','BASE IMPONIBLE','IVA','TOTAL FACTURA'],
-      ...byYear[y].sort((a,b)=>new Date(a.date)-new Date(b.date))
-        .map(r=>[r.date?r.date.split('-').reverse().join('/'):null,r.provider,r.cif,r.invoiceNum||'',+r.base,+r.iva,+r.total])
-    ];
+    const sorted=byYear[y].slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
+    const rows=[['FECHA','PROVEEDOR','CIF','BASE IMPONIBLE','IVA','TOTAL FACTURA']];
+    sorted.forEach(r=>{
+      rows.push([
+        r.date?r.date.split('-').reverse().join('/'):null,
+        r.provider||'',
+        r.cif||'',
+        parseFloat(r.base)||0,
+        parseFloat(r.iva)||0,
+        parseFloat(r.total)||0
+      ]);
+    });
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    // Format numèric: punt per milers, coma per decimals (Excel #.##0,00 en locale ES/DE)
+    // Format numèric (xlsx sempre en format anglès intern)
     for(let i=1;i<rows.length;i++){
-      ['E','F','G'].forEach(c=>{const cell=ws[`${c}${i+1}`];if(cell){cell.t='n';cell.z='#.##0,00'}});
+      ['D','E','F'].forEach(c=>{const cell=ws[c+(i+1)];if(cell){cell.t='n';cell.z='#,##0.00'}});
     }
-    ws['!cols']=[{wch:14},{wch:35},{wch:12},{wch:18},{wch:16},{wch:12},{wch:16}];
+    ws['!cols']=[{wch:14},{wch:35},{wch:12},{wch:16},{wch:12},{wch:16}];
     XLSX.utils.book_append_sheet(wb,ws,y);
   });
   const suffix=year?'_'+year:'_tots';
