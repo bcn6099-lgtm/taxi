@@ -3,18 +3,217 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FACTURES // GESTOR</title>
-<!-- ============================================
-     CANVIA EL CSS AQUÍ:
-     style-original.css  → Neon Cyber (daurat/negre)
-     style-1.css         → Minimalista Blanc
-     style-2.css         → Terminal Verd
-     style-3.css         → Editorial Fosc
-     style-4.css         → Indigo Glass
-     style-5.css         → Còsmic Vermell
-============================================ -->
-<link rel="stylesheet" href="style-1.css">
+<title>FACTURES // GESTOR v4</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+:root {
+  --bg: #0d0d0d;
+  --bg2: #141414;
+  --bg3: #1a1a1a;
+  --border: rgba(255,255,255,.07);
+  --border2: rgba(255,255,255,.12);
+  --accent: #d4a847;
+  --accent2: #b8902f;
+  --text: #e8e4da;
+  --text2: rgba(232,228,218,.55);
+  --text3: rgba(232,228,218,.35);
+  --ok: #4caf6e;
+  --err: #e05c5c;
+  --warn: #e09b3c;
+  --info: #5c9be0;
+  --sidebar-w: 220px;
+  --topbar-h: 52px;
+  --radius: 6px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:'Courier New',monospace;font-size:13px;min-height:100vh;overflow-x:hidden}
+/* TOPBAR */
+.topbar{position:fixed;top:0;left:0;right:0;height:var(--topbar-h);background:var(--bg2);border-bottom:1px solid var(--border);display:flex;align-items:center;gap:14px;padding:0 18px;z-index:200}
+.hamburger{background:none;border:none;cursor:pointer;display:flex;flex-direction:column;gap:5px;padding:4px}
+.hamburger span{display:block;width:22px;height:1.5px;background:var(--text2);transition:all .2s}
+.topbar-title{font-size:13px;letter-spacing:.22em;font-weight:700;color:var(--accent)}
+.topbar-section{font-size:10px;letter-spacing:.15em;color:var(--text3);margin-left:auto;margin-right:4px}
+/* SIDEBAR */
+.overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:300;backdrop-filter:blur(2px)}
+.overlay.show{display:block}
+.sidebar{position:fixed;left:-260px;top:0;bottom:0;width:var(--sidebar-w);background:var(--bg2);border-right:1px solid var(--border);z-index:400;transition:left .25s ease;display:flex;flex-direction:column;overflow:hidden}
+.sidebar.open{left:0}
+.sidebar-header{padding:20px 18px 14px;border-bottom:1px solid var(--border)}
+.sidebar-title{font-size:15px;letter-spacing:.18em;font-weight:700;color:var(--accent)}
+.sidebar-sub{font-size:9px;letter-spacing:.2em;color:var(--text3);margin-top:4px}
+nav{flex:1;overflow-y:auto;padding:10px 0}
+.nav-section{font-size:9px;letter-spacing:.2em;color:var(--text3);padding:14px 18px 6px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 18px;cursor:pointer;color:var(--text2);transition:all .15s;border-left:2px solid transparent;font-size:12px;letter-spacing:.04em}
+.nav-item:hover{background:rgba(255,255,255,.03);color:var(--text)}
+.nav-item.active{color:var(--accent);border-left-color:var(--accent);background:rgba(212,168,71,.06)}
+.nav-icon{font-size:11px;min-width:14px;text-align:center}
+.sidebar-footer{padding:14px 18px;border-top:1px solid var(--border);font-size:9px;letter-spacing:.12em;color:var(--text3)}
+/* MAIN */
+.main{margin-top:var(--topbar-h);padding:24px 20px;max-width:1000px;margin-left:auto;margin-right:auto}
+.page{display:none}.page.active{display:block}
+/* PAGE HEADER */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
+.page-title{font-size:14px;letter-spacing:.18em;font-weight:700;color:var(--accent)}
+.page-count{font-size:11px;color:var(--text3);letter-spacing:.08em}
+/* UPLOAD ZONE */
+.upload-zone{border:1px dashed var(--border2);border-radius:var(--radius);padding:36px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:rgba(212,168,71,.04)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:28px;color:var(--accent);opacity:.6;margin-bottom:12px}
+.upload-text{font-size:13px;color:var(--text2);margin-bottom:5px;letter-spacing:.04em}
+.upload-sub{font-size:11px;color:var(--text3)}
+/* QUEUE PANEL */
+.queue-panel{margin-top:20px;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.queue-panel-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.queue-panel-title{font-size:10px;letter-spacing:.15em;color:var(--text3);font-weight:700;flex:1}
+.queue-summary{font-size:12px;font-weight:600;color:var(--text)}
+.queue-stop-btn{background:none;border:1px solid rgba(224,92,92,.4);color:var(--err);border-radius:4px;padding:4px 10px;cursor:pointer;font-size:10px;letter-spacing:.08em;transition:all .15s}
+.queue-stop-btn:hover{background:rgba(224,92,92,.1);border-color:var(--err)}
+.queue-global-bar{height:3px;background:rgba(255,255,255,.06)}
+.queue-global-fill{height:100%;background:var(--accent);transition:width .4s ease}
+.queue-list{max-height:320px;overflow-y:auto;padding:8px}
+.queue-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border-radius:4px;border:1px solid transparent;margin-bottom:4px;transition:all .2s}
+.qi-icon{font-size:13px;min-width:16px;margin-top:1px}
+.qi-body{flex:1;min-width:0}
+.qi-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.qi-detail{font-size:10px;color:var(--text3);margin-top:2px}
+.qi-label{font-size:9px;letter-spacing:.1em;color:var(--text3);white-space:nowrap;text-transform:uppercase}
+.qi-pending{opacity:.4}
+.qi-processing{border-color:rgba(92,155,224,.25);background:rgba(92,155,224,.04)}
+.qi-processing .qi-icon{color:var(--info);animation:spin 1.2s linear infinite;display:inline-block}
+.qi-ok{border-color:rgba(76,175,110,.2);background:rgba(76,175,110,.04)}
+.qi-ok .qi-icon{color:var(--ok)}
+.qi-dup{border-color:rgba(224,155,60,.2);background:rgba(224,155,60,.04)}
+.qi-dup .qi-icon{color:var(--warn)}
+.qi-error{border-color:rgba(224,92,92,.2);background:rgba(224,92,92,.04)}
+.qi-error .qi-icon{color:var(--err)}
+.qi-waiting{border-color:rgba(224,155,60,.2)}
+.qi-waiting .qi-icon{color:var(--warn)}
+.qi-retrying .qi-icon{color:var(--info)}
+.qi-stopped .qi-icon{color:var(--text3)}
+.queue-eta{font-size:10px;color:var(--text3);padding:6px 16px;border-top:1px solid var(--border)}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+/* FORM */
+.form-section{border:1px solid var(--border);border-radius:var(--radius);padding:18px;margin-bottom:16px}
+.form-section-title{font-size:10px;letter-spacing:.18em;color:var(--text3);font-weight:700;text-transform:uppercase;margin-bottom:14px}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group label{font-size:10px;letter-spacing:.1em;color:var(--text3);text-transform:uppercase}
+.form-group input,.form-group select,.form-group textarea{background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:8px 10px;font-family:inherit;font-size:12px;transition:border-color .15s;outline:none}
+.form-group input:focus,.form-group select:focus{border-color:var(--accent)}
+.form-group select option{background:var(--bg3)}
+.form-actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+/* BUTTONS */
+.btn{border:none;border-radius:4px;padding:8px 18px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.1em;transition:all .15s}
+.btn-primary{background:var(--accent);color:#000}
+.btn-primary:hover{background:var(--accent2)}
+.btn-outline{background:none;border:1px solid var(--border2);color:var(--text2)}
+.btn-outline:hover{border-color:var(--text2);color:var(--text)}
+.btn-danger{background:none;border:1px solid rgba(224,92,92,.4);color:var(--err)}
+.btn-danger:hover{background:rgba(224,92,92,.1);border-color:var(--err)}
+.btn-info{background:none;border:1px solid rgba(92,155,224,.3);color:var(--info)}
+.btn-info:hover{background:rgba(92,155,224,.08)}
+.btn-sm{padding:5px 12px;font-size:10px}
+/* TABLE */
+.table-wrap{overflow-x:auto;border:1px solid var(--border);border-radius:var(--radius)}
+table.inv-table{width:100%;border-collapse:collapse}
+.inv-table th{padding:9px 10px;text-align:left;font-size:9px;letter-spacing:.14em;color:var(--text3);border-bottom:1px solid var(--border);background:var(--bg2);font-weight:700;text-transform:uppercase;white-space:nowrap}
+.inv-table td{padding:8px 10px;border-bottom:1px solid var(--border);font-size:12px;vertical-align:middle}
+.inv-table tr:last-child td{border-bottom:none}
+.inv-table tbody tr{cursor:pointer;transition:background .1s}
+.inv-table tbody tr:hover{background:rgba(255,255,255,.025)}
+.inv-table tbody tr.selected{background:rgba(212,168,71,.06)}
+.td-num{font-size:11px;color:var(--text2);font-family:'Courier New',monospace}
+.td-amount{text-align:right;font-variant-numeric:tabular-nums;font-weight:600}
+.td-prov{font-weight:500}
+.td-pending{color:var(--warn);font-style:italic;font-size:11px}
+.td-badge{display:inline-flex;align-items:center;gap:4px;font-size:9px;letter-spacing:.08em;padding:2px 6px;border-radius:2px;font-weight:700}
+.badge-ok{background:rgba(76,175,110,.12);color:var(--ok);border:1px solid rgba(76,175,110,.2)}
+.badge-pending{background:rgba(224,155,60,.1);color:var(--warn);border:1px solid rgba(224,155,60,.2)}
+/* TFOOT */
+.inv-table tfoot td{padding:10px;font-weight:700;font-size:13px;border-top:1px solid var(--border2);background:rgba(212,168,71,.04);color:var(--accent)}
+/* PROVIDER LIST */
+.prov-list{display:flex;flex-direction:column;gap:4px}
+.prov-row{display:flex;align-items:center;gap:10px;padding:9px 14px;border:1px solid var(--border);border-radius:4px;background:var(--bg2);transition:all .15s}
+.prov-row:hover{border-color:var(--border2)}
+.prov-name{flex:1;font-weight:500;font-size:12px}
+.prov-cif{font-size:11px;color:var(--text2);min-width:90px}
+.prov-cif-missing{color:var(--warn);font-style:italic}
+.prov-status{min-width:20px;font-size:12px}
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:500;align-items:center;justify-content:center;backdrop-filter:blur(3px)}
+.modal-overlay.show{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);width:100%;max-width:480px;margin:20px;max-height:90vh;overflow:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:16px 18px;border-bottom:1px solid var(--border)}
+.modal-title{font-size:11px;letter-spacing:.18em;font-weight:700;color:var(--accent)}
+.modal-close{background:none;border:none;color:var(--text2);cursor:pointer;font-size:16px;padding:2px 6px;line-height:1}
+.modal-close:hover{color:var(--text)}
+.modal-body{padding:18px}
+.modal-footer{padding:14px 18px;border-top:1px solid var(--border);display:flex;gap:8px;justify-content:flex-end}
+.detail-row{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border);font-size:12px}
+.detail-row:last-child{border:none}
+.detail-label{color:var(--text2)}
+.detail-value{font-weight:500}
+.detail-value.num{font-variant-numeric:tabular-nums}
+.detail-row.accent .detail-value{font-size:15px;color:var(--accent);font-weight:700}
+/* DUP MODAL */
+.modal-warn{border-color:rgba(224,155,60,.3)}
+.warn-title{color:var(--warn)}
+.dup-alert-text{color:var(--warn);margin-bottom:12px;line-height:1.6;font-size:12px}
+.dup-existing{background:var(--bg3);border-radius:4px;padding:12px;font-size:11px;line-height:1.8}
+/* BULK ASSIGN MODAL */
+.assign-modal-body{padding:18px}
+.assign-list{max-height:220px;overflow-y:auto;border:1px solid var(--border);border-radius:4px;margin-bottom:12px}
+.assign-item{padding:8px 12px;border-bottom:1px solid var(--border);font-size:12px;display:flex;align-items:center;justify-content:space-between}
+.assign-item:last-child{border:none}
+/* BULK ACTION BAR */
+.bulk-bar{display:none;margin-bottom:14px;padding:10px 14px;border:1px solid var(--border2);border-radius:var(--radius);background:var(--bg2);align-items:center;gap:10px;flex-wrap:wrap}
+.bulk-bar.show{display:flex}
+.bulk-count{font-size:12px;color:var(--text2);flex:1}
+/* FILTERS */
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.filter-select{background:var(--bg3);border:1px solid var(--border2);color:var(--text2);border-radius:4px;padding:5px 8px;font-family:inherit;font-size:11px;cursor:pointer;outline:none}
+.filter-select:focus{border-color:var(--accent)}
+/* AI RESULT */
+.ai-result{border:1px solid rgba(212,168,71,.25);border-radius:var(--radius);margin-top:18px;background:rgba(212,168,71,.04)}
+.ai-badge{display:flex;align-items:center;gap:8px;padding:12px 16px;border-bottom:1px solid rgba(212,168,71,.15);font-size:10px;letter-spacing:.12em;color:var(--accent);font-weight:700}
+.ai-badge-body{padding:16px}
+.pulse{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:pulse 1.4s ease infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.4;transform:scale(.8)}}
+/* TOAST */
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:10px 20px;font-size:12px;letter-spacing:.06em;z-index:9999;opacity:0;transition:all .25s;pointer-events:none;white-space:nowrap}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.ok{border-color:rgba(76,175,110,.4);color:var(--ok)}
+.toast.err{border-color:rgba(224,92,92,.4);color:var(--err)}
+/* EMPTY STATE */
+.empty-state{text-align:center;padding:50px 20px;color:var(--text3)}
+.empty-icon{font-size:28px;margin-bottom:12px;opacity:.4}
+.empty-text{font-size:13px;letter-spacing:.08em}
+/* SCROLLBAR */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+/* TABS */
+.tab-row{display:flex;gap:0;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:20px;width:fit-content}
+.tab-btn{padding:8px 18px;cursor:pointer;font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.1em;border:none;background:none;color:var(--text3);transition:all .15s;border-right:1px solid var(--border)}
+.tab-btn:last-child{border-right:none}
+.tab-btn.active{background:var(--accent);color:#000}
+.tab-content{display:none}.tab-content.active{display:block}
+/* EDIT INLINE */
+.inline-edit{display:flex;gap:4px;align-items:center}
+.inline-input{background:var(--bg3);border:1px solid var(--accent);color:var(--text);border-radius:3px;padding:3px 7px;font-family:inherit;font-size:11px;outline:none}
+/* SECTION DIVIDER */
+.section-sep{height:1px;background:var(--border);margin:20px 0}
+/* HELP TEXT */
+.help-text{font-size:11px;color:var(--text3);line-height:1.6;margin-bottom:16px}
+/* INDICATOR DOT */
+.dot{width:7px;height:7px;border-radius:50%;display:inline-block;flex-shrink:0}
+.dot-ok{background:var(--ok)}.dot-warn{background:var(--warn)}.dot-err{background:var(--err)}
+/* SELECCIÓ DE FACTURES */
+.inv-table th input[type=checkbox],.inv-table td input[type=checkbox]{cursor:pointer;accent-color:var(--accent);width:14px;height:14px}
+@media(max-width:600px){.form-grid{grid-template-columns:1fr}.filter-row{flex-direction:column;align-items:flex-start}}
+</style>
 </head>
 <body>
 
@@ -22,14 +221,19 @@
 
 <aside class="sidebar" id="sidebar">
   <div class="sidebar-header">
-    <div class="sidebar-title">⬡ Gestor</div>
-    <div class="sidebar-sub">FACTURES // v3.0</div>
+    <div class="sidebar-title">⬡ GESTOR</div>
+    <div class="sidebar-sub">FACTURES // v4.0</div>
   </div>
   <nav>
-    <div class="nav-item active" onclick="showPage('home')" data-page="home"><span class="nav-icon">◈</span> Inici</div>
-    <div class="nav-item" onclick="showPage('upload')" data-page="upload"><span class="nav-icon">⬆</span> Pujar Factura</div>
+    <div class="nav-section">Inici</div>
+    <div class="nav-item active" onclick="showPage('home')" data-page="home"><span class="nav-icon">◈</span> Factures</div>
+
+    <div class="nav-section">Flux d'importació</div>
+    <div class="nav-item" onclick="showPage('providers-import')" data-page="providers-import"><span class="nav-icon">①</span> Proveïdors</div>
+    <div class="nav-item" onclick="showPage('invoices-import')" data-page="invoices-import"><span class="nav-icon">②</span> Factures</div>
+
+    <div class="nav-section">Accions</div>
     <div class="nav-item" onclick="showPage('manual')" data-page="manual"><span class="nav-icon">✎</span> Afegir Manual</div>
-    <div class="nav-item" onclick="showPage('providers')" data-page="providers"><span class="nav-icon">◉</span> Proveïdors</div>
     <div class="nav-item" onclick="exportExcel()"><span class="nav-icon">⬡</span> Exportar Excel</div>
     <div class="nav-item" onclick="exportJSON()"><span class="nav-icon">⟨/⟩</span> Exportar JSON</div>
     <div class="nav-item" onclick="document.getElementById('importFile').click()"><span class="nav-icon">⬇</span> Importar JSON</div>
@@ -42,150 +246,137 @@
 <header class="topbar">
   <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
   <div class="topbar-title">FACTURES</div>
+  <div class="topbar-section" id="topbarSection"></div>
 </header>
 
 <main class="main">
 
-  <!-- HOME -->
-  <div class="page active" id="page-home">
-    <div class="page-header">
-      <div class="page-title">◈ Factures</div>
-      <div style="display:flex;align-items:center;gap:10px">
-        <select id="yearFilter" onchange="renderInvoices()" style="font-size:12px;padding:4px 8px;border-radius:4px;border:1px solid rgba(128,128,128,.3);background:transparent;cursor:pointer">
-          <option value="">Tots els anys</option>
+<!-- ===== HOME: LLISTAT DE FACTURES ===== -->
+<div class="page active" id="page-home">
+  <div class="page-header">
+    <div class="page-title">◈ Factures</div>
+    <div class="filter-row">
+      <select class="filter-select" id="yearFilter" onchange="renderInvoices()">
+        <option value="">Tots els anys</option>
+      </select>
+      <select class="filter-select" id="providerFilter" onchange="renderInvoices()" style="max-width:180px">
+        <option value="">Tots els proveïdors</option>
+      </select>
+      <select class="filter-select" id="statusFilter" onchange="renderInvoices()">
+        <option value="">Tots els estats</option>
+        <option value="pending">Pendent assignació</option>
+        <option value="assigned">Assignades</option>
+      </select>
+      <div class="page-count" id="invoiceCount">—</div>
+    </div>
+  </div>
+  <div class="bulk-bar" id="bulkBar">
+    <span class="bulk-count" id="bulkCount"></span>
+    <button class="btn btn-info btn-sm" onclick="openBulkAssign()">ASSIGNAR PROVEÏDOR</button>
+    <button class="btn btn-danger btn-sm" onclick="deleteSelected()">ELIMINAR</button>
+    <button class="btn btn-outline btn-sm" onclick="clearSelection()">CANCEL·LAR</button>
+  </div>
+  <div class="table-wrap">
+    <table class="inv-table">
+      <thead><tr>
+        <th style="width:34px"><input type="checkbox" id="chkAll" onclick="toggleAllChecks(this)" title="Sel·leccionar tot"></th>
+        <th>Data</th><th>Proveïdor</th><th>Núm. Factura</th><th style="text-align:right">Total</th>
+      </tr></thead>
+      <tbody id="invoiceTableBody"></tbody>
+      <tfoot id="invoiceTfoot"></tfoot>
+    </table>
+  </div>
+  <div class="empty-state" id="emptyState" style="display:none">
+    <div class="empty-icon">◈</div>
+    <div class="empty-text">Sense factures registrades</div>
+  </div>
+</div>
+
+<!-- ===== MODAL DETALL FACTURA ===== -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeDetail()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title">DETALL FACTURA</div>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="modalDeleteBtn">ELIMINAR</button>
+      <button class="btn btn-outline" onclick="closeDetail()">TANCAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL DUPLICAT ===== -->
+<div class="modal-overlay" id="dupOverlay" onclick="closeDup()">
+  <div class="modal modal-warn" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <div class="modal-title warn-title">⚠ POSSIBLE DUPLICAT</div>
+      <button class="modal-close" onclick="closeDup()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="dup-alert-text" id="dupAlertText"></div>
+      <div class="dup-existing" id="dupExisting"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-danger" id="dupForceBtn">DESAR IGUALMENT</button>
+      <button class="btn btn-outline" onclick="closeDup()">CANCEL·LAR</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL ASSIGNAR PROVEÏDOR (BULK) ===== -->
+<div class="modal-overlay" id="assignOverlay" onclick="closeAssign()">
+  <div class="modal" onclick="event.stopPropagation()" style="max-width:520px">
+    <div class="modal-header">
+      <div class="modal-title">ASSIGNAR PROVEÏDOR</div>
+      <button class="modal-close" onclick="closeAssign()">✕</button>
+    </div>
+    <div class="assign-modal-body">
+      <div id="assignInvoiceList" class="assign-list"></div>
+      <div class="form-group" style="margin-bottom:12px">
+        <label>Proveïdor validat</label>
+        <select id="assignProviderSel" style="background:var(--bg3);border:1px solid var(--border2);color:var(--text);border-radius:4px;padding:8px;font-family:inherit;font-size:12px;outline:none">
+          <option value="">— Selecciona proveïdor —</option>
         </select>
-        <select id="providerFilter" onchange="renderInvoices()" style="font-size:12px;padding:4px 8px;border-radius:4px;border:1px solid rgba(128,128,128,.3);background:transparent;cursor:pointer;max-width:160px">
-          <option value="">Tots els proveïdors</option>
-        </select>
-        <div class="page-count" id="invoiceCount">—</div>
       </div>
     </div>
-    <div id="bulkBar" style="display:none;margin-bottom:12px;display:none;align-items:center;gap:10px">
-      <span id="bulkCount" style="font-size:13px;opacity:.7"></span>
-      <button class="btn btn-danger" style="padding:6px 14px;font-size:12px" onclick="deleteSelected()">ELIMINAR SELECCIONADES</button>
-      <button class="btn btn-outline" style="padding:6px 14px;font-size:12px" onclick="clearSelection()">CANCEL·LAR</button>
-    </div>
-    <div class="table-wrap">
-      <table class="inv-table">
-        <thead><tr><th style="width:36px"><input type="checkbox" id="chkAll" onclick="toggleAllChecks(this)" title="Seleccionar tot"></th><th>Data</th><th>Proveïdor</th><th>Total</th></tr></thead>
-        <tbody id="invoiceTableBody"></tbody>
-        <tfoot id="invoiceTfoot"></tfoot>
-      </table>
-    </div>
-    <div id="invoiceTotals" style="display:none"></div>
-    <div class="empty-state" id="emptyState" style="display:none">
-      <div class="empty-icon">◈</div>
-      <div class="empty-text">Sense factures registrades</div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" onclick="confirmBulkAssign()">ASSIGNAR</button>
+      <button class="btn btn-outline" onclick="closeAssign()">CANCEL·LAR</button>
     </div>
   </div>
+</div>
 
-  <!-- DETAIL MODAL -->
-  <div class="modal-overlay" id="modalOverlay" onclick="closeDetail()">
-    <div class="modal" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title">DETALL FACTURA</div>
-        <button class="modal-close" onclick="closeDetail()">✕</button>
-      </div>
-      <div class="modal-body" id="modalBody"></div>
-      <div class="modal-footer">
-        <button class="btn btn-danger" id="modalDeleteBtn">ELIMINAR</button>
-        <button class="btn btn-outline" onclick="closeDetail()">TANCAR</button>
-      </div>
-    </div>
+<!-- ===== LANDING 1: PROVEÏDORS ===== -->
+<div class="page" id="page-providers-import">
+  <div class="page-header">
+    <div class="page-title">① Proveïdors</div>
+    <div class="page-count" id="provCount">—</div>
+  </div>
+  <p class="help-text">Puja PDFs de factures per extreure automàticament el nom i CIF de cada proveïdor. Revisa i valida el catàleg abans d'importar les factures.</p>
+
+  <!-- TAB ROW -->
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchProvTab('upload')" id="provTab-upload">① PUJAR PDFs</button>
+    <button class="tab-btn" onclick="switchProvTab('catalog')" id="provTab-catalog">② CATÀLEG</button>
   </div>
 
-  <!-- DUPLICATE WARNING MODAL -->
-  <div class="modal-overlay" id="dupOverlay" onclick="closeDup()">
-    <div class="modal modal-warn" onclick="event.stopPropagation()">
-      <div class="modal-header">
-        <div class="modal-title warn-title">⚠ POSSIBLE DUPLICAT</div>
-        <button class="modal-close" onclick="closeDup()">✕</button>
-      </div>
-      <div class="modal-body">
-        <div class="dup-alert-text" id="dupAlertText"></div>
-        <div class="dup-existing" id="dupExisting"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-danger" id="dupForceBtn">DESAR IGUALMENT</button>
-        <button class="btn btn-outline" onclick="closeDup()">CANCEL·LAR</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- UPLOAD -->
-  <div class="page" id="page-upload">
-    <div class="page-header"><div class="page-title">⬆ Pujar Factura PDF</div></div>
-    <div class="upload-zone" id="uploadZone">
-      <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple onchange="handlePDFUpload(event)">
+  <!-- TAB: UPLOAD PROVEEDORS -->
+  <div class="tab-content active" id="provTabContent-upload">
+    <div class="upload-zone" id="provUploadZone">
+      <input type="file" id="provFileInput" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple onchange="handleProvUpload(event)">
       <div class="upload-icon">⬡</div>
-      <div class="upload-text">Arrossega PDFs aquí o fes clic</div>
-      <div class="upload-sub">PDFs i imatges (JPG, PNG) — Mistral els processarà en cua</div>
+      <div class="upload-text">Arrossega PDFs aquí per detectar proveïdors</div>
+      <div class="upload-sub">Mistral extraurà nom d'empresa i CIF</div>
     </div>
-
-    <!-- QUEUE PANEL -->
-    <div id="queuePanel" style="display:none;margin-top:20px">
-      <div class="queue-header">
-        <div class="queue-title-row">
-          <span class="queue-title">CUA DE PROCESSAMENT</span>
-          <span id="queueSummary" class="queue-summary"></span>
-          <button id="queueStopBtn" class="btn btn-danger" style="font-size:11px;padding:4px 12px;display:none" onclick="stopBatchQueue()">■ ATURAR</button>
-        </div>
-        <div class="queue-global-bar"><div id="queueGlobalFill" class="queue-global-fill"></div></div>
-        <div id="queueEta" class="queue-eta"></div>
-        <div id="queueStatus" class="queue-status"></div>
-      </div>
-      <div id="queueList" class="queue-list"></div>
-    </div>
-
-    <div class="ai-result" id="aiResult" style="display:none">
-      <div class="ai-badge"><span class="pulse"></span> DADES EXTRETES PER IA — REVISA I DESA</div>
-      <div class="form-grid">
-        <div class="form-group form-full"><label>Núm. Factura</label><input type="text" id="ai_invoiceNum" placeholder="Ex: F-2026-0042"></div>
-        <div class="form-group"><label>Data</label><input type="date" id="ai_date"></div>
-        <div class="form-group"><label>Proveïdor</label><input type="text" id="ai_provider"></div>
-        <div class="form-group"><label>CIF</label><input type="text" id="ai_cif"></div>
-        <div class="form-group"><label>Base Imponible (€)</label><input type="number" step="0.01" id="ai_base"></div>
-        <div class="form-group"><label>IVA (€)</label><input type="number" step="0.01" id="ai_iva"></div>
-        <div class="form-group"><label>Total (€)</label><input type="number" step="0.01" id="ai_total"></div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveFromAI()">DESAR</button>
-        <button class="btn btn-outline" onclick="resetUpload()">CANCEL·LAR</button>
-      </div>
-    </div>
+    <div id="provQueuePanel" style="display:none"></div>
   </div>
 
-  <!-- MANUAL -->
-  <div class="page" id="page-manual">
-    <div class="page-header"><div class="page-title">✎ Afegir Manual</div></div>
+  <!-- TAB: CATALOG PROVEEDORS -->
+  <div class="tab-content" id="provTabContent-catalog">
     <div class="form-section">
-      <div class="form-section-title">Dades de la Factura</div>
-      <div class="form-grid">
-        <div class="form-group form-full"><label>Núm. Factura</label><input type="text" id="m_invoiceNum" placeholder="Ex: F-2026-0042"></div>
-        <div class="form-group"><label>Data</label><input type="date" id="m_date"></div>
-        <div class="form-group"><label>Proveïdor</label>
-          <select id="m_provider" onchange="onProviderSelect()"><option value="">— Selecciona —</option></select>
-        </div>
-        <div class="form-group"><label>CIF</label><input type="text" id="m_cif" readonly></div>
-        <div class="form-group"><label>Base Imponible (€)</label><input type="number" step="0.01" id="m_base" oninput="calcTotal()"></div>
-        <div class="form-group"><label>IVA (€)</label><input type="number" step="0.01" id="m_iva" oninput="calcTotal()"></div>
-        <div class="form-group"><label>Total (€)</label><input type="number" step="0.01" id="m_total"></div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveManual()">DESAR</button>
-        <button class="btn btn-outline" onclick="clearManual()">NETEJAR</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- PROVIDERS -->
-  <div class="page" id="page-providers">
-    <div class="page-header">
-      <div class="page-title">◉ Proveïdors</div>
-      <div class="page-count" id="provCount">—</div>
-    </div>
-    <div class="form-section" style="margin-bottom:20px">
-      <div class="form-section-title">Nou Proveïdor</div>
+      <div class="form-section-title">Afegir proveïdor manualment</div>
       <div class="form-grid">
         <div class="form-group"><label>Nom</label><input type="text" id="p_name" placeholder="Empresa, S.L."></div>
         <div class="form-group"><label>CIF / NIF</label><input type="text" id="p_cif" placeholder="B12345678"></div>
@@ -194,551 +385,660 @@
     </div>
     <div id="providerList"></div>
   </div>
+</div>
 
+<!-- ===== LANDING 2: FACTURES IMPORT ===== -->
+<div class="page" id="page-invoices-import">
+  <div class="page-header">
+    <div class="page-title">② Factures</div>
+    <div class="page-count" id="invImportCount">—</div>
+  </div>
+  <p class="help-text">Puja PDFs de factures. La app assignarà automàticament el proveïdor per similitud de nom. Les factures pendents d'assignació es poden assignar manualment per lot.</p>
 
-  <!-- API CONFIG -->
-  <div class="page" id="page-apiconfig">
-    <div class="page-header"><div class="page-title">⚙ Configuració API</div></div>
-    <div class="form-section">
-      <div class="form-section-title">Mistral API Key</div>
-      <p style="font-size:13px;opacity:.7;margin-bottom:16px;line-height:1.6">
-        Obtén la teva clau gratuïta a <strong>console.mistral.ai</strong> → API Keys.<br>
-        La clau es guarda localment al teu navegador (IndexedDB). No s'envia a cap servidor.
-      </p>
-      <div class="form-grid">
-        <div class="form-group form-full">
-          <label>API Key</label>
-          <input type="password" id="cfg_apikey" placeholder="Enganxa aquí la teva Mistral API Key..." autocomplete="off">
-        </div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveApiConfig()">DESAR CLAU</button>
-        <button class="btn btn-outline" onclick="toggleApiKeyVisibility()">MOSTRAR / OCULTAR</button>
-      </div>
-      <div id="cfg_status" style="margin-top:14px;font-size:13px;display:none"></div>
+  <!-- TAB ROW -->
+  <div class="tab-row">
+    <button class="tab-btn active" onclick="switchInvTab('upload')" id="invTab-upload">① PUJAR PDFs</button>
+    <button class="tab-btn" onclick="switchInvTab('pending')" id="invTab-pending">② PENDENTS <span id="pendingBadge"></span></button>
+  </div>
+
+  <!-- TAB: UPLOAD FACTURES -->
+  <div class="tab-content active" id="invTabContent-upload">
+    <div class="upload-zone" id="invUploadZone">
+      <input type="file" id="invFileInput" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple onchange="handleInvUpload(event)">
+      <div class="upload-icon">⬡</div>
+      <div class="upload-text">Arrossega PDFs de factures aquí</div>
+      <div class="upload-sub">Mistral extraurà tots els camps i assignarà el proveïdor automàticament</div>
     </div>
-    <div class="form-section" style="margin-top:20px">
-      <div class="form-section-title">Model actiu</div>
-      <p style="font-size:13px;opacity:.7;line-height:1.6">
-        <strong>mistral-small-latest</strong> — Suficient per llegir factures. Inclòs al pla gratuït Experiment.
-      </p>
+    <div id="invQueuePanel" style="display:none"></div>
+  </div>
+
+  <!-- TAB: FACTURES PENDENTS -->
+  <div class="tab-content" id="invTabContent-pending">
+    <div class="bulk-bar show" id="pendingBulkBar" style="margin-bottom:14px">
+      <span class="bulk-count" id="pendingBulkCount"></span>
+      <button class="btn btn-info btn-sm" onclick="openPendingAssign()">ASSIGNAR PROVEÏDOR</button>
     </div>
-    <div class="form-section" style="margin-top:20px">
-      <div class="form-section-title">El teu DNI / NIF</div>
-      <p style="font-size:13px;opacity:.7;margin-bottom:16px;line-height:1.6">
-        La IA de vegades extreu el teu DNI com a CIF del proveïdor. Indica'l aquí: si el detecta com a CIF principal, buscarà un segon número fiscal al document (el del proveïdor real).
-      </p>
-      <div class="form-grid">
-        <div class="form-group">
-          <label>DNI / NIF propi</label>
-          <input type="text" id="cfg_dni" placeholder="Ex: 12345678Z" maxlength="20" autocomplete="off" style="text-transform:uppercase">
-        </div>
+    <div id="pendingInvoiceList"></div>
+  </div>
+</div>
+
+<!-- ===== MANUAL ===== -->
+<div class="page" id="page-manual">
+  <div class="page-header"><div class="page-title">✎ Afegir Manual</div></div>
+  <div class="form-section">
+    <div class="form-section-title">Dades de la Factura</div>
+    <div class="form-grid">
+      <div class="form-group form-full"><label>Núm. Factura</label><input type="text" id="m_invoiceNum" placeholder="Ex: F-2026-0042"></div>
+      <div class="form-group"><label>Data</label><input type="date" id="m_date"></div>
+      <div class="form-group"><label>Proveïdor</label>
+        <select id="m_provider" onchange="onProviderSelect()"><option value="">— Selecciona —</option></select>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" onclick="saveDni()">DESAR DNI</button>
-      </div>
-      <div id="cfg_dni_status" style="margin-top:14px;font-size:13px;display:none"></div>
+      <div class="form-group"><label>CIF</label><input type="text" id="m_cif" readonly></div>
+      <div class="form-group"><label>Base Imponible (€)</label><input type="number" step="0.01" id="m_base" oninput="calcTotal()"></div>
+      <div class="form-group"><label>IVA (€)</label><input type="number" step="0.01" id="m_iva" oninput="calcTotal()"></div>
+      <div class="form-group"><label>Total (€)</label><input type="number" step="0.01" id="m_total"></div>
     </div>
-    <div class="form-section" style="margin-top:20px;border-color:rgba(231,76,60,.2)">
-      <div class="form-section-title" style="color:#e74c3c">Zona de perill</div>
-      <p style="font-size:13px;opacity:.7;margin-bottom:16px;line-height:1.6">
-        Esborra totes les factures i proveïdors. Fes un backup (Exportar JSON) abans.
-      </p>
-      <div class="form-actions">
-        <button class="btn btn-danger" onclick="confirmClearAll()">ESBORRAR TOTES LES DADES</button>
-      </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveManual()">DESAR</button>
+      <button class="btn btn-outline" onclick="clearManual()">NETEJAR</button>
     </div>
   </div>
+</div>
+
+<!-- ===== API CONFIG ===== -->
+<div class="page" id="page-apiconfig">
+  <div class="page-header"><div class="page-title">⚙ Configuració API</div></div>
+  <div class="form-section">
+    <div class="form-section-title">Mistral API Key</div>
+    <p class="help-text">Obtén la teva clau gratuïta a <strong>console.mistral.ai</strong> → API Keys. La clau es guarda localment (IndexedDB). No s'envia a cap servidor.</p>
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label>API Key</label>
+        <input type="password" id="cfg_apikey" placeholder="Enganxa aquí la teva Mistral API Key..." autocomplete="off">
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveApiConfig()">DESAR CLAU</button>
+      <button class="btn btn-outline" onclick="toggleApiKeyVisibility()">MOSTRAR / OCULTAR</button>
+    </div>
+    <div id="cfg_status" style="margin-top:14px;font-size:12px;display:none"></div>
+  </div>
+  <div class="form-section" style="margin-top:16px">
+    <div class="form-section-title">Model actiu</div>
+    <p class="help-text"><strong>mistral-small-latest</strong> — Suficient per llegir factures. Inclòs al pla gratuït Experiment.</p>
+  </div>
+  <div class="form-section" style="margin-top:16px">
+    <div class="form-section-title">El teu DNI / NIF</div>
+    <p class="help-text">Si la IA extreu el teu DNI com a CIF del proveïdor, indica'l aquí. Si el detecta com a CIF principal, buscarà un segon número fiscal al document.</p>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>DNI / NIF propi</label>
+        <input type="text" id="cfg_dni" placeholder="Ex: 12345678Z" maxlength="20" autocomplete="off" style="text-transform:uppercase">
+      </div>
+    </div>
+    <div class="form-actions"><button class="btn btn-primary" onclick="saveDni()">DESAR DNI</button></div>
+    <div id="cfg_dni_status" style="margin-top:14px;font-size:12px;display:none"></div>
+  </div>
+  <div class="form-section" style="margin-top:16px;border-color:rgba(224,92,92,.2)">
+    <div class="form-section-title" style="color:var(--err)">Zona de perill</div>
+    <p class="help-text">Esborra totes les factures i proveïdors. Fes un backup (Exportar JSON) abans.</p>
+    <div class="form-actions"><button class="btn btn-danger" onclick="confirmClearAll()">ESBORRAR TOTES LES DADES</button></div>
+  </div>
+</div>
 
 </main>
 <div class="toast" id="toast"></div>
 
 <script>
-// API key guardada a IndexedDB (gestiona-la des del menú ⚙ Configuració API)
-let _cachedApiKey = null;
-let _cachedDni = null;
-async function getMyDni(){
-  if(_cachedDni!==null) return _cachedDni;
-  try{
-    const tx=db.transaction('settings','readonly');
-    const r=tx.objectStore('settings').get('my_dni');
-    const val=await new Promise((res,rej)=>{r.onsuccess=e=>res(e.target.result?.value||'');r.onerror=rej});
-    _cachedDni=val.trim().toUpperCase();return _cachedDni;
-  }catch{return ''}
-}
-async function saveMyDni(dni){
-  _cachedDni=dni.trim().toUpperCase();
-  const tx=db.transaction('settings','readwrite');
-  tx.objectStore('settings').put({key:'my_dni',value:_cachedDni});
-  return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
-}
-async function getApiKey(){
-  if(_cachedApiKey) return _cachedApiKey;
-  try{
-    const tx=db.transaction('settings','readonly');
-    const r=tx.objectStore('settings').get('mistral_api_key');
-    return await new Promise((res,rej)=>{r.onsuccess=e=>res(e.target.result?.value||null);r.onerror=rej});
-  }catch{return null}
-}
-async function saveApiKey(key){
-  _cachedApiKey=key;
-  const tx=db.transaction('settings','readwrite');
-  tx.objectStore('settings').put({key:'mistral_api_key',value:key});
-  return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
-}
+// ===== GLOBALS =====
+let _cachedApiKey=null,_cachedDni=null,db,_providerCache=null;
+let _batchRunning=false,_batchStopped=false;
+let _selectedIds=new Set();
+let _pendingSelectedIds=new Set();
 
-// ===== DB =====
-const DB_NAME='FacturesDB3',DB_VER=2;let db;
-function initDB(){return new Promise((res,rej)=>{const req=indexedDB.open(DB_NAME,DB_VER);req.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('invoices'))d.createObjectStore('invoices',{keyPath:'id',autoIncrement:true});if(!d.objectStoreNames.contains('providers'))d.createObjectStore('providers',{keyPath:'id',autoIncrement:true});if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings',{keyPath:'key'})};req.onsuccess=e=>{db=e.target.result;res(db)};req.onerror=e=>rej(e)})}
+// ===== INDEXEDDB =====
+const DB_NAME='FacturesDB4',DB_VER=1;
+function initDB(){return new Promise((res,rej)=>{
+  const req=indexedDB.open(DB_NAME,DB_VER);
+  req.onupgradeneeded=e=>{
+    const d=e.target.result;
+    if(!d.objectStoreNames.contains('invoices'))d.createObjectStore('invoices',{keyPath:'id',autoIncrement:true});
+    if(!d.objectStoreNames.contains('providers'))d.createObjectStore('providers',{keyPath:'id',autoIncrement:true});
+    if(!d.objectStoreNames.contains('settings'))d.createObjectStore('settings',{keyPath:'key'});
+  };
+  req.onsuccess=e=>{db=e.target.result;res(db)};
+  req.onerror=e=>rej(e);
+})}
 function dbAll(s){return new Promise((res,rej)=>{const tx=db.transaction(s,'readonly');const r=tx.objectStore(s).getAll();r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
 function dbAdd(s,d){return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');const r=tx.objectStore(s).add(d);r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
 function dbDel(s,id){return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).delete(id);tx.oncomplete=res;tx.onerror=rej})}
+function dbPut(s,d){return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');const r=tx.objectStore(s).put(d);r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
 function dbClear(s){return new Promise(res=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).clear();tx.oncomplete=res})}
+async function dbGet(s,id){return new Promise((res,rej)=>{const tx=db.transaction(s,'readonly');const r=tx.objectStore(s).get(id);r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
 
-// Seed data amb número de factura
-const SEED_INV=[
-  {invoiceNum:'INT-2025-001',estimated:true,date:'2025-01-12',provider:'Interfacom SAU',cif:'A58225137',base:42.15,iva:8.85,total:51.00},
-  {invoiceNum:'CIF-2026-001',estimated:true,date:'2026-01-01',provider:'INMOBILIARIA CIENFUEGOS, S.L.',cif:'B08182735',base:102.48,iva:21.52,total:124.00},
-  {invoiceNum:'CIF-2026-002',estimated:true,date:'2026-02-01',provider:'INMOBILIARIA CIENFUEGOS, S.L.',cif:'B08182735',base:102.48,iva:21.52,total:124.00},
-  {invoiceNum:'MYT-2026-001',estimated:true,date:'2026-01-04',provider:'mytaxi Iberia S.L.',cif:'B65677221',base:4.82,iva:1.01,total:5.83},
-  {invoiceNum:'MYT-2026-002',estimated:true,date:'2026-01-11',provider:'mytaxi Iberia S.L.',cif:'B65677221',base:8.42,iva:1.77,total:10.19},
-  {invoiceNum:'MYT-2026-003',estimated:true,date:'2026-01-12',provider:'mytaxi Iberia S.L.',cif:'B65677221',base:13.33,iva:2.80,total:16.13},
-  {invoiceNum:'MYT-2026-004',estimated:true,date:'2026-01-25',provider:'mytaxi Iberia S.L.',cif:'B65677221',base:30.74,iva:6.46,total:37.20},
-  {invoiceNum:'MYT-2026-005',estimated:true,date:'2026-01-31',provider:'mytaxi Iberia S.L.',cif:'B65677221',base:11.00,iva:2.31,total:13.31},
-];
-const SEED_PROV=[
-  {name:'Interfacom SAU',cif:'A58225137'},
-  {name:'INMOBILIARIA CIENFUEGOS, S.L.',cif:'B08182735'},
-  {name:'mytaxi Iberia S.L.',cif:'B65677221'}
-];
+// ===== SETTINGS =====
+async function getSetting(key){try{const tx=db.transaction('settings','readonly');const r=tx.objectStore('settings').get(key);return await new Promise((res,rej)=>{r.onsuccess=e=>res(e.target.result?.value);r.onerror=rej})}catch{return null}}
+async function setSetting(key,value){const tx=db.transaction('settings','readwrite');tx.objectStore('settings').put({key,value});return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej})}
+async function getApiKey(){if(_cachedApiKey)return _cachedApiKey;_cachedApiKey=await getSetting('mistral_api_key');return _cachedApiKey}
+async function saveApiKey(k){_cachedApiKey=k;await setSetting('mistral_api_key',k)}
+async function getMyDni(){if(_cachedDni!==null)return _cachedDni;const v=await getSetting('my_dni');_cachedDni=(v||'').trim().toUpperCase();return _cachedDni}
+async function saveMyDni(d){_cachedDni=d.trim().toUpperCase();await setSetting('my_dni',_cachedDni)}
 
-// ===== NAV =====
+// ===== UTILS =====
+function normName(s){return s?s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim():''}
+function fmt(n){return isNaN(n)||n===null?'—':Number(n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)})}
+
+// Similitud de cadenes (Jaccard sobre trigrames)
+function similarity(a,b){
+  if(!a||!b)return 0;
+  const na=normName(a),nb=normName(b);
+  if(!na||!nb)return 0;
+  if(na===nb)return 1;
+  const tri=s=>{const t=new Set();for(let i=0;i<s.length-2;i++)t.add(s.slice(i,i+3));return t};
+  const ta=tri(na),tb=tri(nb);
+  let inter=0;ta.forEach(t=>{if(tb.has(t))inter++});
+  return inter/(ta.size+tb.size-inter);
+}
+
+// ===== TOAST =====
+let _toastTimer;
+function toast(msg,type='ok'){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.className='toast show '+(type||'ok');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+// ===== NAVIGATION =====
 function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
 function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
-function showPage(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));document.getElementById('page-'+p)?.classList.add('active');document.querySelector(`.nav-item[data-page="${p}"]`)?.classList.add('active');closeSidebar();if(p==='home')renderInvoices();if(p==='providers')renderProviders();if(p==='manual')loadProviderSelect();if(p==='apiconfig')loadApiConfigPage()}
-
-// ===== FORMAT =====
-function fmt(n){return Number(n).toLocaleString('ca-ES',{minimumFractionDigits:2,maximumFractionDigits:2})}
-function fmtDate(d){if(!d)return'—';try{return new Date(d+'T00:00:00').toLocaleDateString('ca-ES',{day:'2-digit',month:'2-digit',year:'numeric'})}catch{return d}}
-function toast(msg,type=''){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(type?' '+type:'');setTimeout(()=>t.classList.remove('show'),3500)}
-
-// ===== DUPLICATE CHECK =====
-// Criteri 1: número de factura idèntic (case-insensitive, sense espais).
-// Criteri 2 (fallback): mateixa data + mateix proveïdor (normalitzat) + mateix total.
-function normInvoiceNum(s){ return s ? s.trim().toLowerCase().replace(/\s+/g,'') : ''; }
-async function checkDuplicate(invoiceNum, provider, total, date, excludeId=null) {
-  const all = await dbAll('invoices');
-  const candidates = all.filter(r => excludeId ? r.id !== excludeId : true);
-  // Criteri 1: número de factura
-  const numNorm = normInvoiceNum(invoiceNum);
-  if (numNorm) {
-    const byNum = candidates.find(r => normInvoiceNum(r.invoiceNum) === numNorm);
-    if (byNum) return { match: byNum, reason: 'number' };
-  }
-  // Criteri 2: data + proveïdor + total
-  if (date && provider && total) {
-    const provNorm = normName(provider);
-    const totalNum = Math.round(+total * 100);
-    const byDPT = candidates.find(r =>
-      r.date === date &&
-      normName(r.provider) === provNorm &&
-      Math.round(+r.total * 100) === totalNum
-    );
-    if (byDPT) return { match: byDPT, reason: 'data_prov_total' };
-  }
-  return null;
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+id)?.classList.add('active');
+  document.querySelector('[data-page="'+id+'"]')?.classList.add('active');
+  const titles={'home':'FACTURES','providers-import':'① PROVEÏDORS','invoices-import':'② FACTURES','manual':'MANUAL','apiconfig':'CONFIG'};
+  document.getElementById('topbarSection').textContent=titles[id]||'';
+  closeSidebar();
+  if(id==='home')renderInvoices();
+  if(id==='providers-import')renderProviders();
+  if(id==='invoices-import')renderPendingInvoices();
+  if(id==='manual'){loadProviderSelect();clearManual()}
+  if(id==='apiconfig')loadApiConfigPage();
+}
+function switchProvTab(tab){
+  ['upload','catalog'].forEach(t=>{
+    document.getElementById('provTab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('provTabContent-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='catalog')renderProviders();
+}
+function switchInvTab(tab){
+  ['upload','pending'].forEach(t=>{
+    document.getElementById('invTab-'+t).classList.toggle('active',t===tab);
+    document.getElementById('invTabContent-'+t).classList.toggle('active',t===tab);
+  });
+  if(tab==='pending')renderPendingInvoices();
 }
 
-// ===== DUPLICATE MODAL =====
-let _pendingInvoice = null;
-let _pendingCallback = null;
-
-function showDupWarning(inv, dupResult, onForce) {
-  const r = dupResult.match;
-  const reasonText = dupResult.reason === 'number'
-    ? `Ja existeix una factura amb el número <strong>${r.invoiceNum}</strong>.`
-    : `Ja existeix una factura del mateix proveïdor (<strong>${r.provider}</strong>), data i import (${fmt(r.total)} €).`;
-
-  document.getElementById('dupAlertText').innerHTML = reasonText;
-  document.getElementById('dupExisting').innerHTML = `
-    <div class="dup-card">
-      <div class="dup-row"><span class="dup-label">Núm. Factura</span><span class="dup-val">${r.invoiceNum||'—'}</span></div>
-      <div class="dup-row"><span class="dup-label">Data</span><span class="dup-val">${fmtDate(r.date)}</span></div>
-      <div class="dup-row"><span class="dup-label">Proveïdor</span><span class="dup-val">${r.provider||'—'}</span></div>
-      <div class="dup-row"><span class="dup-label">CIF</span><span class="dup-val mono">${r.cif||'—'}</span></div>
-      <div class="dup-row"><span class="dup-label">Base Imp.</span><span class="dup-val num">${fmt(r.base)} €</span></div>
-      <div class="dup-row"><span class="dup-label">IVA</span><span class="dup-val num">${fmt(r.iva)} €</span></div>
-      <div class="dup-row accent"><span class="dup-label">Total</span><span class="dup-val num">${fmt(r.total)} €</span></div>
-    </div>
-  `;
-  document.getElementById('dupForceBtn').onclick = () => { closeDup(); onForce(); };
-  document.getElementById('dupOverlay').classList.add('show');
-}
-function closeDup(){document.getElementById('dupOverlay').classList.remove('show')}
-
-// ===== HOME / TABLE =====
-function populateYearFilter(data){
-  const sel=document.getElementById('yearFilter');
-  const cur=sel.value;
-  const years=[...new Set(data.map(r=>r.date?r.date.slice(0,4):null).filter(Boolean))].sort((a,b)=>b-a);
-  sel.innerHTML='<option value="">Tots els anys</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
-  if(years.includes(cur)) sel.value=cur;
-}
-function populateProviderFilter(data){
-  const sel=document.getElementById('providerFilter');
-  const cur=sel.value;
-  const provs=[...new Set(data.map(r=>r.provider).filter(Boolean))].sort((a,b)=>a.localeCompare(b,'ca'));
-  sel.innerHTML='<option value="">Tots els proveïdors</option>'+provs.map(p=>`<option value="${p}">${p}</option>`).join('');
-  if(provs.includes(cur)) sel.value=cur;
-}
+// ===== HOME: RENDER INVOICES =====
 async function renderInvoices(){
-  const data=await dbAll('invoices');
-  const tbody=document.getElementById('invoiceTableBody');
-  populateYearFilter(data);
-  populateProviderFilter(data);
-  const year=document.getElementById('yearFilter').value;
-  const provider=document.getElementById('providerFilter').value;
-  let filtered=year?data.filter(r=>r.date&&r.date.startsWith(year)):data;
-  if(provider) filtered=filtered.filter(r=>r.provider===provider);
-  const yearLabel=year?` (${year})`:'';
-  const provLabel=provider?` · ${provider}`:'';
-  document.getElementById('invoiceCount').textContent=filtered.length+' factures'+yearLabel+provLabel;
-  document.getElementById('emptyState').style.display=filtered.length?'none':'block';
-  if(!filtered.length){tbody.innerHTML='';document.getElementById('invoiceTfoot').innerHTML='';updateBulkBar();return}
-  const sorted=[...filtered].sort((a,b)=>new Date(b.date)-new Date(a.date));
-  tbody.innerHTML=sorted.map(r=>`
-    <tr class="inv-row" onclick="openDetail(${r.id})">
-      <td onclick="event.stopPropagation()" style="padding-left:10px">
-        <input type="checkbox" class="row-chk" data-id="${r.id}" onchange="updateBulkBar()">
-      </td>
-      <td class="td-date">${fmtDate(r.date)}</td>
-      <td class="td-prov">${r.provider||'—'}</td>
-      <td class="td-total">${fmt(r.total)} €</td>
-    </tr>
-  `).join('');
+  const inv=await dbAll('invoices');
+  const provs=await dbAll('providers');
+  // Fill filters
+  const yearSel=document.getElementById('yearFilter');
+  const provSel=document.getElementById('providerFilter');
+  const years=[...new Set(inv.map(r=>r.date?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a);
+  const curYear=yearSel.value,curProv=provSel.value;
+  yearSel.innerHTML='<option value="">Tots els anys</option>'+years.map(y=>`<option ${y===curYear?'selected':''}>${y}</option>`).join('');
+  yearSel.value=curYear;
+  provSel.innerHTML='<option value="">Tots els proveïdors</option>'+provs.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.name}" ${p.name===curProv?'selected':''}>${p.name}</option>`).join('');
+  provSel.value=curProv;
 
-  // Totals footer
-  const totalIva=filtered.reduce((s,r)=>s+(+r.iva||0),0);
-  const totalBase=filtered.reduce((s,r)=>s+(+r.base||0),0);
-  const totalAll=filtered.reduce((s,r)=>s+(+r.total||0),0);
-  document.getElementById('invoiceTfoot').innerHTML=`
-    <tr class="tfoot-row">
-      <td colspan="2" style="text-align:right;font-size:11px;letter-spacing:.08em;opacity:.5;padding-right:12px">TOTALS${yearLabel}${provLabel}</td>
-      <td style="font-size:12px;opacity:.7;padding:10px 8px">Base: <strong>${fmt(totalBase)} €</strong> · IVA: <strong>${fmt(totalIva)} €</strong></td>
-      <td class="td-total" style="font-size:15px;font-weight:700">${fmt(totalAll)} €</td>
-    </tr>
-  `;
+  const yf=yearSel.value,pf=provSel.value,sf=document.getElementById('statusFilter').value;
+  let data=inv.filter(r=>{
+    if(yf&&(!r.date||!r.date.startsWith(yf)))return false;
+    if(pf&&r.provider!==pf)return false;
+    if(sf==='pending'&&r.provider)return false;
+    if(sf==='assigned'&&!r.provider)return false;
+    return true;
+  });
+  data.sort((a,b)=>new Date(b.date)-new Date(a.date));
+
+  const tbody=document.getElementById('invoiceTableBody');
+  const tfoot=document.getElementById('invoiceTfoot');
+  const empty=document.getElementById('emptyState');
+  document.getElementById('invoiceCount').textContent=data.length+' registres';
+
+  if(!data.length){tbody.innerHTML='';tfoot.innerHTML='';empty.style.display='block';return}
+  empty.style.display='none';
+
+  tbody.innerHTML=data.map(r=>{
+    const sel=_selectedIds.has(r.id);
+    const hasProv=!!r.provider;
+    return `<tr onclick="rowClick(event,${r.id})" class="${sel?'selected':''}">
+      <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} onchange="toggleCheck(${r.id},this.checked)"></td>
+      <td class="td-num">${r.date?r.date.split('-').reverse().join('/'):'—'}</td>
+      <td class="td-prov">${hasProv?r.provider:`<span class="td-pending">— pendent assignació —</span>`}</td>
+      <td class="td-num">${r.invoiceNum||'—'}</td>
+      <td class="td-amount">${fmt(r.total)} €</td>
+    </tr>`;
+  }).join('');
+
+  const total=data.reduce((s,r)=>s+(+r.total||0),0);
+  const base=data.reduce((s,r)=>s+(+r.base||0),0);
+  const iva=data.reduce((s,r)=>s+(+r.iva||0),0);
+  tfoot.innerHTML=`<tr><td colspan="4" style="text-align:right;font-size:11px;opacity:.6;padding:8px 10px">Base: ${fmt(base)} € &nbsp;·&nbsp; IVA: ${fmt(iva)} €</td><td class="td-amount">${fmt(total)} €</td></tr>`;
   updateBulkBar();
 }
-function getCheckedIds(){return [...document.querySelectorAll('.row-chk:checked')].map(c=>+c.dataset.id)}
-function updateBulkBar(){
-  const ids=getCheckedIds();
-  const bar=document.getElementById('bulkBar');
-  const chkAll=document.getElementById('chkAll');
-  const all=document.querySelectorAll('.row-chk');
-  if(ids.length>0){bar.style.display='flex';document.getElementById('bulkCount').textContent=ids.length+' seleccionada'+(ids.length!==1?'s':'')}
-  else{bar.style.display='none'}
-  if(chkAll) chkAll.indeterminate=ids.length>0&&ids.length<all.length, chkAll.checked=ids.length>0&&ids.length===all.length;
+
+function rowClick(e,id){if(e.target.type==='checkbox')return;openDetail(id)}
+function toggleCheck(id,checked){checked?_selectedIds.add(id):_selectedIds.delete(id);updateBulkBar()}
+function toggleAllChecks(el){
+  const boxes=document.querySelectorAll('#invoiceTableBody input[type=checkbox]');
+  const rows=[...document.querySelectorAll('#invoiceTableBody tr')];
+  const ids=rows.map(tr=>{
+    const cb=tr.querySelector('input[type=checkbox]');
+    if(!cb)return null;
+    const onclick=tr.getAttribute('onclick')||'';
+    const m=onclick.match(/rowClick\(event,(\d+)\)/);
+    return m?+m[1]:null;
+  }).filter(Boolean);
+  ids.forEach(id=>el.checked?_selectedIds.add(id):_selectedIds.delete(id));
+  boxes.forEach(b=>b.checked=el.checked);
+  updateBulkBar();
 }
-function toggleAllChecks(chk){document.querySelectorAll('.row-chk').forEach(c=>c.checked=chk.checked);updateBulkBar()}
-function clearSelection(){document.querySelectorAll('.row-chk').forEach(c=>c.checked=false);const chk=document.getElementById('chkAll');if(chk)chk.checked=false;updateBulkBar()}
+function clearSelection(){_selectedIds.clear();renderInvoices()}
+function updateBulkBar(){
+  const bar=document.getElementById('bulkBar');
+  const n=_selectedIds.size;
+  bar.classList.toggle('show',n>0);
+  document.getElementById('bulkCount').textContent=n+' factura'+(n!==1?'s':'')+' seleccionada'+(n!==1?'s':'');
+}
 async function deleteSelected(){
-  const ids=getCheckedIds();
-  if(!ids.length)return;
-  if(!confirm('Eliminar '+ids.length+' factura'+(ids.length!==1?'s':'')+' seleccionada'+(ids.length!==1?'s':'')+' ?'))return;
-  for(const id of ids) await dbDel('invoices',id);
-  toast(ids.length+' factura'+(ids.length!==1?'s':'')+' eliminada'+(ids.length!==1?'s':''),'ok');
+  if(!_selectedIds.size)return;
+  if(!confirm(`Eliminar ${_selectedIds.size} factura${_selectedIds.size!==1?'s':''}?`))return;
+  for(const id of _selectedIds)await dbDel('invoices',id);
+  _selectedIds.clear();
   renderInvoices();
+  toast('Factures eliminades');
 }
 
-// ===== DETAIL MODAL (complet amb tots els camps) =====
+// ===== BULK ASSIGN (HOME) =====
+async function openBulkAssign(){
+  if(!_selectedIds.size){toast('Selecciona factures','err');return}
+  const ids=[..._selectedIds];
+  const all=await dbAll('invoices');
+  const invs=all.filter(r=>ids.includes(r.id));
+  const provs=await dbAll('providers');
+
+  document.getElementById('assignInvoiceList').innerHTML=invs.map(r=>`
+    <div class="assign-item">
+      <span>${r.date?r.date.split('-').reverse().join('/'):'—'} &nbsp;·&nbsp; ${r.invoiceNum||'—'}</span>
+      <span style="color:var(--text2)">${r.provider||'<span style="color:var(--warn)">sense proveïdor</span>'}</span>
+    </div>`).join('');
+  const sel=document.getElementById('assignProviderSel');
+  sel.innerHTML='<option value="">— Selecciona proveïdor —</option>'+provs.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.id}">${p.name} ${p.cif?'('+p.cif+')':''}</option>`).join('');
+  document.getElementById('assignOverlay').classList.add('show');
+}
+function closeAssign(){document.getElementById('assignOverlay').classList.remove('show')}
+async function confirmBulkAssign(){
+  const provId=+document.getElementById('assignProviderSel').value;
+  if(!provId){toast('Selecciona un proveïdor','err');return}
+  const prov=await dbGet('providers',provId);
+  if(!prov)return;
+  const ids=[..._selectedIds];
+  for(const id of ids){
+    const inv=await dbGet('invoices',id);
+    if(inv)await dbPut('invoices',{...inv,provider:prov.name,cif:prov.cif||inv.cif||''});
+  }
+  closeAssign();
+  _selectedIds.clear();
+  renderInvoices();
+  toast(`${ids.length} factura${ids.length!==1?'s':''} assignades a ${prov.name}`,'ok');
+}
+
+// ===== DETAIL MODAL =====
 async function openDetail(id){
-  const data=await dbAll('invoices');
-  const r=data.find(x=>x.id===id);
+  const r=await dbGet('invoices',id);
   if(!r)return;
   document.getElementById('modalBody').innerHTML=`
-    <div class="detail-grid">
-      <div class="detail-row"><span class="detail-label">Núm. Factura</span><span class="detail-value mono ${r.estimated?'estimated':''}" ${r.estimated?'title="Número assignat automàticament des del Excel, no és el número real de la factura"':''}>${r.invoiceNum||'—'}${r.estimated?' **':''}</span></div>
-      <div class="detail-row"><span class="detail-label">Data</span><span class="detail-value">${fmtDate(r.date)}</span></div>
-      <div class="detail-row"><span class="detail-label">Proveïdor</span><span class="detail-value">${r.provider||'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">CIF / NIF</span><span class="detail-value mono">${r.cif||'—'}</span></div>
-      <div class="detail-row"><span class="detail-label">Base Imponible</span><span class="detail-value num">${fmt(r.base)} €</span></div>
-      <div class="detail-row"><span class="detail-label">IVA</span><span class="detail-value num">${fmt(r.iva)} €</span></div>
-      <div class="detail-row accent"><span class="detail-label">TOTAL FACTURA</span><span class="detail-value num big">${fmt(r.total)} €</span></div>
-    </div>
+    <div class="detail-row"><span class="detail-label">Núm. Factura</span><span class="detail-value">${r.invoiceNum||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Data</span><span class="detail-value">${r.date?r.date.split('-').reverse().join('/'):'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Proveïdor</span><span class="detail-value">${r.provider||'<span style="color:var(--warn)">Pendent assignació</span>'}</span></div>
+    <div class="detail-row"><span class="detail-label">CIF</span><span class="detail-value">${r.cif||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Base Imponible</span><span class="detail-value num">${fmt(r.base)} €</span></div>
+    <div class="detail-row"><span class="detail-label">IVA</span><span class="detail-value num">${fmt(r.iva)} €</span></div>
+    <div class="detail-row accent"><span class="detail-label">TOTAL FACTURA</span><span class="detail-value num">${fmt(r.total)} €</span></div>
   `;
   document.getElementById('modalDeleteBtn').onclick=()=>deleteInvoice(id);
   document.getElementById('modalOverlay').classList.add('show');
 }
 function closeDetail(){document.getElementById('modalOverlay').classList.remove('show')}
-async function deleteInvoice(id){if(!confirm('Eliminar aquesta factura?'))return;await dbDel('invoices',id);closeDetail();renderInvoices();toast('Factura eliminada')}
-
-// ===== UPLOAD / PDF =====
-const zone=document.getElementById('uploadZone');
-zone.addEventListener('dragover',e=>{e.preventDefault();zone.classList.add('drag')});
-zone.addEventListener('dragleave',()=>zone.classList.remove('drag'));
-zone.addEventListener('drop',e=>{e.preventDefault();zone.classList.remove('drag');const files=[...e.dataTransfer.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));if(files.length)processBatch(files);else toast('Només PDFs i imatges','err')});
-function handlePDFUpload(e){const files=[...e.target.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));if(files.length)processBatch(files);}
-
-function showUploadError(msg){
-  let errEl=document.getElementById('uploadError');
-  if(!errEl){errEl=document.createElement('div');errEl.id='uploadError';errEl.style.cssText='margin-top:16px;padding:14px 18px;background:#2a0a0a;border:1px solid #c0392b;color:#e74c3c;border-radius:6px;font-size:13px;line-height:1.6;word-break:break-word;white-space:pre-wrap;';document.getElementById('uploadZone').after(errEl)}
-  errEl.textContent=msg;errEl.style.display='block';
-}
-function hideUploadError(){const e=document.getElementById('uploadError');if(e)e.style.display='none'}
-
-async function processPDF(file){
-  hideUploadError();
-  const apiKey = await getApiKey();
-  if(!apiKey){
-    showUploadError('Cal configurar la Mistral API Key.\nVes al menú ⚙ Configuració API i enganxa la teva clau.\nObtén-la gratis a: console.mistral.ai (Pla Experiment, sense targeta)');
-    return;
-  }
-  document.getElementById('loadingBar').classList.add('show');
-  document.getElementById('loadingText').style.display='block';
-  document.getElementById('aiResult').style.display='none';
-  try{
-    const b64=await fileToBase64(file);
-    console.log('[Mistral] Enviant PDF, mida base64:', b64.length, 'chars');
-    const resp=await fetch('https://api.mistral.ai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({
-        model:'mistral-small-latest',
-        temperature:0,
-        max_tokens:1000,
-        messages:[{role:'user',content:[
-          {type:'document_url',document_url:'data:application/pdf;base64,'+b64},
-          {type:'text',text:'Analitza aquesta factura i extreu en JSON pur (sense markdown ni text addicional): {"invoiceNum":"número de factura tal com apareix al document","date":"YYYY-MM-DD","provider":"nom complet del proveïdor","cif":"CIF o NIF del proveïdor","base":decimal,"iva":decimal,"total":decimal}. Si no trobes un camp posa null. El número de factura pot aparèixer com: Factura nº, Nº factura, Invoice number, Ref., etc.'}
-        ]}]
-      })
-    });
-    const data=await resp.json();
-    console.log('[Mistral] HTTP', resp.status, JSON.stringify(data).slice(0,600));
-    if(!resp.ok){
-      const errMsg=data.message||data.error?.message||JSON.stringify(data)||'Error desconegut';
-      throw new Error('API Mistral ('+resp.status+'): '+errMsg);
-    }
-    const rawText=data.choices?.[0]?.message?.content||'';
-    console.log('[Mistral] Text rebut:', rawText);
-    if(!rawText) throw new Error('Mistral no ha retornat cap text. Comprova la consola (F12).');
-    let json;
-    try{ json=JSON.parse(rawText.replace(/```json?|```/g,'').trim()); }
-    catch(pe){ throw new Error('No s\'ha pogut llegir la resposta com a JSON. Text: '+rawText.slice(0,300)); }
-    ['invoiceNum','date','provider','cif','base','iva','total'].forEach(k=>document.getElementById('ai_'+k).value=json[k]??'');
-    document.getElementById('aiResult').style.display='block';
-    const dup = await checkDuplicate(json.invoiceNum, json.provider, json.total, json.date);
-    if (dup) {
-      showDupWarning(json, dup, ()=>{});
-      toast('\u26a0 Possible factura duplicada!','err');
-    }
-  }catch(err){
-    console.error('[Mistral] Error:', err);
-    showUploadError('Error: '+err.message);
-    toast('Error analitzant PDF','err');
-  }
-  finally{document.getElementById('loadingBar').classList.remove('show');document.getElementById('loadingText').style.display='none'}
+async function deleteInvoice(id){
+  if(!confirm('Eliminar aquesta factura?'))return;
+  await dbDel('invoices',id);
+  closeDetail();renderInvoices();
+  toast('Factura eliminada');
 }
 
+// ===== DUP =====
+let _dupPending=null;
+function showDupWarning(inv,dup,onForce){
+  _dupPending={inv,dup,onForce};
+  document.getElementById('dupAlertText').innerHTML=`Factura amb número <strong>${inv.invoiceNum||'—'}</strong> ja registrada o molt similar.`;
+  document.getElementById('dupExisting').innerHTML=`Existent: ${dup.date?dup.date.split('-').reverse().join('/'):'—'} · ${dup.provider} · ${fmt(dup.total)} €`;
+  document.getElementById('dupForceBtn').onclick=()=>{onForce();closeDup()};
+  document.getElementById('dupOverlay').classList.add('show');
+}
+function closeDup(){document.getElementById('dupOverlay').classList.remove('show');_dupPending=null}
+async function checkDuplicate(invoiceNum,provider,total,date){
+  if(!invoiceNum&&!total)return null;
+  const all=await dbAll('invoices');
+  return all.find(r=>{
+    if(invoiceNum&&r.invoiceNum&&r.invoiceNum===invoiceNum)return true;
+    if(provider&&r.provider===provider&&Math.abs((+r.total||0)-(+total||0))<0.01&&r.date===date)return true;
+    return false;
+  })||null;
+}
 
-// ===== BATCH PROCESSING =====
-let _batchQueue=[];
-let _batchRunning=false;
-let _batchStopRequested=false;
-const DELAY_RETRY=3000;
-// Delay scales with file size: small (<50kb)=5s, medium (<150kb)=12s, large=20s
-// Free tier = 2 req/min → minimum 31s between requests to be safe
-// We use 31s base + extra for large files to avoid token-per-minute limits
-function delayForFile(file){ const kb=file.size/1024; return kb<50?2000:kb<150?3000:4000; }
-const delay=ms=>new Promise(r=>setTimeout(r,ms));
+// ===== PROVIDER CACHE =====
+function invalidateProviderCache(){_providerCache=null}
+async function getProviderCache(){
+  if(!_providerCache){const ex=await dbAll('providers');_providerCache=ex}
+  return _providerCache;
+}
+// Trobar proveïdor per similitud
+async function findProviderBySimilarity(name){
+  if(!name)return null;
+  const cache=await getProviderCache();
+  let best=null,bestScore=0;
+  for(const p of cache){
+    const s=similarity(name,p.name);
+    if(s>bestScore){bestScore=s;best=p}
+  }
+  return bestScore>=0.45?best:null; // llindar 45%
+}
 
-// Queue item states: pending | processing | ok | dup | error | retrying | waiting
-let _queueItems=[];
+// ===== QUEUE ENGINE (reutilitzable) =====
+function buildQueue(files){
+  return Array.from(files).map(f=>({name:f.name,file:f,state:'pending',detail:'',provider:'',cif:'',total:''}));
+}
+function delayForFile(file){const kb=file.size/1024;return kb<50?2000:kb<150?3000:4000}
 
-function queueRender(){
-  const panel=document.getElementById('queuePanel');
-  const list=document.getElementById('queueList');
-  const fill=document.getElementById('queueGlobalFill');
-  const eta=document.getElementById('queueEta');
-  const sumEl=document.getElementById('queueSummary');
-  if(!_queueItems.length){panel.style.display='none';return;}
+function renderQueue(items,panelId,stopFn){
+  const panel=document.getElementById(panelId);
+  if(!items.length){panel.style.display='none';return}
   panel.style.display='block';
-
-  const total=_queueItems.length;
-  const finished=_queueItems.filter(i=>['ok','dup','error'].includes(i.state)).length;
+  const total=items.length;
+  const finished=items.filter(i=>['ok','dup','error','stopped'].includes(i.state)).length;
   const pct=total?Math.round((finished/total)*100):0;
-  fill.style.width=pct+'%';
+  const ok=items.filter(i=>i.state==='ok').length;
+  const errs=items.filter(i=>i.state==='error').length;
+  const dups=items.filter(i=>i.state==='dup').length;
+  const pending=items.filter(i=>['pending','processing','retrying','waiting'].includes(i.state)).length;
+  let etaHtml='';
+  if(pending>0){const s=pending*5;etaHtml=`Temps estimat: ~${s<60?s+'s':Math.ceil(s/60)+'min'}`}
+  else if(finished===total){etaHtml='Processament completat ✓'}
 
-  const ok=_queueItems.filter(i=>i.state==='ok').length;
-  const errs=_queueItems.filter(i=>i.state==='error').length;
-  const dups=_queueItems.filter(i=>i.state==='dup').length;
-  const pending=_queueItems.filter(i=>['pending','processing','retrying','waiting'].includes(i.state)).length;
-  sumEl.textContent=`${finished}/${total} · ✓${ok}${dups?' ⊘'+dups:''} ${errs?'✕'+errs:''}`;
-  const stopBtn=document.getElementById('queueStopBtn');
-  if(stopBtn) stopBtn.style.display=_batchRunning&&!_batchStopRequested?'inline-block':'none';
-  const statusEl=document.getElementById('queueStatus');
-  if(statusEl){
-    const cur=_queueItems.find(i=>i.state==='processing');
-    if(_batchStopRequested) statusEl.textContent='Aturant després del fitxer actual...';
-    else if(cur) statusEl.textContent='Processant: '+cur.name;
-    else statusEl.textContent='';
-  }
-
-  // ETA
-  if(pending>0){
-    const avgDelay=_queueItems.filter(i=>['pending','processing','retrying','waiting'].includes(i.state)).reduce((s,i)=>s+delayForFile(i.file),0)/1000;
-        const secsLeft=Math.round(avgDelay+pending*6);
-    eta.textContent=`Temps estimat restant: ~${secsLeft<60?secsLeft+'s':Math.ceil(secsLeft/60)+'min'}`;
-  } else {
-    eta.textContent = finished===total ? 'Processament completat' : '';
-  }
-
-  list.innerHTML=_queueItems.map((it,i)=>{
-    const icons={pending:'◌',processing:'◎',ok:'✓',dup:'⊘',error:'✕',retrying:'⟳',waiting:'⏳'};
-    const labels={pending:'Pendent',processing:'Processant...',ok:'Desada',dup:'Duplicat',error:'Error',retrying:'Reintentant...',waiting:'Esperant...'};
-    const stateClass='qi-'+it.state;
-    const nameShort=it.name.length>42?it.name.slice(0,39)+'…':it.name;
-    const sizeKb=it.file?(it.file.size/1024).toFixed(0)+'kb':'';
-    const sizeWarn=it.file&&it.file.size>100*1024?' · ⚠ arxiu gran':'';
-    const detail=it.detail?`<div class="qi-detail">${it.detail}</div>`:(it.state==='pending'&&sizeKb?`<div class="qi-detail">${sizeKb}${sizeWarn}</div>`:'');
-    const provInfo=it.provider?`<div class="qi-provider">${it.provider}${it.total?' · '+it.total+' €':''}</div>`:'';
-    return `<div class="queue-item ${stateClass}">
-      <span class="qi-icon">${icons[it.state]||'◌'}</span>
-      <div class="qi-body">
-        <div class="qi-name">${nameShort}</div>
-        ${provInfo}
-        ${detail}
+  panel.innerHTML=`
+    <div class="queue-panel">
+      <div class="queue-panel-header">
+        <span class="queue-panel-title">CUA DE PROCESSAMENT</span>
+        <span class="queue-summary">${finished}/${total} · ✓${ok}${dups?' ⊘'+dups:''} ${errs?'✕'+errs:''}</span>
+        ${pending>0?`<button class="queue-stop-btn" onclick="(${stopFn.toString()})()">⏹ ATURAR</button>`:''}
       </div>
-      <span class="qi-label">${labels[it.state]||''}</span>
+      <div class="queue-global-bar"><div class="queue-global-fill" style="width:${pct}%"></div></div>
+      <div class="queue-list">
+        ${items.map(it=>{
+          const icons={pending:'◌',processing:'◎',ok:'✓',dup:'⊘',error:'✕',retrying:'⟳',waiting:'⏳',stopped:'—'};
+          const labels={pending:'Pendent',processing:'Processant…',ok:'Desada',dup:'Duplicat',error:'Error',retrying:'Reintentant…',waiting:'Esperant…',stopped:'Aturat'};
+          const nameShort=it.name.length>44?it.name.slice(0,41)+'…':it.name;
+          const provInfo=it.provider?`<div class="qi-detail" style="color:var(--text2)">${it.provider}${it.total?' · '+it.total+' €':''}</div>`:'';
+          const detailInfo=it.detail?`<div class="qi-detail">${it.detail}</div>`:'';
+          return `<div class="queue-item qi-${it.state}">
+            <span class="qi-icon">${icons[it.state]||'◌'}</span>
+            <div class="qi-body"><div class="qi-name">${nameShort}</div>${provInfo}${detailInfo}</div>
+            <span class="qi-label">${labels[it.state]||''}</span>
+          </div>`;
+        }).join('')}
+      </div>
+      ${etaHtml?`<div class="queue-eta">${etaHtml}</div>`:''}
     </div>`;
-  }).join('');
 }
 
-function stopBatchQueue(){
-  _batchStopRequested=true;
-  const btn=document.getElementById('queueStopBtn');
-  if(btn) btn.style.display='none';
-  queueRender();
-}
+// ===== LANDING 1: PROVEÏDORS UPLOAD =====
+let _provQueue=[];
+let _provBatchRunning=false,_provBatchStopped=false;
 
-async function processBatch(files){
-  hideUploadError();
+const provZone=document.getElementById('provUploadZone');
+provZone.addEventListener('dragover',e=>{e.preventDefault();provZone.classList.add('drag')});
+provZone.addEventListener('dragleave',()=>provZone.classList.remove('drag'));
+provZone.addEventListener('drop',e=>{
+  e.preventDefault();provZone.classList.remove('drag');
+  const files=[...e.dataTransfer.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  if(files.length)processProvBatch(files);else toast('Només PDFs i imatges','err');
+});
+function handleProvUpload(e){
+  const files=[...e.target.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  if(files.length)processProvBatch(files);
+}
+function stopProvBatch(){_provBatchStopped=true}
+
+async function processProvBatch(files){
   const apiKey=await getApiKey();
-  if(!apiKey){
-    showUploadError('Cal configurar la Mistral API Key.\nVes al menú ⚙ Configuració API.');
-    return;
-  }
-  if(_batchRunning){ toast('Ja hi ha una cua en curs','err'); return; }
+  if(!apiKey){toast('Cal configurar la Mistral API Key (menú ⚙)','err');return}
+  if(_provBatchRunning){toast('Ja hi ha una cua en curs','err');return}
+  _provQueue=buildQueue(files);
+  _provBatchRunning=true;_provBatchStopped=false;
+  let done=0;
+  renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
 
-  _queueItems=Array.from(files).map(f=>({name:f.name,file:f,state:'pending',detail:'',provider:'',total:''}));
-  _batchRunning=true;
-  _batchStopRequested=false;
-  document.getElementById('aiResult').style.display='none';
-  queueRender();
-
-  let done=0, errors=0;
-
-  for(let i=0;i<_queueItems.length;i++){
-    const it=_queueItems[i];
-    it.state='processing'; it.detail=''; queueRender();
+  for(let i=0;i<_provQueue.length;i++){
+    if(_provBatchStopped){
+      for(let j=i;j<_provQueue.length;j++)if(_provQueue[j].state==='pending'){_provQueue[j].state='stopped';_provQueue[j].detail='Aturat per l\'usuari'}
+      renderQueue(_provQueue,'provQueuePanel',stopProvBatch);break;
+    }
+    const it=_provQueue[i];
+    it.state='processing';it.detail='';
+    renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
 
     const tryExtract=async()=>{
-      const inv=await extractPDFData(it.file,apiKey);
-      const dup=await checkDuplicate(inv.invoiceNum,inv.provider,inv.total,inv.date);
-      if(dup){
-        it.state='dup';
-        it.detail=`Número duplicat: ${inv.invoiceNum||'—'}`;
-        it.provider=inv.provider||'';
-        errors++;
+      const data=await extractProviderData(it.file,apiKey);
+      // Desar o actualitzar proveïdor
+      const cache=await getProviderCache();
+      const existing=cache.find(p=>normName(p.name)===normName(data.name)||similarity(data.name,p.name)>0.85);
+      if(existing){
+        // Actualitza CIF si manca
+        if(!existing.cif&&data.cif){
+          await dbPut('providers',{...existing,cif:data.cif});
+          invalidateProviderCache();
+        }
+        it.state='dup';it.detail='Ja existeix: '+existing.name;it.provider=existing.name;
       } else {
-        await ensureProvider(inv.provider,inv.cif);
-        await dbAdd('invoices',inv);
-        it.state='ok';
-        it.provider=inv.provider||'';
-        it.total=inv.total?Number(inv.total).toFixed(2):'';
+        const id=await dbAdd('providers',{name:data.name,cif:data.cif||''});
+        invalidateProviderCache();
+        it.state='ok';it.provider=data.name;it.total=data.cif||'';
         done++;
       }
     };
 
-    try{
-      await tryExtract();
-    }catch(err){
-      if(err.status===429||err.message.includes('429')){
-        // Use retry-after header if present, otherwise 65s (safe for 2 req/min limit)
-        let secs=err.retryAfter&&err.retryAfter>0 ? err.retryAfter+5 : 65;
-        it.state='waiting';
-        it.detail=`Rate limit (1 req/s) — reintentant en ${secs}s`;
-        queueRender();
-        const tick=setInterval(()=>{
-          secs--;
-          it.detail=`Rate limit (1 req/s) — reintentant en ${secs}s`;
-          queueRender();
-          if(secs<=0) clearInterval(tick);
-        },1000);
-        await delay(secs*1000);
-        clearInterval(tick);
-        it.state='retrying'; it.detail=''; queueRender();
-        try{
-          await tryExtract();
-        }catch(err2){
-          if(err2.message.includes('429')){
-            it.state='waiting'; it.detail='Segon reintent...'; queueRender();
-            await delay(DELAY_RETRY);
-            try{
-              await tryExtract();
-            }catch(err3){
-              it.state='error'; it.detail=err3.message.slice(0,80); errors++;
-            }
-          } else {
-            it.state='error'; it.detail=err2.message.slice(0,80); errors++;
-          }
-        }
-      } else {
-        it.state='error'; it.detail=err.message.slice(0,80); errors++;
-      }
+    try{await tryExtract()}
+    catch(err){
+      if(err.status===429||String(err.message).includes('429')){
+        let secs=err.retryAfter&&err.retryAfter>0?err.retryAfter+5:65;
+        it.state='waiting';it.detail=`Rate limit — reintentant en ${secs}s`;
+        const tick=setInterval(()=>{secs--;it.detail=`Rate limit — reintentant en ${secs}s`;renderQueue(_provQueue,'provQueuePanel',stopProvBatch);if(secs<=0)clearInterval(tick)},1000);
+        await delay(secs*1000);clearInterval(tick);
+        it.state='retrying';it.detail='';renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
+        try{await tryExtract()}catch(e2){it.state='error';it.detail=e2.message.slice(0,80)}
+      }else{it.state='error';it.detail=err.message.slice(0,80)}
     }
-    queueRender();
-    if(_batchStopRequested){
-      // Mark remaining as cancelled
-      _queueItems.slice(i+1).forEach(r=>{r.state='error';r.detail='Cua aturada';});
-      queueRender();
-      break;
-    }
-    if(i<_queueItems.length-1){
-      const waitMs=delayForFile(it.file);
-      _queueItems[i+1].detail='Esperant '+Math.round(waitMs/1000)+'s...'; queueRender();
-      await delay(waitMs);
-      _queueItems[i+1].detail=''; queueRender();
+    renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
+    if(i<_provQueue.length-1&&!_provBatchStopped){
+      const w=delayForFile(it.file);
+      _provQueue[i+1].detail='Esperant '+Math.round(w/1000)+'s…';renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
+      await delay(w);_provQueue[i+1].detail='';renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
     }
   }
-
-  _batchRunning=false;
-  _batchStopRequested=false;
-  renderInvoices();
-  document.getElementById('fileInput').value='';
-  const summary=`✓ ${done} factura${done!==1?'s':''} desada${done!==1?'s':''}${errors?' · '+errors+' incidència'+(errors!==1?'s':''):''}`;
-  toast(summary,'ok');
+  _provBatchRunning=false;
+  document.getElementById('provFileInput').value='';
+  renderProviders();
+  toast(`✓ ${done} proveïdor${done!==1?'s':''} nous detectats`,'ok');
 }
 
-function isValidNifCif(n){
-  // NIF/DNI: 8 dígits + lletra de control
-  if(/^\d{8}[A-Z]$/i.test(n)){
-    return n[8].toUpperCase() === 'TRWAGMYFPDXBNJZSQVHLCKE'[parseInt(n.slice(0,8)) % 23];
+async function extractProviderData(file,apiKey){
+  // Extreu NOMÉS nom i CIF
+  if(file.type.startsWith('image/')){
+    const b64=await fileToBase64(file);
+    const mtype=file.type||'image/jpeg';
+    const resp=await fetch('https://api.mistral.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({
+        model:'pixtral-12b-2409',temperature:0,max_tokens:150,
+        response_format:{type:'json_object'},
+        messages:[
+          {role:'system',content:'Extreu el nom i CIF de l\'empresa emissora (proveïdor) d\'aquesta factura. Retorna ÚNICAMENT JSON: {"name":"nom empresa","cif":"CIF/NIF"}. Si no trobes un camp usa null.'},
+          {role:'user',content:[{type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},{type:'text',text:'Quin és el nom i CIF de l\'empresa que emet aquesta factura (proveïdor)?'}]}
+        ]
+      })
+    });
+    const data=await resp.json();
+    if(!resp.ok){const err=new Error('API ('+resp.status+'): '+(data.message||'Error'));err.status=resp.status;throw err}
+    const rawText=data.choices?.[0]?.message?.content||'';
+    const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
+    const myDni=await getMyDni();
+    return {name:json.name||'',cif:cleanCif(json.cif,myDni)};
   }
-  // CIF: lletra d'organització + 7 dígits + caràcter de control (lletra o dígit)
-  // Validem format però NO el dígit de control (massa variants per tipus d'org)
-  if(/^[ABCDEFGHJKLMNPQRSUVW]\d{7}[0-9A-J]$/i.test(n)) return true;
+  // PDF via Files API
+  const formData=new FormData();
+  formData.append('purpose','ocr');formData.append('file',file,file.name);
+  const upResp=await fetch('https://api.mistral.ai/v1/files',{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:formData});
+  const upData=await upResp.json();
+  if(!upResp.ok)throw new Error('Error pujant arxiu ('+upResp.status+'): '+(upData.message||JSON.stringify(upData)));
+  const fileId=upData.id;if(!fileId)throw new Error("No file_id");
+  const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
+  const urlData=await urlResp.json();
+  if(!urlResp.ok)throw new Error('Error URL: '+(urlData.message||JSON.stringify(urlData)));
+  const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
+  let chatData,chatResp;
+  try{
+    chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+      body:JSON.stringify({
+        model:'mistral-small-latest',temperature:0,max_tokens:150,
+        response_format:{type:'json_object'},
+        messages:[
+          {role:'system',content:'Extreu el nom i CIF de l\'empresa emissora (proveïdor) d\'aquesta factura. Retorna ÚNICAMENT JSON: {"name":"nom empresa","cif":"CIF/NIF"}. Si no trobes un camp usa null.'},
+          {role:'user',content:[{type:'document_url',document_url:signedUrl},{type:'text',text:'Quin és el nom i CIF de l\'empresa que emet aquesta factura (proveïdor)?'}]}
+        ]
+      })
+    });
+    chatData=await chatResp.json();
+  } finally {fetch('https://api.mistral.ai/v1/files/'+fileId,{method:'DELETE',headers:{'Authorization':'Bearer '+apiKey}}).catch(()=>{})}
+  if(!chatResp.ok){
+    const retryAfter=chatResp.headers?.get('retry-after');
+    const err=new Error('API ('+chatResp.status+'): '+(chatData?.message||'Error'));
+    err.status=chatResp.status;err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;throw err;
+  }
+  const rawText=chatData.choices?.[0]?.message?.content||'';
+  const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
+  const myDni=await getMyDni();
+  return {name:json.name||'',cif:cleanCif(json.cif,myDni)};
+}
+
+// ===== LANDING 2: FACTURES UPLOAD =====
+let _invQueue=[];
+let _invBatchRunning=false,_invBatchStopped=false;
+
+const invZone=document.getElementById('invUploadZone');
+invZone.addEventListener('dragover',e=>{e.preventDefault();invZone.classList.add('drag')});
+invZone.addEventListener('dragleave',()=>invZone.classList.remove('drag'));
+invZone.addEventListener('drop',e=>{
+  e.preventDefault();invZone.classList.remove('drag');
+  const files=[...e.dataTransfer.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  if(files.length)processInvBatch(files);else toast('Només PDFs i imatges','err');
+});
+function handleInvUpload(e){
+  const files=[...e.target.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  if(files.length)processInvBatch(files);
+}
+function stopInvBatch(){_invBatchStopped=true}
+
+async function processInvBatch(files){
+  const apiKey=await getApiKey();
+  if(!apiKey){toast('Cal configurar la Mistral API Key (menú ⚙)','err');return}
+  if(_invBatchRunning){toast('Ja hi ha una cua en curs','err');return}
+  _invQueue=buildQueue(files);
+  _invBatchRunning=true;_invBatchStopped=false;
+  let done=0,errors=0,pending=0;
+  renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
+
+  for(let i=0;i<_invQueue.length;i++){
+    if(_invBatchStopped){
+      for(let j=i;j<_invQueue.length;j++)if(_invQueue[j].state==='pending'){_invQueue[j].state='stopped';_invQueue[j].detail='Aturat per l\'usuari'}
+      renderQueue(_invQueue,'invQueuePanel',stopInvBatch);break;
+    }
+    const it=_invQueue[i];
+    it.state='processing';it.detail='';
+    renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
+
+    const tryExtract=async()=>{
+      const inv=await extractPDFData(it.file,apiKey);
+      // Auto-assign proveïdor per similitud
+      let prov=await findProviderBySimilarity(inv.provider);
+      if(prov){inv.provider=prov.name;inv.cif=prov.cif||inv.cif||'';it.detail='Auto-assignat: '+prov.name}
+      else{it.detail='Pendent assignació manual';pending++}
+      const dup=await checkDuplicate(inv.invoiceNum,inv.provider,inv.total,inv.date);
+      if(dup){it.state='dup';it.detail='Duplicat: '+(inv.invoiceNum||'—');it.provider=inv.provider||'';errors++}
+      else{
+        await dbAdd('invoices',inv);
+        it.state='ok';it.provider=inv.provider||'';it.total=inv.total?Number(inv.total).toFixed(2):'';done++;
+      }
+    };
+
+    try{await tryExtract()}
+    catch(err){
+      if(err.status===429||String(err.message).includes('429')){
+        let secs=err.retryAfter&&err.retryAfter>0?err.retryAfter+5:65;
+        it.state='waiting';it.detail=`Rate limit — reintentant en ${secs}s`;
+        const tick=setInterval(()=>{secs--;it.detail=`Rate limit — reintentant en ${secs}s`;renderQueue(_invQueue,'invQueuePanel',stopInvBatch);if(secs<=0)clearInterval(tick)},1000);
+        await delay(secs*1000);clearInterval(tick);
+        it.state='retrying';it.detail='';renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
+        try{await tryExtract()}catch(e2){it.state='error';it.detail=e2.message.slice(0,80);errors++}
+      }else{it.state='error';it.detail=err.message.slice(0,80);errors++}
+    }
+    renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
+    if(i<_invQueue.length-1&&!_invBatchStopped){
+      const w=delayForFile(it.file);
+      _invQueue[i+1].detail='Esperant '+Math.round(w/1000)+'s…';renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
+      await delay(w);_invQueue[i+1].detail='';renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
+    }
+  }
+  _invBatchRunning=false;
+  document.getElementById('invFileInput').value='';
+  updatePendingBadge();
+  toast(`✓ ${done} factura${done!==1?'s':''} desada${done!==1?'s':''}${pending?' · '+pending+' pendent'+(pending!==1?'s':''):''}${errors?' · '+errors+' error'+(errors!==1?'s':''):''}`,'ok');
+}
+
+// ===== EXTRACCIÓ COMPLETA PDF =====
+function isValidNifCif(n){
+  if(/^\d{8}[A-Z]$/i.test(n)){return n[8].toUpperCase()==='TRWAGMYFPDXBNJZSQVHLCKE'[parseInt(n.slice(0,8))%23]}
+  if(/^[ABCDEFGHJKLMNPQRSUVW]\d{7}[0-9A-J]$/i.test(n))return true;
   return false;
 }
-function cleanCif(raw, myDni){
-  if(!raw) return '';
-  const n = raw.trim().toUpperCase();
-  if(!isValidNifCif(n)) return '';    // descarta IBANs, números curts, formats invàlids
-  if(myDni && n === myDni) return ''; // descarta el teu propi DNI
+function cleanCif(raw,myDni){
+  if(!raw)return '';
+  const n=raw.trim().toUpperCase();
+  if(!isValidNifCif(n))return '';
+  if(myDni&&n===myDni)return '';
   return n;
 }
 async function extractPDFData(file,apiKey){
-  // Images: send as base64 image_url directly (no Files API needed)
   if(file.type.startsWith('image/')){
     const b64=await fileToBase64(file);
     const mtype=file.type||'image/jpeg';
@@ -749,50 +1049,32 @@ async function extractPDFData(file,apiKey){
         model:'pixtral-12b-2409',temperature:0,max_tokens:300,
         response_format:{type:'json_object'},
         messages:[
-          {role:'system',content:`Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. REGLES CRÍTIQUES: (1) 'cif' ha de ser el CIF o NIF del PROVEÏDOR (l'empresa emissora, la que cobra), normalment apareix al capçal o peu del document junt al nom i adreça de l'empresa. (2) El camp 'NIF' que apareix al cos de la factura sol ser el NIF del CLIENT (destinatari), posa'l a 'cif2'. (3) Mai confonguis el NIF del client/destinatari amb el CIF del proveïdor. (4) Si no trobes un camp usa null.`},
-          {role:'user',content:[
-            {type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},
-            {type:'text',text:"Extreu les dades d'aquesta factura en JSON. IMPORTANT: 'cif' = CIF/NIF de l'empresa emissora (el que apareix al capçal/peu junt al nom de l'empresa i adreça), 'cif2' = NIF del client destinatari (el que apareix al camp 'NIF' o 'CIF' del bloc de dades del destinatari)."}
-          ]}
+          {role:'system',content:`Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid: {"invoiceNum":"","date":"YYYY-MM-DD","provider":"","cif":"","cif2":"","base":0,"iva":0,"total":0}. 'cif' = CIF del PROVEÏDOR (emissor). 'cif2' = NIF del CLIENT. Si no trobes un camp usa null.`},
+          {role:'user',content:[{type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},{type:'text',text:"Extreu les dades d'aquesta factura."}]}
         ]
       })
     });
     const data=await resp.json();
-    if(!resp.ok){const err=new Error('API Mistral ('+resp.status+'): '+(data.message||data.error?.message||'Error'));err.status=resp.status;throw err;}
+    if(!resp.ok){const err=new Error('API ('+resp.status+'): '+(data.message||'Error'));err.status=resp.status;throw err}
     const rawText=data.choices?.[0]?.message?.content||'';
-    if(!rawText) throw new Error('Resposta buida');
     const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
-    const myDni1=await getMyDni();
-    const cifA=cleanCif(json.cif,myDni1);
-    const cifB=cifA===''?cleanCif(json.cif2,myDni1):'';
+    const myDni=await getMyDni();
+    const cifA=cleanCif(json.cif,myDni);
+    const cifB=cifA===''?cleanCif(json.cif2,myDni):'';
     return {invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',cif:cifA||cifB,base:+json.base||0,iva:+json.iva||0,total:+json.total||0};
   }
-  // PDFs: use Files API
-  // Step 1 — upload file
+  // PDF via Files API
   const formData=new FormData();
-  formData.append('purpose','ocr');
-  formData.append('file',file,file.name);
-  const upResp=await fetch('https://api.mistral.ai/v1/files',{
-    method:'POST',
-    headers:{'Authorization':'Bearer '+apiKey},
-    body:formData
-  });
+  formData.append('purpose','ocr');formData.append('file',file,file.name);
+  const upResp=await fetch('https://api.mistral.ai/v1/files',{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:formData});
   const upData=await upResp.json();
-  if(!upResp.ok) throw new Error('Error pujant arxiu ('+upResp.status+'): '+(upData.message||upData.error?.message||JSON.stringify(upData)));
-  const fileId=upData.id;
-  if(!fileId) throw new Error("No s'ha rebut file_id");
-
-  // Step 2 — get signed URL (expiry=24h)
-  const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{
-    headers:{'Authorization':'Bearer '+apiKey}
-  });
+  if(!upResp.ok)throw new Error('Error pujant ('+upResp.status+'): '+(upData.message||JSON.stringify(upData)));
+  const fileId=upData.id;if(!fileId)throw new Error("No file_id");
+  const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
   const urlData=await urlResp.json();
-  if(!urlResp.ok) throw new Error('Error obtenint URL ('+urlResp.status+'): '+(urlData.message||urlData.error?.message||JSON.stringify(urlData)));
-  const signedUrl=urlData.url;
-  if(!signedUrl) throw new Error("No s'ha rebut signed URL");
-
-  // Step 3 — extract data
-  let chatData, chatResp;
+  if(!urlResp.ok)throw new Error('Error URL: '+(urlData.message||JSON.stringify(urlData)));
+  const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
+  let chatData,chatResp;
   try{
     chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
       method:'POST',
@@ -801,43 +1083,168 @@ async function extractPDFData(file,apiKey){
         model:'mistral-small-latest',temperature:0,max_tokens:300,
         response_format:{type:'json_object'},
         messages:[
-          {role:'system',content:`Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid amb exactament aquests camps: invoiceNum, date (YYYY-MM-DD), provider, cif, cif2, base, iva, total. REGLES CRÍTIQUES: (1) 'cif' ha de ser el CIF o NIF del PROVEÏDOR (l'empresa emissora, la que cobra), normalment apareix al capçal o peu del document junt al nom i adreça de l'empresa. (2) El camp 'NIF' que apareix al cos de la factura sol ser el NIF del CLIENT (destinatari), posa'l a 'cif2'. (3) Mai confonguis el NIF del client/destinatari amb el CIF del proveïdor. (4) Si no trobes un camp usa null.`},
-          {role:'user',content:[
-            {type:'document_url',document_url:signedUrl},
-            {type:'text',text:"Extreu les dades d'aquesta factura en JSON. IMPORTANT: 'cif' = CIF/NIF de l'empresa emissora (el que apareix al capçal/peu junt al nom de l'empresa i adreça), 'cif2' = NIF del client destinatari (el que apareix al camp 'NIF' o 'CIF' del bloc de dades del destinatari)."}
-          ]}
+          {role:'system',content:`Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid: {"invoiceNum":"","date":"YYYY-MM-DD","provider":"","cif":"","cif2":"","base":0,"iva":0,"total":0}. 'cif' = CIF del PROVEÏDOR (emissor). 'cif2' = NIF del CLIENT. Si no trobes un camp usa null.`},
+          {role:'user',content:[{type:'document_url',document_url:signedUrl},{type:'text',text:"Extreu les dades d'aquesta factura."}]}
         ]
       })
     });
     chatData=await chatResp.json();
-  } finally {
-    // Step 4 — always delete file after use
-    fetch('https://api.mistral.ai/v1/files/'+fileId,{
-      method:'DELETE',headers:{'Authorization':'Bearer '+apiKey}
-    }).catch(()=>{});
-  }
-
+  } finally {fetch('https://api.mistral.ai/v1/files/'+fileId,{method:'DELETE',headers:{'Authorization':'Bearer '+apiKey}}).catch(()=>{})}
   if(!chatResp.ok){
     const retryAfter=chatResp.headers?.get('retry-after');
-    const msg='API Mistral ('+chatResp.status+'): '+(chatData?.message||chatData?.error?.message||'Error');
-    const err=new Error(msg);
-    err.status=chatResp.status;
-    err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;
-    throw err;
+    const err=new Error('API ('+chatResp.status+'): '+(chatData?.message||'Error'));
+    err.status=chatResp.status;err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;throw err;
   }
   const rawText=chatData.choices?.[0]?.message?.content||'';
-  if(!rawText) throw new Error('Resposta buida');
   const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
-  const myDni2=await getMyDni();
-  const cifC=cleanCif(json.cif,myDni2);
-  const cifD=cifC===''?cleanCif(json.cif2,myDni2):'';
-  return {
-    invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',
-    cif:cifC||cifD,base:+json.base||0,iva:+json.iva||0,total:+json.total||0
-  };
+  const myDni=await getMyDni();
+  const cifC=cleanCif(json.cif,myDni);
+  const cifD=cifC===''?cleanCif(json.cif2,myDni):'';
+  return {invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',cif:cifC||cifD,base:+json.base||0,iva:+json.iva||0,total:+json.total||0};
 }
 
-// ===== API CONFIG PAGE =====
+// ===== PENDING INVOICES =====
+async function updatePendingBadge(){
+  const all=await dbAll('invoices');
+  const n=all.filter(r=>!r.provider).length;
+  document.getElementById('pendingBadge').textContent=n?`(${n})`:'';
+  document.getElementById('invImportCount').textContent=all.length+' factures · '+n+' pendents';
+}
+
+async function renderPendingInvoices(){
+  await updatePendingBadge();
+  const all=await dbAll('invoices');
+  const pending=all.filter(r=>!r.provider);
+  const el=document.getElementById('pendingInvoiceList');
+  document.getElementById('pendingBulkCount').textContent=`${pending.length} factura${pending.length!==1?'s':''} sense proveïdor`;
+  if(!pending.length){el.innerHTML='<div class="empty-state"><div class="empty-icon">✓</div><div class="empty-text">Totes les factures estan assignades</div></div>';return}
+  el.innerHTML=`<div class="prov-list">${pending.sort((a,b)=>new Date(b.date)-new Date(a.date)).map(r=>`
+    <div class="prov-row" style="cursor:default">
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500">${r.date?r.date.split('-').reverse().join('/'):'—'} &nbsp;·&nbsp; ${r.invoiceNum||'—'}</div>
+        <div style="font-size:10px;color:var(--text3);margin-top:2px">${r.provider||'<span style="color:var(--warn)">sense proveïdor</span>'} &nbsp;·&nbsp; ${fmt(r.total)} €</div>
+      </div>
+      <button class="btn btn-outline btn-sm" onclick="openSingleAssign(${r.id})">ASSIGNAR</button>
+    </div>`).join('')}</div>`;
+}
+
+async function openSingleAssign(id){
+  _selectedIds.clear();_selectedIds.add(id);
+  await openBulkAssign();
+}
+
+async function openPendingAssign(){
+  const all=await dbAll('invoices');
+  const pending=all.filter(r=>!r.provider);
+  if(!pending.length){toast('Cap factura pendent','err');return}
+  pending.forEach(r=>_selectedIds.add(r.id));
+  await openBulkAssign();
+  // After assign, refresh pending tab
+  document.getElementById('assignOverlay').addEventListener('click',()=>renderPendingInvoices(),{once:true});
+}
+
+// ===== PROVIDERS CATALOG =====
+async function renderProviders(){
+  const data=await dbAll('providers');
+  document.getElementById('provCount').textContent=data.length+' proveïdors';
+  const el=document.getElementById('providerList');
+  if(!data.length){el.innerHTML='<div class="empty-state"><div class="empty-text">Sense proveïdors — puja PDFs a la pestanya ① o afegeix manualment</div></div>';return}
+  const sorted=data.sort((a,b)=>a.name.localeCompare(b.name));
+  el.innerHTML=`<div class="prov-list">${sorted.map(p=>`
+    <div class="prov-row" id="prov-row-${p.id}">
+      <span class="prov-name" id="prov-name-${p.id}" style="cursor:pointer;text-decoration:underline dotted" title="Clic per editar" onclick="editProviderName(${p.id},'${escAttr(p.name)}')">${p.name}</span>
+      <span class="prov-cif ${p.cif?'':'prov-cif-missing'}" id="prov-cif-${p.id}" style="cursor:pointer;text-decoration:underline dotted" title="Clic per editar" onclick="editProviderCif(${p.id},'${escAttr(p.cif||'')}')">${p.cif||'— sense CIF —'}</span>
+      <button class="btn btn-danger btn-sm" onclick="deleteProvider(${p.id})">✕</button>
+    </div>`).join('')}</div>`;
+}
+function escAttr(s){return(s||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;')}
+
+async function editProviderName(id,current){
+  const span=document.getElementById('prov-name-'+id);if(!span)return;
+  span.outerHTML=`<span id="prov-name-${id}" class="inline-edit">
+    <input class="inline-input" id="prov-name-inp-${id}" type="text" value="${escAttr(current)}" style="width:180px"
+      onkeydown="if(event.key==='Enter')saveProviderName(${id});if(event.key==='Escape')renderProviders()">
+    <button class="btn btn-primary btn-sm" onclick="saveProviderName(${id})">✓</button>
+    <button class="btn btn-outline btn-sm" onclick="renderProviders()">✕</button>
+  </span>`;
+  document.getElementById('prov-name-inp-'+id)?.focus();
+}
+async function saveProviderName(id){
+  const inp=document.getElementById('prov-name-inp-'+id);if(!inp)return;
+  const newName=inp.value.trim();if(!newName){toast('El nom no pot estar buit','err');return}
+  const prov=await dbGet('providers',id);if(!prov)return;
+  const oldName=prov.name;
+  await dbPut('providers',{...prov,name:newName});
+  // Actualitzar factures
+  const all=await dbAll('invoices');
+  const toUpdate=all.filter(r=>normName(r.provider)===normName(oldName));
+  for(const inv of toUpdate)await dbPut('invoices',{...inv,provider:newName});
+  invalidateProviderCache();
+  renderProviders();
+  toast('Nom actualitzat'+(toUpdate.length?' · '+toUpdate.length+' factures':'')+' ✓','ok');
+}
+
+async function editProviderCif(id,current){
+  const span=document.getElementById('prov-cif-'+id);if(!span)return;
+  span.outerHTML=`<span id="prov-cif-${id}" class="inline-edit">
+    <input class="inline-input" id="prov-cif-inp-${id}" type="text" value="${escAttr(current)}" maxlength="20" style="width:110px;text-transform:uppercase"
+      onkeydown="if(event.key==='Enter')saveProviderCif(${id});if(event.key==='Escape')renderProviders()">
+    <button class="btn btn-primary btn-sm" onclick="saveProviderCif(${id})">✓</button>
+    <button class="btn btn-outline btn-sm" onclick="renderProviders()">✕</button>
+  </span>`;
+  document.getElementById('prov-cif-inp-'+id)?.focus();
+}
+async function saveProviderCif(id){
+  const inp=document.getElementById('prov-cif-inp-'+id);if(!inp)return;
+  const newCif=inp.value.trim().toUpperCase();
+  const prov=await dbGet('providers',id);if(!prov)return;
+  await dbPut('providers',{...prov,cif:newCif});
+  const all=await dbAll('invoices');
+  const toUpdate=all.filter(r=>normName(r.provider)===normName(prov.name));
+  for(const inv of toUpdate)await dbPut('invoices',{...inv,cif:newCif});
+  invalidateProviderCache();
+  renderProviders();
+  toast('CIF desat'+(newCif?' · '+newCif:'')+(toUpdate.length?' · '+toUpdate.length+' factures':'')+' ✓','ok');
+}
+
+async function addProvider(){
+  const name=document.getElementById('p_name').value.trim();
+  const cif=document.getElementById('p_cif').value.trim().toUpperCase();
+  if(!name){toast('Introdueix el nom','err');return}
+  const ex=await dbAll('providers');
+  if(ex.find(p=>normName(p.name)===normName(name))){toast('Ja existeix aquest proveïdor','err');return}
+  await dbAdd('providers',{name,cif});
+  invalidateProviderCache();
+  document.getElementById('p_name').value='';document.getElementById('p_cif').value='';
+  renderProviders();toast('Proveïdor afegit','ok');
+}
+
+async function deleteProvider(id){
+  const prov=await dbGet('providers',id);
+  if(!confirm('Eliminar proveïdor'+(prov?' "'+prov.name+'"':'')+' ?'))return;
+  await dbDel('providers',id);
+  invalidateProviderCache();
+  renderProviders();toast('Eliminat','ok');
+}
+
+// ===== MANUAL =====
+async function loadProviderSelect(){
+  const provs=await dbAll('providers');
+  const sel=document.getElementById('m_provider');
+  sel.innerHTML='<option value="">— Selecciona —</option>'+provs.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.name}" data-cif="${p.cif||''}">${p.name}</option>`).join('');
+}
+function onProviderSelect(){document.getElementById('m_cif').value=document.getElementById('m_provider').selectedOptions[0]?.dataset.cif||''}
+function calcTotal(){document.getElementById('m_total').value=((+document.getElementById('m_base').value||0)+(+document.getElementById('m_iva').value||0)).toFixed(2)}
+async function saveManual(){
+  const inv={invoiceNum:document.getElementById('m_invoiceNum').value.trim(),date:document.getElementById('m_date').value,provider:document.getElementById('m_provider').value,cif:document.getElementById('m_cif').value,base:+document.getElementById('m_base').value||0,iva:+document.getElementById('m_iva').value||0,total:+document.getElementById('m_total').value||0};
+  if(!inv.date||!inv.provider){toast('Selecciona data i proveïdor','err');return}
+  const dup=await checkDuplicate(inv.invoiceNum,inv.provider,inv.total,inv.date);
+  if(dup){showDupWarning(inv,dup,async()=>{await dbAdd('invoices',inv);toast('Factura afegida (duplicat confirmat)','ok');clearManual();showPage('home')});return}
+  await dbAdd('invoices',inv);toast('Factura afegida','ok');clearManual();showPage('home');
+}
+function clearManual(){['m_invoiceNum','m_date','m_base','m_iva','m_total'].forEach(id=>document.getElementById(id).value='');document.getElementById('m_provider').value='';document.getElementById('m_cif').value=''}
+
+// ===== API CONFIG =====
 async function loadApiConfigPage(){
   const key=await getApiKey();
   const inp=document.getElementById('cfg_apikey');
@@ -845,192 +1252,28 @@ async function loadApiConfigPage(){
   else{inp.value='';showCfgStatus('No hi ha cap clau configurada','warn')}
   const dni=await getMyDni();
   const dniInp=document.getElementById('cfg_dni');
-  if(dniInp) dniInp.value=dni;
+  if(dniInp)dniInp.value=dni;
   const dniSt=document.getElementById('cfg_dni_status');
-  if(dniSt&&dni){dniSt.textContent='✓ DNI configurat: '+dni;dniSt.style.color='#27ae60';dniSt.style.display='block';}
-}
-async function saveDni(){
-  const val=document.getElementById('cfg_dni').value.trim().toUpperCase();
-  if(!val){const st=document.getElementById('cfg_dni_status');st.textContent='Introdueix el teu DNI/NIF';st.style.color='#e74c3c';st.style.display='block';return;}
-  await saveMyDni(val);
-  const st=document.getElementById('cfg_dni_status');
-  st.textContent='✓ DNI desat: '+val;st.style.color='#27ae60';st.style.display='block';
-  toast('DNI desat','ok');
-}
-function showCfgStatus(msg,type){
-  const el=document.getElementById('cfg_status');
-  el.textContent=msg;
-  el.style.display='block';
-  el.style.color=type==='ok'?'#27ae60':type==='warn'?'#f39c12':'#e74c3c';
+  if(dniSt&&dni){dniSt.textContent='✓ DNI: '+dni;dniSt.style.color='var(--ok)';dniSt.style.display='block'}
 }
 async function saveApiConfig(){
   const key=document.getElementById('cfg_apikey').value.trim();
   if(!key){showCfgStatus('Introdueix una clau vàlida','err');return}
-  await saveApiKey(key);
-  showCfgStatus('✓ Clau desada correctament','ok');
-  toast('API Key desada','ok');
+  await saveApiKey(key);showCfgStatus('✓ Clau desada','ok');toast('API Key desada','ok');
 }
-function toggleApiKeyVisibility(){
-  const inp=document.getElementById('cfg_apikey');
-  inp.type=inp.type==='password'?'text':'password';
-}
-
-function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)})}
-
-async function saveFromAI(){
-  const inv={
-    invoiceNum:document.getElementById('ai_invoiceNum').value.trim(),
-    date:document.getElementById('ai_date').value,
-    provider:document.getElementById('ai_provider').value.trim(),
-    cif:document.getElementById('ai_cif').value.trim(),
-    base:+document.getElementById('ai_base').value||0,
-    iva:+document.getElementById('ai_iva').value||0,
-    total:+document.getElementById('ai_total').value||0
-  };
-  if(!inv.date||!inv.provider){toast('Comprova data i proveïdor','err');return}
-
-  const dup = await checkDuplicate(inv.invoiceNum, inv.provider, inv.total, inv.date);
-  if (dup) {
-    showDupWarning(inv, dup, async ()=>{
-      await ensureProvider(inv.provider,inv.cif);
-      await dbAdd('invoices',inv);
-      toast('Factura desada (duplicat confirmat)','ok');
-      resetUpload();showPage('home');
-    });
-    return;
-  }
-  await ensureProvider(inv.provider,inv.cif);
-  await dbAdd('invoices',inv);
-  toast('Factura desada','ok');
-  resetUpload();showPage('home');
-}
-function resetUpload(){document.getElementById('aiResult').style.display='none';document.getElementById('fileInput').value=''}
-
-// ===== MANUAL =====
-async function loadProviderSelect(){
-  const provs=await dbAll('providers');
-  const sel=document.getElementById('m_provider');
-  sel.innerHTML='<option value="">— Selecciona —</option>';
-  provs.forEach(p=>sel.innerHTML+=`<option value="${p.name}" data-cif="${p.cif}">${p.name}</option>`);
-}
-function onProviderSelect(){document.getElementById('m_cif').value=document.getElementById('m_provider').selectedOptions[0]?.dataset.cif||''}
-function calcTotal(){document.getElementById('m_total').value=((+document.getElementById('m_base').value||0)+(+document.getElementById('m_iva').value||0)).toFixed(2)}
-
-async function saveManual(){
-  const inv={
-    invoiceNum:document.getElementById('m_invoiceNum').value.trim(),
-    date:document.getElementById('m_date').value,
-    provider:document.getElementById('m_provider').value,
-    cif:document.getElementById('m_cif').value,
-    base:+document.getElementById('m_base').value||0,
-    iva:+document.getElementById('m_iva').value||0,
-    total:+document.getElementById('m_total').value||0
-  };
-  if(!inv.date||!inv.provider){toast('Selecciona data i proveïdor','err');return}
-
-  const dup = await checkDuplicate(inv.invoiceNum, inv.provider, inv.total, inv.date);
-  if (dup) {
-    showDupWarning(inv, dup, async ()=>{
-      await dbAdd('invoices',inv);
-      toast('Factura afegida (duplicat confirmat)','ok');
-      clearManual();showPage('home');
-    });
-    return;
-  }
-  await dbAdd('invoices',inv);
-  toast('Factura afegida','ok');
-  clearManual();showPage('home');
+function toggleApiKeyVisibility(){const inp=document.getElementById('cfg_apikey');inp.type=inp.type==='password'?'text':'password'}
+function showCfgStatus(msg,type){const el=document.getElementById('cfg_status');el.textContent=msg;el.style.display='block';el.style.color=type==='ok'?'var(--ok)':type==='warn'?'var(--warn)':'var(--err)'}
+async function saveDni(){
+  const val=document.getElementById('cfg_dni').value.trim().toUpperCase();
+  if(!val){const st=document.getElementById('cfg_dni_status');st.textContent='Introdueix el teu DNI/NIF';st.style.color='var(--err)';st.style.display='block';return}
+  await saveMyDni(val);
+  const st=document.getElementById('cfg_dni_status');
+  st.textContent='✓ DNI desat: '+val;st.style.color='var(--ok)';st.style.display='block';
+  toast('DNI desat','ok');
 }
 
-function clearManual(){
-  ['m_invoiceNum','m_date','m_base','m_iva','m_total'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('m_provider').value='';
-  document.getElementById('m_cif').value='';
-}
-
-// ===== PROVIDERS =====
-async function renderProviders(){
-  const data=await dbAll('providers');
-  document.getElementById('provCount').textContent=data.length+' proveïdors';
-  const el=document.getElementById('providerList');
-  if(!data.length){el.innerHTML='<div class="empty-state"><div class="empty-text">Sense proveïdors</div></div>';return}
-  el.innerHTML=`<div class="prov-grid">${data.map(p=>`
-    <div class="prov-row" id="prov-row-${p.id}">
-      <span class="prov-name">${p.name}</span>
-      <span class="prov-cif" id="prov-cif-${p.id}" style="cursor:pointer;text-decoration:underline dotted" title="Clic per editar" onclick="editProviderCif(${p.id},'${(p.cif||'').replace(/'/g,String.fromCharCode(92)+String.fromCharCode(39))}')">
-        ${p.cif||'—'}
-      </span>
-      <button class="btn-del" onclick="deleteProvider(${p.id})">✕</button>
-    </div>`).join('')}</div>`;
-}
-async function editProviderCif(id, currentCif){
-  const span=document.getElementById('prov-cif-'+id);
-  if(!span)return;
-  span.outerHTML=`<span id="prov-cif-${id}" style="display:flex;gap:5px;align-items:center">
-    <input id="prov-cif-inp-${id}" type="text" value="${currentCif}" maxlength="20"
-      style="font-size:12px;padding:3px 6px;border-radius:4px;border:1px solid rgba(128,128,128,.4);background:transparent;width:100px;text-transform:uppercase"
-      onkeydown="if(event.key==='Enter')saveProviderCif(${id});if(event.key==='Escape')renderProviders()">
-    <button class="btn btn-primary" style="padding:2px 8px;font-size:11px" onclick="saveProviderCif(${id})">✓</button>
-    <button class="btn btn-outline" style="padding:2px 6px;font-size:11px" onclick="renderProviders()">✕</button>
-  </span>`;
-  document.getElementById('prov-cif-inp-'+id)?.focus();
-}
-async function saveProviderCif(id){
-  const inp=document.getElementById('prov-cif-inp-'+id);
-  if(!inp)return;
-  const newCif=inp.value.trim().toUpperCase();
-  const all=await dbAll('providers');
-  const prov=all.find(p=>p.id===id);
-  if(!prov)return;
-  // Actualitzar el proveïdor
-  const tx=db.transaction('providers','readwrite');
-  tx.objectStore('providers').put({...prov,cif:newCif});
-  await new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej});
-  // Actualitzar totes les factures d'aquest proveïdor
-  const invAll=await dbAll('invoices');
-  const toUpdate=invAll.filter(r=>normName(r.provider)===normName(prov.name));
-  for(const inv of toUpdate){
-    const tx2=db.transaction('invoices','readwrite');
-    tx2.objectStore('invoices').put({...inv,cif:newCif});
-    await new Promise((res,rej)=>{tx2.oncomplete=res;tx2.onerror=rej});
-  }
-  invalidateProviderCache();
-  renderProviders();
-  const n=toUpdate.length;
-  toast('CIF desat: '+(newCif||'buit')+(n?' · '+n+' factura'+(n!==1?'s':'')+' actualitzada'+(n!==1?'s':''):''), 'ok');
-}
-async function addProvider(){
-  const name=document.getElementById('p_name').value.trim(),cif=document.getElementById('p_cif').value.trim().toUpperCase();
-  if(!name){toast('Introdueix el nom','err');return}
-  const ex=await dbAll('providers');
-  if(ex.find(p=>normName(p.name)===normName(name))){toast('Ja existeix','err');return}
-  await dbAdd('providers',{name,cif});
-  invalidateProviderCache();
-  document.getElementById('p_name').value='';document.getElementById('p_cif').value='';
-  renderProviders();toast('Proveïdor afegit','ok');
-}
-async function deleteProvider(id){if(!confirm('Eliminar?'))return;await dbDel('providers',id);invalidateProviderCache();renderProviders();toast('Eliminat')}
-function normName(s){return s?s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/\s+/g,' ').trim():''}
-// Cache en memòria per evitar duplicats de proveïdors en processos batch
-let _providerCache=null;
-async function getProviderCache(){
-  if(!_providerCache){
-    const ex=await dbAll('providers');
-    _providerCache=new Set(ex.map(p=>normName(p.name)));
-  }
-  return _providerCache;
-}
-function invalidateProviderCache(){_providerCache=null;}
-async function ensureProvider(name,cif){
-  if(!name)return;
-  const cache=await getProviderCache();
-  const key=normName(name);
-  if(cache.has(key))return;
-  cache.add(key); // reserva immediatament abans de l'await
-  await dbAdd('providers',{name,cif:cif||''});
-}
-
-// ===== EXPORT EXCEL (format original sense canvis) =====
+// ===== EXPORT EXCEL =====
+// Format: punt per milers, coma per decimals (de-DE)
 async function exportExcel(){
   const inv=await dbAll('invoices');
   if(!inv.length){toast('Sense factures','err');return}
@@ -1038,7 +1281,6 @@ async function exportExcel(){
   const filtered=year?inv.filter(r=>r.date&&r.date.startsWith(year)):inv;
   if(!filtered.length){toast('Sense factures per a '+year,'err');return}
   const wb=XLSX.utils.book_new();
-  // Group by year — one sheet each
   const byYear={};
   filtered.forEach(r=>{const y=r.date?r.date.slice(0,4):'sense_any';(byYear[y]=byYear[y]||[]).push(r)});
   Object.keys(byYear).sort().forEach(y=>{
@@ -1048,9 +1290,9 @@ async function exportExcel(){
         .map(r=>[r.date?r.date.split('-').reverse().join('/'):null,r.provider,r.cif,r.invoiceNum||'',+r.base,+r.iva,+r.total])
     ];
     const ws=XLSX.utils.aoa_to_sheet(rows);
-    // Format espanyol: punt milers, coma decimals
+    // Format numèric: punt per milers, coma per decimals (Excel #.##0,00 en locale ES/DE)
     for(let i=1;i<rows.length;i++){
-      ['E','F','G'].forEach(c=>{const cell=ws[`${c}${i+1}`];if(cell){cell.z='#.##0,00';cell.t='n';}});
+      ['E','F','G'].forEach(c=>{const cell=ws[`${c}${i+1}`];if(cell){cell.t='n';cell.z='#.##0,00'}});
     }
     ws['!cols']=[{wch:14},{wch:35},{wch:12},{wch:18},{wch:16},{wch:12},{wch:16}];
     XLSX.utils.book_append_sheet(wb,ws,y);
@@ -1073,7 +1315,7 @@ async function importJSON(e){
   try{
     const data=JSON.parse(await f.text());
     if(!data.invoices)throw new Error('Format invàlid');
-    if(!confirm(`Importar ${data.invoices.length} factures? Substituirà les dades actuals.`))return;
+    if(!confirm(`Importar ${data.invoices.length} factures i ${(data.providers||[]).length} proveïdors? Substituirà les dades actuals.`))return;
     await dbClear('invoices');await dbClear('providers');
     for(const inv of data.invoices){const{id,...r}=inv;await dbAdd('invoices',r)}
     for(const p of(data.providers||[])){const{id,...r}=p;await dbAdd('providers',r)}
@@ -1083,94 +1325,46 @@ async function importJSON(e){
   e.target.value='';
 }
 
-
-
-// ===== QUEUE STYLES =====
-(function(){
-  const s=document.createElement('style');
-  s.textContent=`
-    .queue-header{margin-bottom:12px}
-    .queue-title-row{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
-    .queue-title{font-size:11px;letter-spacing:.12em;opacity:.5;font-weight:600}
-    .queue-summary{font-size:12px;font-weight:600}
-    .queue-global-bar{height:4px;background:rgba(128,128,128,.15);border-radius:2px;overflow:hidden;margin-bottom:6px}
-    .queue-global-fill{height:100%;background:currentColor;border-radius:2px;transition:width .4s ease}
-    .queue-eta{font-size:11px;opacity:.5;margin-bottom:4px}
-    .queue-status{font-size:12px;opacity:.65;margin-bottom:12px;min-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .queue-list{display:flex;flex-direction:column;gap:6px}
-    .queue-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:6px;border:1px solid rgba(128,128,128,.12);background:rgba(128,128,128,.04);transition:all .2s}
-    .qi-icon{font-size:14px;min-width:18px;margin-top:1px}
-    .qi-body{flex:1;min-width:0}
-    .qi-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-    .qi-provider{font-size:11px;opacity:.6;margin-top:2px}
-    .qi-detail{font-size:11px;opacity:.55;margin-top:2px}
-    .qi-label{font-size:10px;letter-spacing:.08em;opacity:.5;white-space:nowrap;margin-top:2px;text-transform:uppercase}
-    .qi-processing{border-color:rgba(128,128,255,.3);background:rgba(128,128,255,.06)}
-    .qi-processing .qi-icon{animation:spin 1.2s linear infinite;display:inline-block}
-    .qi-ok .qi-icon{color:#27ae60} .qi-ok{border-color:rgba(39,174,96,.25);background:rgba(39,174,96,.05)}
-    .qi-error .qi-icon{color:#e74c3c} .qi-error{border-color:rgba(231,76,60,.25);background:rgba(231,76,60,.05)}
-    .qi-dup .qi-icon{color:#f39c12} .qi-dup{border-color:rgba(243,156,18,.25);background:rgba(243,156,18,.05)}
-    .qi-waiting .qi-icon{color:#f39c12}
-    .qi-retrying .qi-icon{color:#3498db}
-    .qi-pending{opacity:.45}
-    @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
-  `;
-  document.head.appendChild(s);
-})();
-
-// ===== BATCH STYLES (injected) =====
-(function(){
-  const s=document.createElement('style');
-  s.textContent=`
-    #batchProgress{margin-top:18px;font-size:13px}
-    .batch-bar{height:6px;background:rgba(128,128,128,.2);border-radius:3px;margin-bottom:10px;overflow:hidden}
-    .batch-fill{height:100%;background:currentColor;border-radius:3px;transition:width .3s}
-    .batch-status{opacity:.8;margin-bottom:6px}
-    .batch-warn{color:#f39c12;margin-top:4px}
-    .batch-err{color:#e74c3c;margin-top:4px}
-    .batch-done{margin-top:10px;font-weight:600;font-size:14px}
-  `;
-  document.head.appendChild(s);
-})();
-
-// ===== TOTALS FOOTER STYLES =====
-(function(){
-  const s=document.createElement('style');
-  s.textContent=`
-    .tfoot-row td { border-top: 2px solid rgba(128,128,128,.2); background: rgba(128,128,128,.04); padding: 10px 8px; }
-    .tfoot-row .td-total { font-size: 15px; font-weight: 700; }
-  `;
-  document.head.appendChild(s);
-})();
 // ===== CLEAR ALL =====
 async function confirmClearAll(){
-  const step1=confirm('⚠ ESBORRAR TOTES LES DADES\n\nAixò eliminarà totes les factures i proveïdors.\n\nVols exportar ara el backup JSON?');
-  if(step1) exportJSON();
-  const step2=confirm('Confirmes que vols esborrar TOTES les factures i proveïdors?\n\nAquesta acció no es pot desfer.');
+  const step1=confirm('⚠ ESBORRAR TOTES LES DADES\n\nVols exportar ara el backup JSON?');
+  if(step1)exportJSON();
+  const step2=confirm('Confirmes que vols esborrar TOTES les factures i proveïdors?\nAquesta acció no es pot desfer.');
   if(!step2)return;
-  await dbClear('invoices');
-  await dbClear('providers');
+  await dbClear('invoices');await dbClear('providers');
   invalidateProviderCache();
-  renderInvoices();
-  toast('Totes les dades esborrades','ok');
+  renderInvoices();toast('Totes les dades esborrades','ok');
 }
+
+// ===== SEED DATA =====
+const SEED_INV=[
+  {invoiceNum:'INT-2025-001',date:'2025-01-12',provider:'Interfacom SAU',cif:'A58225137',base:42.15,iva:8.85,total:51.00},
+  {invoiceNum:'CIF-2026-001',date:'2026-01-01',provider:'INMOBILIARIA CIENFUEGOS, S.L.',cif:'B08182735',base:102.48,iva:21.52,total:124.00},
+  {invoiceNum:'CIF-2026-002',date:'2026-02-01',provider:'INMOBILIARIA CIENFUEGOS, S.L.',cif:'B08182735',base:102.48,iva:21.52,total:124.00},
+  {invoiceNum:'MYT-2026-001',date:'2026-01-04',provider:'mytaxi Iberia S.L.',cif:'B65677221',base:4.82,iva:1.01,total:5.83},
+  {invoiceNum:'FRN-2026-001',date:'2026-01-10',provider:'',cif:'',base:12.40,iva:1.99,total:14.39},
+];
+const SEED_PROV=[
+  {name:'Interfacom SAU',cif:'A58225137'},
+  {name:'INMOBILIARIA CIENFUEGOS, S.L.',cif:'B08182735'},
+  {name:'mytaxi Iberia S.L.',cif:'B65677221'},
+];
 
 // ===== INIT =====
 async function init(){
   await initDB();
-  _cachedApiKey=await getApiKey(); // warm cache
-  // Seed only once on very first run, tracked by a settings flag
-  const seeded=await (async()=>{try{const tx=db.transaction('settings','readonly');const r=tx.objectStore('settings').get('seeded');return await new Promise((res,rej)=>{r.onsuccess=e=>res(e.target.result?.value);r.onerror=rej})}catch{return null}})();
+  _cachedApiKey=await getApiKey();
+  const seeded=await getSetting('seeded');
   if(!seeded){
     const ex=await dbAll('invoices');
     if(!ex.length){
-      for(const inv of SEED_INV) await dbAdd('invoices',inv);
-      for(const p of SEED_PROV) await dbAdd('providers',p);
+      for(const inv of SEED_INV)await dbAdd('invoices',inv);
+      for(const p of SEED_PROV)await dbAdd('providers',p);
     }
-    const tx=db.transaction('settings','readwrite');
-    tx.objectStore('settings').put({key:'seeded',value:true});
+    await setSetting('seeded',true);
   }
   renderInvoices();
+  updatePendingBadge();
 }
 init();
 </script>
