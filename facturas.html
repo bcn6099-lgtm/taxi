@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FACTURES // GESTOR222</title>
+<title>FACTURES // GESTOR</title>
 <!-- ============================================
      CANVIA EL CSS AQUÍ:
      style-original.css  → Neon Cyber (daurat/negre)
@@ -128,9 +128,11 @@
         <div class="queue-title-row">
           <span class="queue-title">CUA DE PROCESSAMENT</span>
           <span id="queueSummary" class="queue-summary"></span>
+          <button id="queueStopBtn" class="btn btn-danger" style="font-size:11px;padding:4px 12px;display:none" onclick="stopBatchQueue()">■ ATURAR</button>
         </div>
         <div class="queue-global-bar"><div id="queueGlobalFill" class="queue-global-fill"></div></div>
         <div id="queueEta" class="queue-eta"></div>
+        <div id="queueStatus" class="queue-status"></div>
       </div>
       <div id="queueList" class="queue-list"></div>
     </div>
@@ -542,6 +544,7 @@ async function processPDF(file){
 // ===== BATCH PROCESSING =====
 let _batchQueue=[];
 let _batchRunning=false;
+let _batchStopRequested=false;
 const DELAY_RETRY=3000;
 // Delay scales with file size: small (<50kb)=5s, medium (<150kb)=12s, large=20s
 // Free tier = 2 req/min → minimum 31s between requests to be safe
@@ -571,6 +574,15 @@ function queueRender(){
   const dups=_queueItems.filter(i=>i.state==='dup').length;
   const pending=_queueItems.filter(i=>['pending','processing','retrying','waiting'].includes(i.state)).length;
   sumEl.textContent=`${finished}/${total} · ✓${ok}${dups?' ⊘'+dups:''} ${errs?'✕'+errs:''}`;
+  const stopBtn=document.getElementById('queueStopBtn');
+  if(stopBtn) stopBtn.style.display=_batchRunning&&!_batchStopRequested?'inline-block':'none';
+  const statusEl=document.getElementById('queueStatus');
+  if(statusEl){
+    const cur=_queueItems.find(i=>i.state==='processing');
+    if(_batchStopRequested) statusEl.textContent='Aturant després del fitxer actual...';
+    else if(cur) statusEl.textContent='Processant: '+cur.name;
+    else statusEl.textContent='';
+  }
 
   // ETA
   if(pending>0){
@@ -602,6 +614,13 @@ function queueRender(){
   }).join('');
 }
 
+function stopBatchQueue(){
+  _batchStopRequested=true;
+  const btn=document.getElementById('queueStopBtn');
+  if(btn) btn.style.display='none';
+  queueRender();
+}
+
 async function processBatch(files){
   hideUploadError();
   const apiKey=await getApiKey();
@@ -613,6 +632,7 @@ async function processBatch(files){
 
   _queueItems=Array.from(files).map(f=>({name:f.name,file:f,state:'pending',detail:'',provider:'',total:''}));
   _batchRunning=true;
+  _batchStopRequested=false;
   document.getElementById('aiResult').style.display='none';
   queueRender();
 
@@ -678,6 +698,12 @@ async function processBatch(files){
       }
     }
     queueRender();
+    if(_batchStopRequested){
+      // Mark remaining as cancelled
+      _queueItems.slice(i+1).forEach(r=>{r.state='error';r.detail='Cua aturada';});
+      queueRender();
+      break;
+    }
     if(i<_queueItems.length-1){
       const waitMs=delayForFile(it.file);
       _queueItems[i+1].detail='Esperant '+Math.round(waitMs/1000)+'s...'; queueRender();
@@ -687,6 +713,7 @@ async function processBatch(files){
   }
 
   _batchRunning=false;
+  _batchStopRequested=false;
   renderInvoices();
   document.getElementById('fileInput').value='';
   const summary=`✓ ${done} factura${done!==1?'s':''} desada${done!==1?'s':''}${errors?' · '+errors+' incidència'+(errors!==1?'s':''):''}`;
@@ -1021,8 +1048,9 @@ async function exportExcel(){
         .map(r=>[r.date?r.date.split('-').reverse().join('/'):null,r.provider,r.cif,r.invoiceNum||'',+r.base,+r.iva,+r.total])
     ];
     const ws=XLSX.utils.aoa_to_sheet(rows);
+    // Format espanyol: punt milers, coma decimals
     for(let i=1;i<rows.length;i++){
-      ['E','F','G'].forEach(c=>{const cell=ws[`${c}${i+1}`];if(cell)cell.z='#,##0.00'});
+      ['E','F','G'].forEach(c=>{const cell=ws[`${c}${i+1}`];if(cell){cell.z='#.##0,00';cell.t='n';}});
     }
     ws['!cols']=[{wch:14},{wch:35},{wch:12},{wch:18},{wch:16},{wch:12},{wch:16}];
     XLSX.utils.book_append_sheet(wb,ws,y);
@@ -1067,7 +1095,8 @@ async function importJSON(e){
     .queue-summary{font-size:12px;font-weight:600}
     .queue-global-bar{height:4px;background:rgba(128,128,128,.15);border-radius:2px;overflow:hidden;margin-bottom:6px}
     .queue-global-fill{height:100%;background:currentColor;border-radius:2px;transition:width .4s ease}
-    .queue-eta{font-size:11px;opacity:.5;margin-bottom:14px}
+    .queue-eta{font-size:11px;opacity:.5;margin-bottom:4px}
+    .queue-status{font-size:12px;opacity:.65;margin-bottom:12px;min-height:18px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
     .queue-list{display:flex;flex-direction:column;gap:6px}
     .queue-item{display:flex;align-items:flex-start;gap:10px;padding:10px 14px;border-radius:6px;border:1px solid rgba(128,128,128,.12);background:rgba(128,128,128,.04);transition:all .2s}
     .qi-icon{font-size:14px;min-width:18px;margin-top:1px}
