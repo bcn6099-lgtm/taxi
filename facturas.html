@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FACTURES</title>
+<title>FACTURESSSS</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="style-1.css">
 <style>
@@ -1292,33 +1292,41 @@ async function exportExcel(){
   const year=document.getElementById('yearFilter')?.value||'';
   const filtered=year?inv.filter(r=>r.date&&r.date.startsWith(year)):inv;
   if(!filtered.length){toast('Sense factures per a '+year,'err');return}
+
   const wb=XLSX.utils.book_new();
   const byYear={};
-  filtered.forEach(r=>{const y=r.date?r.date.slice(0,4):'sense_any';if(!byYear[y])byYear[y]=[];byYear[y].push(r)});
-  Object.keys(byYear).sort().forEach(y=>{
-    const sorted=byYear[y].slice().sort((a,b)=>new Date(a.date)-new Date(b.date));
-    const rows=[['FECHA','PROVEEDOR','CIF','BASE IMPONIBLE','IVA','TOTAL FACTURA']];
-    sorted.forEach(r=>{
-      rows.push([
-        r.date?r.date.split('-').reverse().join('/'):null,
-        r.provider||'',
-        r.cif||'',
-        parseFloat(r.base)||0,
-        parseFloat(r.iva)||0,
-        parseFloat(r.total)||0
-      ]);
-    });
-    const ws=XLSX.utils.aoa_to_sheet(rows);
-    // Format numèric (xlsx sempre en format anglès intern)
-    for(let i=1;i<rows.length;i++){
-      ['D','E','F'].forEach(c=>{const cell=ws[c+(i+1)];if(cell){cell.t='n';cell.z='#,##0.00'}});
+  for(const r of filtered){
+    const y=r.date?r.date.slice(0,4):'sense_any';
+    if(!byYear[y])byYear[y]=[];
+    byYear[y].push(r);
+  }
+
+  for(const y of Object.keys(byYear).sort()){
+    const sorted=byYear[y].slice().sort((a,b)=>(a.date||'').localeCompare(b.date||''));
+    const jsonRows=sorted.map(r=>({
+      'FECHA':     r.date?r.date.split('-').reverse().join('/'):'',
+      'PROVEEDOR': r.provider||'',
+      'CIF':       r.cif||'',
+      'BASE IMPONIBLE': parseFloat(r.base)||0,
+      'IVA':       parseFloat(r.iva)||0,
+      'TOTAL FACTURA':  parseFloat(r.total)||0
+    }));
+    const ws=XLSX.utils.json_to_sheet(jsonRows,{header:['FECHA','PROVEEDOR','CIF','BASE IMPONIBLE','IVA','TOTAL FACTURA']});
+    // Aplica format numèric a les columnes D, E, F (índex base-1: fila 2 en endavant)
+    for(let i=0;i<sorted.length;i++){
+      const row=i+2; // fila 1 és la capçalera
+      for(const col of ['D','E','F']){
+        const ref=col+row;
+        if(ws[ref]){ws[ref].t='n';ws[ref].z='#,##0.00'}
+      }
     }
-    ws['!cols']=[{wch:14},{wch:35},{wch:12},{wch:16},{wch:12},{wch:16}];
+    ws['!cols']=[{wch:14},{wch:35},{wch:14},{wch:16},{wch:12},{wch:16}];
     XLSX.utils.book_append_sheet(wb,ws,y);
-  });
+  }
+
   const suffix=year?'_'+year:'_tots';
   XLSX.writeFile(wb,`factures${suffix}_${new Date().toISOString().slice(0,10)}.xlsx`);
-  toast('Excel exportat'+(year?' ('+year+')':''),'ok');
+  toast('Excel exportat — '+filtered.length+' factures','ok');
 }
 
 // ===== EXPORT / IMPORT JSON =====
