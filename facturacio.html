@@ -535,10 +535,58 @@
                         </div>
                     </div>
 
-                    <!-- Objectius -->
-                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;">
-                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:var(--text-secondary);margin-bottom:0.85rem;text-transform:uppercase;">Objectius</div>
-                        <button onclick="obrirObjectius()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">🎯 Objectius</button>
+                    <!-- Objectius (inline, no popup) -->
+                    <div id="objectiusSection" style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;">
+                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:var(--text-secondary);margin-bottom:0.85rem;text-transform:uppercase;">🎯 Objectius i Colors</div>
+
+                        <p style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.5;">
+                            Cada caixa mostra el rang d'importos per aquell color. Introdueix el valor del llindar superior de cada zona (en ordre ascendent).
+                        </p>
+
+                        <!-- FILA DE COLOR PICKERS -->
+                        <div style="margin-bottom:1.1rem;">
+                            <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.07em;color:var(--text-secondary);text-transform:uppercase;margin-bottom:0.6rem;">🎨 Colors dels nivells</div>
+                            <div style="display:grid;grid-template-columns:repeat(6,1fr);gap:0.4rem;" id="colorPickerRow">
+                                <!-- Generats per JS: initColorPickers() -->
+                            </div>
+                        </div>
+
+                        <!-- MENSUAL -->
+                        <div class="obj-cat-block">
+                            <div class="obj-cat-title">📆 Mensual (€)</div>
+                            <div class="obj-color-boxes" id="obj-boxes-mensual">
+                                <!-- generats per renderObjBoxes() -->
+                            </div>
+                        </div>
+
+                        <!-- DIARI -->
+                        <div class="obj-cat-block">
+                            <div class="obj-cat-title">📅 Diari (€)</div>
+                            <div class="obj-color-boxes" id="obj-boxes-diari"></div>
+                        </div>
+
+                        <!-- HORA -->
+                        <div class="obj-cat-block">
+                            <div class="obj-cat-title">⏱ Mitjana per hora (€/h)</div>
+                            <div class="obj-color-boxes" id="obj-boxes-hora"></div>
+                        </div>
+
+                        <!-- BENEFICIS -->
+                        <div class="obj-cat-block">
+                            <div class="obj-cat-title">💰 Beneficis (€)</div>
+                            <div class="obj-color-boxes" id="obj-boxes-beneficis"></div>
+                        </div>
+
+                        <!-- CARRERA -->
+                        <div class="obj-cat-block">
+                            <div class="obj-cat-title">🚖 Color per carrera (€)</div>
+                            <div class="obj-color-boxes" id="obj-boxes-carrera"></div>
+                        </div>
+
+                        <div style="display:flex;gap:0.75rem;margin-top:0.5rem;">
+                            <button class="btn btn-primary" style="flex:1;" onclick="desarObjectius()">💾 Desar</button>
+                            <button class="btn" style="flex:1;background:var(--bg-secondary);color:var(--text-secondary);" onclick="resetObjectius()">↺ Restablir</button>
+                        </div>
                     </div>
 
                     <!-- Google Drive -->
@@ -826,8 +874,8 @@
                 </div>
             </div>
             <div style="display:flex;gap:0.75rem;">
+                <button class="btn btn-danger" style="flex:0 0 20%;padding:0.9rem 0;" onclick="eliminarCursa()" title="Eliminar carrera">🗑️</button>
                 <button class="btn btn-primary" style="flex:1;padding:0.9rem;" onclick="guardarEdicioCursa()">💾 Guardar</button>
-                <button class="btn btn-danger" style="flex:1;padding:0.9rem;" onclick="eliminarCursa()">🗑️ Eliminar</button>
             </div>
         </div>
 
@@ -1247,211 +1295,6 @@
         .cdp-month-cell.today { border: 1px solid var(--accent); }
         .cdp-month-cell.selected { background: var(--accent); color: #000; font-weight: 700; }
     </style>
-    <div class="modal" id="objectiusModal">
-        <div class="modal-content" style="max-width:500px;">
-            <div class="modal-header">
-                <h2 class="modal-title">🎯 Objectius i Colors</h2>
-                <button class="modal-close" onclick="tancarObjectiusModal()">×</button>
-            </div>
-            <div class="modal-body" style="padding:1rem;">
-
-                <p style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:0.9rem;line-height:1.5;">
-                    Cada caixa mostra el rang d'importos per aquell color. Introdueix el valor del llindar superior de cada zona (en ordre ascendent).
-                </p>
-
-                <!-- MENSUAL -->
-                <div class="obj-cat-block">
-                    <div class="obj-cat-title">📆 Mensual (€)</div>
-                    <div class="obj-color-boxes">
-                        <div class="obj-color-box" style="border-color:#ff00aa;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
-                            <input type="number" id="obj_mensual_0" placeholder="fins a">
-                            <div class="obj-color-box-range">0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff4444;">
-                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
-                            <input type="number" id="obj_mensual_1" placeholder="fins a">
-                            <div class="obj-color-box-range">t0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff9800;">
-                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
-                            <input type="number" id="obj_mensual_2" placeholder="fins a">
-                            <div class="obj-color-box-range">t1 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#4caf50;">
-                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
-                            <input type="number" id="obj_mensual_3" placeholder="fins a">
-                            <div class="obj-color-box-range">t2 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#00e676;">
-                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
-                            <input type="number" id="obj_mensual_4" placeholder="fins a">
-                            <div class="obj-color-box-range">t3 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
-                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
-                            <div class="obj-color-box-range">automàtic</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- DIARI -->
-                <div class="obj-cat-block">
-                    <div class="obj-cat-title">📅 Diari (€)</div>
-                    <div class="obj-color-boxes">
-                        <div class="obj-color-box" style="border-color:#ff00aa;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
-                            <input type="number" id="obj_diari_0" placeholder="fins a">
-                            <div class="obj-color-box-range">0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff4444;">
-                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
-                            <input type="number" id="obj_diari_1" placeholder="fins a">
-                            <div class="obj-color-box-range">t0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff9800;">
-                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
-                            <input type="number" id="obj_diari_2" placeholder="fins a">
-                            <div class="obj-color-box-range">t1 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#4caf50;">
-                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
-                            <input type="number" id="obj_diari_3" placeholder="fins a">
-                            <div class="obj-color-box-range">t2 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#00e676;">
-                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
-                            <input type="number" id="obj_diari_4" placeholder="fins a">
-                            <div class="obj-color-box-range">t3 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
-                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
-                            <div class="obj-color-box-range">automàtic</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- HORA -->
-                <div class="obj-cat-block">
-                    <div class="obj-cat-title">⏱ Mitjana per hora (€/h)</div>
-                    <div class="obj-color-boxes">
-                        <div class="obj-color-box" style="border-color:#ff00aa;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
-                            <input type="number" id="obj_hora_0" placeholder="fins a">
-                            <div class="obj-color-box-range">0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff4444;">
-                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
-                            <input type="number" id="obj_hora_1" placeholder="fins a">
-                            <div class="obj-color-box-range">t0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff9800;">
-                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
-                            <input type="number" id="obj_hora_2" placeholder="fins a">
-                            <div class="obj-color-box-range">t1 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#4caf50;">
-                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
-                            <input type="number" id="obj_hora_3" placeholder="fins a">
-                            <div class="obj-color-box-range">t2 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#00e676;">
-                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
-                            <input type="number" id="obj_hora_4" placeholder="fins a">
-                            <div class="obj-color-box-range">t3 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
-                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
-                            <div class="obj-color-box-range">automàtic</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- BENEFICIS -->
-                <div class="obj-cat-block">
-                    <div class="obj-cat-title">💰 Beneficis (€)</div>
-                    <div class="obj-color-boxes">
-                        <div class="obj-color-box" style="border-color:#ff00aa;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
-                            <input type="number" id="obj_beneficis_0" placeholder="fins a">
-                            <div class="obj-color-box-range">0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff4444;">
-                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
-                            <input type="number" id="obj_beneficis_1" placeholder="fins a">
-                            <div class="obj-color-box-range">t0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff9800;">
-                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
-                            <input type="number" id="obj_beneficis_2" placeholder="fins a">
-                            <div class="obj-color-box-range">t1 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#4caf50;">
-                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
-                            <input type="number" id="obj_beneficis_3" placeholder="fins a">
-                            <div class="obj-color-box-range">t2 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#00e676;">
-                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
-                            <input type="number" id="obj_beneficis_4" placeholder="fins a">
-                            <div class="obj-color-box-range">t3 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
-                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
-                            <div class="obj-color-box-range">automàtic</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- CARRERA -->
-                <div class="obj-cat-block">
-                    <div class="obj-cat-title">🚖 Color per carrera (€)</div>
-                    <div class="obj-color-boxes">
-                        <div class="obj-color-box" style="border-color:#ff00aa;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia</div>
-                            <input type="number" id="obj_carrera_0" placeholder="fins a">
-                            <div class="obj-color-box-range">0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff4444;">
-                            <div class="obj-color-box-label" style="color:#ff4444;">Roig</div>
-                            <input type="number" id="obj_carrera_1" placeholder="fins a">
-                            <div class="obj-color-box-range">t0 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff9800;">
-                            <div class="obj-color-box-label" style="color:#ff9800;">Taronja</div>
-                            <input type="number" id="obj_carrera_2" placeholder="fins a">
-                            <div class="obj-color-box-range">t1 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#4caf50;">
-                            <div class="obj-color-box-label" style="color:#4caf50;">Verd</div>
-                            <input type="number" id="obj_carrera_3" placeholder="fins a">
-                            <div class="obj-color-box-range">t2 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#00e676;">
-                            <div class="obj-color-box-label" style="color:#00e676;">V.Brill</div>
-                            <input type="number" id="obj_carrera_4" placeholder="fins a">
-                            <div class="obj-color-box-range">t3 → val</div>
-                        </div>
-                        <div class="obj-color-box" style="border-color:#ff00aa;opacity:0.6;">
-                            <div class="obj-color-box-label" style="color:#ff00aa;">Fuscia+</div>
-                            <div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>
-                            <div class="obj-color-box-range">automàtic</div>
-                        </div>
-                    </div>
-                </div>
-
-                <div style="display:flex;gap:0.75rem;margin-top:0.25rem;">
-                    <button class="btn btn-primary" style="flex:1;" onclick="desarObjectius()">💾 Desar</button>
-                    <button class="btn" style="flex:1;background:var(--bg-secondary);color:var(--text-secondary);" onclick="resetObjectius()">↺ Restablir</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
     <!-- AFEGIR / EDITAR DESPESA MODAL -->
     <div class="modal" id="despesaModal">
         <div class="modal-content" style="max-width:420px;">
@@ -7800,20 +7643,185 @@
         // ==========================================
         // OBJECTIUS MODAL
         // ==========================================
-        function obrirObjectius() {
-            toggleMenu();
-            const obj = loadObjectius();
-            ['mensual','diari','hora','beneficis','carrera'].forEach(cat => {
-                obj[cat].forEach((val, i) => {
-                    const el = document.getElementById(`obj_${cat}_${i}`);
-                    if (el) el.value = val;
-                });
+        // ── Colors configurables per als nivells d'objectius ──
+        const OBJ_COLOR_LABELS = ['Fuscia', 'Roig', 'Taronja', 'Verd', 'V.Brill', 'Fuscia+'];
+        const OBJ_COLORS_DEFAULT = ['#ff00aa', '#ff4444', '#ff9800', '#4caf50', '#00e676', '#ff00aa'];
+
+        function loadObjColors() {
+            try {
+                const raw = localStorage.getItem('taxi_obj_colors');
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length === 6) return parsed;
+                }
+            } catch(e) {}
+            return [...OBJ_COLORS_DEFAULT];
+        }
+
+        function saveObjColors(colors) {
+            localStorage.setItem('taxi_obj_colors', JSON.stringify(colors));
+        }
+
+        // Sobreescriu getObjectiuColor per usar colors configurables
+        function getObjectiuColor(value, thresholds) {
+            const colors = loadObjColors();
+            const [t0, t1, t2, t3, t4] = thresholds;
+            if (value < t0)  return colors[0];
+            if (value < t1)  return colors[1];
+            if (value < t2)  return colors[2];
+            if (value < t3)  return colors[3];
+            if (value <= t4) return colors[4];
+            return colors[5];
+        }
+
+        function initColorPickers() {
+            const colors = loadObjColors();
+            const container = document.getElementById('colorPickerRow');
+            if (!container) return;
+            container.innerHTML = '';
+            OBJ_COLOR_LABELS.forEach((label, i) => {
+                const isAuto = (i === 5); // Fuscia+ és automàtic (=colors[0])
+                const col = colors[i];
+                const box = document.createElement('div');
+                box.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:0.3rem;';
+                box.innerHTML = `
+                    <div style="font-size:0.6rem;color:var(--text-secondary);text-align:center;font-weight:600;letter-spacing:0.04em;">${label}</div>
+                    <div style="position:relative;width:100%;">
+                        <div id="cpSwatch_${i}"
+                             style="width:100%;height:32px;border-radius:8px;background:${col};border:2px solid ${col};cursor:pointer;position:relative;overflow:hidden;transition:box-shadow 0.15s;"
+                             title="${isAuto ? 'Igual que Fuscia (automàtic)' : 'Clica per canviar el color'}"
+                             onclick="${isAuto ? '' : `toggleColorPicker(${i})`}">
+                            ${isAuto ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:rgba(0,0,0,0.5);font-weight:700;">AUTO</div>' : ''}
+                        </div>
+                        ${isAuto ? '' : `
+                        <div id="cpPopup_${i}" style="display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.6rem;box-shadow:0 4px 24px rgba(0,0,0,0.4);min-width:140px;">
+                            <input type="color" id="cpNative_${i}" value="${col}"
+                                style="width:100%;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0;background:none;"
+                                oninput="onColorNativeChange(${i}, this.value)">
+                            <input type="text" id="cpHex_${i}" value="${col}"
+                                maxlength="7"
+                                placeholder="#rrggbb"
+                                style="width:100%;margin-top:0.4rem;padding:0.35rem 0.5rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:7px;color:var(--text-primary);font-size:0.75rem;font-family:monospace;text-align:center;box-sizing:border-box;"
+                                oninput="onColorHexChange(${i}, this.value)"
+                                onkeydown="if(event.key==='Enter'||event.key==='Escape'){closeColorPicker(${i});}">
+                            <button onclick="closeColorPicker(${i})" style="width:100%;margin-top:0.4rem;padding:0.3rem;background:var(--accent);border:none;border-radius:7px;color:#000;font-size:0.75rem;font-weight:700;cursor:pointer;">✓ OK</button>
+                        </div>`}
+                    </div>
+                `;
+                container.appendChild(box);
             });
-            document.getElementById('objectiusModal').classList.add('active');
+
+            // Tancar popups en clicar fora
+            document.addEventListener('click', function cpOutside(e) {
+                for (let i = 0; i < 5; i++) {
+                    const popup = document.getElementById(`cpPopup_${i}`);
+                    const swatch = document.getElementById(`cpSwatch_${i}`);
+                    if (popup && popup.style.display !== 'none') {
+                        if (!popup.contains(e.target) && e.target !== swatch) {
+                            popup.style.display = 'none';
+                        }
+                    }
+                }
+            }, true);
+        }
+
+        function toggleColorPicker(i) {
+            for (let j = 0; j < 5; j++) {
+                const p = document.getElementById(`cpPopup_${j}`);
+                if (p) p.style.display = (j === i && p.style.display === 'none') ? 'block' : 'none';
+            }
+        }
+
+        function closeColorPicker(i) {
+            const p = document.getElementById(`cpPopup_${i}`);
+            if (p) p.style.display = 'none';
+        }
+
+        function onColorNativeChange(i, hex) {
+            applyColorChange(i, hex);
+            const hexInput = document.getElementById(`cpHex_${i}`);
+            if (hexInput) hexInput.value = hex;
+        }
+
+        function onColorHexChange(i, val) {
+            const clean = val.startsWith('#') ? val : '#' + val;
+            if (/^#[0-9a-fA-F]{6}$/.test(clean)) {
+                applyColorChange(i, clean);
+                const native = document.getElementById(`cpNative_${i}`);
+                if (native) native.value = clean;
+            }
+        }
+
+        function applyColorChange(i, hex) {
+            const colors = loadObjColors();
+            colors[i] = hex;
+            if (i === 0) colors[5] = hex; // Fuscia+ = Fuscia
+            saveObjColors(colors);
+            // Actualitzar swatch
+            const swatch = document.getElementById(`cpSwatch_${i}`);
+            if (swatch) { swatch.style.background = hex; swatch.style.borderColor = hex; }
+            if (i === 0) {
+                const swatch5 = document.getElementById('cpSwatch_5');
+                if (swatch5) { swatch5.style.background = hex; swatch5.style.borderColor = hex; }
+            }
+            // Actualitzar labels de les caixes d'objectius
+            renderObjBoxes();
+        }
+
+        function renderObjBoxes() {
+            const colors = loadObjColors();
+            const obj = loadObjectius();
+            const cats = [
+                { key: 'mensual',   label: '📆 Mensual (€)' },
+                { key: 'diari',     label: '📅 Diari (€)' },
+                { key: 'hora',      label: '⏱ Mitjana per hora (€/h)' },
+                { key: 'beneficis', label: '💰 Beneficis (€)' },
+                { key: 'carrera',   label: '🚖 Color per carrera (€)' }
+            ];
+            const rangeLabels = ['0 → val', 't0 → val', 't1 → val', 't2 → val', 't3 → val', 'automàtic'];
+            const shortLabels = ['Fuscia', 'Roig', 'Taronja', 'Verd', 'V.Brill', 'Fuscia+'];
+
+            cats.forEach(({ key }) => {
+                const container = document.getElementById(`obj-boxes-${key}`);
+                if (!container) return;
+                container.innerHTML = '';
+                for (let i = 0; i < 6; i++) {
+                    const col = colors[i];
+                    const isAuto = (i === 5);
+                    const val = obj[key]?.[i] ?? '';
+                    const box = document.createElement('div');
+                    box.className = 'obj-color-box';
+                    box.style.borderColor = col;
+                    box.innerHTML = `
+                        <div class="obj-color-box-label" style="color:${col};">${shortLabels[i]}</div>
+                        ${isAuto
+                            ? `<div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>`
+                            : `<input type="number" id="obj_${key}_${i}" placeholder="fins a" value="${val !== '' ? val : ''}">`
+                        }
+                        <div class="obj-color-box-range">${rangeLabels[i]}</div>
+                    `;
+                    container.appendChild(box);
+                }
+            });
+        }
+
+        function obrirObjectius() {
+            // Navega a configuració i inicialitza la secció inline
+            navigateTo('configuracio');
+            // Esperar que la pàgina es mostri (pot ser instantani si ja hi som)
+            requestAnimationFrame(() => {
+                initColorPickers();
+                renderObjBoxes();
+                // Scroll suau fins a la secció d'objectius
+                const sec = document.getElementById('objectiusSection');
+                if (sec) {
+                    setTimeout(() => sec.scrollIntoView({ behavior: 'smooth', block: 'start' }), 80);
+                }
+            });
         }
 
         function tancarObjectiusModal() {
-            document.getElementById('objectiusModal').classList.remove('active');
+            // Compatibilitat: ja no hi ha modal, no cal fer res
         }
 
         async function desarObjectius() {
@@ -7821,7 +7829,7 @@
             let valid = true;
             ['mensual','diari','hora','beneficis','carrera'].forEach(cat => {
                 for (let i = 0; i < 5; i++) {
-                    const val = parseFloat(document.getElementById(`obj_${cat}_${i}`).value);
+                    const val = parseFloat(document.getElementById(`obj_${cat}_${i}`)?.value);
                     if (isNaN(val)) { valid = false; return; }
                     obj[cat].push(val);
                 }
@@ -7835,18 +7843,22 @@
                 return;
             }
             await saveObjectius(obj);
-            tancarObjectiusModal();
             // Refresca totes les vistes
             updateDashboard();
             updateDiesView();
             updateMesosView();
             updateBeneficisView();
+            // Feedback visual
+            const btn = event?.target;
+            if (btn) { const orig = btn.textContent; btn.textContent = '✅ Desat!'; setTimeout(() => btn.textContent = orig, 1500); }
         }
 
         async function resetObjectius() {
             if (!confirm('Restablir tots els objectius als valors per defecte?')) return;
             await saveObjectius(JSON.parse(JSON.stringify(OBJECTIUS_DEFAULT)));
-            obrirObjectius(); // reopen to show defaults
+            saveObjColors([...OBJ_COLORS_DEFAULT]);
+            initColorPickers();
+            renderObjBoxes();
         }
 
         // ==========================================
@@ -9180,6 +9192,9 @@
             if (checkbox) {
                 checkbox.checked = isActive;
             }
+            // Inicialitzar color pickers i caixes d'objectius inline
+            initColorPickers();
+            renderObjBoxes();
         }
 
         async function guardarConfigModeTaximetre() {
