@@ -7679,21 +7679,16 @@
             const container = document.getElementById('colorPickerRow');
             if (!container) return;
             container.innerHTML = '';
-            OBJ_COLOR_LABELS.forEach((label, i) => {
-                const isAuto = (i === 5); // Fuscia+ és automàtic (=colors[0])
+            for (let i = 0; i < 6; i++) {
                 const col = colors[i];
                 const box = document.createElement('div');
                 box.style.cssText = 'display:flex;flex-direction:column;align-items:center;gap:0.3rem;';
                 box.innerHTML = `
-                    <div style="font-size:0.6rem;color:var(--text-secondary);text-align:center;font-weight:600;letter-spacing:0.04em;">${label}</div>
                     <div style="position:relative;width:100%;">
                         <div id="cpSwatch_${i}"
-                             style="width:100%;height:32px;border-radius:8px;background:${col};border:2px solid ${col};cursor:pointer;position:relative;overflow:hidden;transition:box-shadow 0.15s;"
-                             title="${isAuto ? 'Igual que Fuscia (automàtic)' : 'Clica per canviar el color'}"
-                             onclick="${isAuto ? '' : `toggleColorPicker(${i})`}">
-                            ${isAuto ? '<div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:rgba(0,0,0,0.5);font-weight:700;">AUTO</div>' : ''}
-                        </div>
-                        ${isAuto ? '' : `
+                             style="width:100%;height:32px;border-radius:8px;background:${col};border:2px solid ${col};cursor:pointer;transition:box-shadow 0.15s;"
+                             title="Clica per canviar el color"
+                             onclick="toggleColorPicker(${i})"></div>
                         <div id="cpPopup_${i}" style="display:none;position:absolute;top:calc(100% + 6px);left:50%;transform:translateX(-50%);z-index:200;background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:0.6rem;box-shadow:0 4px 24px rgba(0,0,0,0.4);min-width:140px;">
                             <input type="color" id="cpNative_${i}" value="${col}"
                                 style="width:100%;height:36px;border:none;border-radius:8px;cursor:pointer;padding:0;background:none;"
@@ -7705,15 +7700,15 @@
                                 oninput="onColorHexChange(${i}, this.value)"
                                 onkeydown="if(event.key==='Enter'||event.key==='Escape'){closeColorPicker(${i});}">
                             <button onclick="closeColorPicker(${i})" style="width:100%;margin-top:0.4rem;padding:0.3rem;background:var(--accent);border:none;border-radius:7px;color:#000;font-size:0.75rem;font-weight:700;cursor:pointer;">✓ OK</button>
-                        </div>`}
+                        </div>
                     </div>
                 `;
                 container.appendChild(box);
-            });
+            }
 
             // Tancar popups en clicar fora
             document.addEventListener('click', function cpOutside(e) {
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 6; i++) {
                     const popup = document.getElementById(`cpPopup_${i}`);
                     const swatch = document.getElementById(`cpSwatch_${i}`);
                     if (popup && popup.style.display !== 'none') {
@@ -7726,7 +7721,7 @@
         }
 
         function toggleColorPicker(i) {
-            for (let j = 0; j < 5; j++) {
+            for (let j = 0; j < 6; j++) {
                 const p = document.getElementById(`cpPopup_${j}`);
                 if (p) p.style.display = (j === i && p.style.display === 'none') ? 'block' : 'none';
             }
@@ -7755,15 +7750,10 @@
         function applyColorChange(i, hex) {
             const colors = loadObjColors();
             colors[i] = hex;
-            if (i === 0) colors[5] = hex; // Fuscia+ = Fuscia
             saveObjColors(colors);
             // Actualitzar swatch
             const swatch = document.getElementById(`cpSwatch_${i}`);
             if (swatch) { swatch.style.background = hex; swatch.style.borderColor = hex; }
-            if (i === 0) {
-                const swatch5 = document.getElementById('cpSwatch_5');
-                if (swatch5) { swatch5.style.background = hex; swatch5.style.borderColor = hex; }
-            }
             // Actualitzar labels de les caixes d'objectius
             renderObjBoxes();
         }
@@ -7779,7 +7769,6 @@
                 { key: 'carrera',   label: '🚖 Color per carrera (€)' }
             ];
             const rangeLabels = ['0 → val', 't0 → val', 't1 → val', 't2 → val', 't3 → val', 'automàtic'];
-            const shortLabels = ['Fuscia', 'Roig', 'Taronja', 'Verd', 'V.Brill', 'Fuscia+'];
 
             cats.forEach(({ key }) => {
                 const container = document.getElementById(`obj-boxes-${key}`);
@@ -7793,7 +7782,7 @@
                     box.className = 'obj-color-box';
                     box.style.borderColor = col;
                     box.innerHTML = `
-                        <div class="obj-color-box-label" style="color:${col};">${shortLabels[i]}</div>
+                        <div style="width:10px;height:10px;border-radius:50%;background:${col};margin:0 auto 2px;"></div>
                         ${isAuto
                             ? `<div style="font-size:0.65rem;color:var(--text-secondary);text-align:center;padding:0.2rem 0;">&#62; t4</div>`
                             : `<input type="number" id="obj_${key}_${i}" placeholder="fins a" value="${val !== '' ? val : ''}">`
