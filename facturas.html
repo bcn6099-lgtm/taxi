@@ -582,13 +582,32 @@ async function renderInvoices(){
   const curYear=yearSel.value,curProv=provSel.value;
   yearSel.innerHTML='<option value="">Tots els anys</option>'+years.map(y=>`<option ${y===curYear?'selected':''}>${y}</option>`).join('');
   yearSel.value=curYear;
-  provSel.innerHTML='<option value="">Tots els proveïdors</option>'+provs.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.name}" ${p.name===curProv?'selected':''}>${p.name}</option>`).join('');
+  provSel.innerHTML='<option value="">Tots els proveïdors</option>'+provs.sort((a,b)=>a.name.localeCompare(b.name)).map(p=>`<option value="${p.cif||p.name}" ${(p.cif||p.name)===curProv?'selected':''}>${p.name}</option>`).join('');
   provSel.value=curProv;
 
+  // Build a lookup: CIF (or name) -> set of normalized names for that provider
+  const provCifToNames={};
+  for(const p of provs){
+    const key=p.cif||p.name;
+    if(!provCifToNames[key])provCifToNames[key]=new Set();
+    provCifToNames[key].add(p.name);
+  }
+
   const yf=yearSel.value,pf=provSel.value,sf=document.getElementById('statusFilter').value;
+  // Find the CIF for the selected provider to match invoices by CIF
+  const pfProv=pf?provs.find(p=>(p.cif||p.name)===pf):null;
+  const pfCif=pfProv?.cif||null;
   let data=inv.filter(r=>{
     if(yf&&(!r.date||!r.date.startsWith(yf)))return false;
-    if(pf&&r.provider!==pf)return false;
+    if(pf){
+      if(pfCif){
+        // Match by CIF — catches name variants (trailing dot, etc.)
+        if(r.cif!==pfCif)return false;
+      } else {
+        // No CIF available, fall back to exact name match
+        if(r.provider!==pf)return false;
+      }
+    }
     if(sf==='pending'&&r.provider)return false;
     if(sf==='assigned'&&!r.provider)return false;
     return true;
