@@ -2710,6 +2710,12 @@
             const mediaDiaColor = getObjectiuColor(stats.ingresos / monthData.length, loadObjectius().diari);
             const mediaHoraColor = getObjectiuColor(stats.mediaHora, loadObjectius().hora);
             
+            // Calcular km totals del mes
+            const kmTotalMes   = monthData.reduce((s, d) => s + (d.km_total  != null ? d.km_total  : 0), 0);
+            const kmOcupatMes  = monthData.reduce((s, d) => s + (d.km_ocupat != null ? d.km_ocupat : 0), 0);
+            const kmLliureMes  = monthData.reduce((s, d) => s + (d.km_lliure != null ? d.km_lliure : 0), 0);
+            const tenimKmMes   = monthData.some(d => d.km_total != null || d.km_ocupat != null);
+            
             // Obtener observaciones
             const observaciones = monthData
                 .filter(d => d.observacions && d.observacions.trim() !== '')
@@ -2735,6 +2741,22 @@
             // Ordenar días
             const sortedDays = [...monthData].sort((a, b) => b.fecha.localeCompare(a.fecha));
             
+            const kmMesHTML = tenimKmMes ? `
+                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:0.75rem;margin-bottom:0.25rem;">
+                    <div class="month-detail-stat-card" style="min-width:80px;">
+                        <div class="month-detail-stat-label">KM TOTAL</div>
+                        <div class="month-detail-stat-value" style="color:#00e5ff;">${kmTotalMes > 0 ? kmTotalMes : '—'}</div>
+                    </div>
+                    <div class="month-detail-stat-card" style="min-width:80px;">
+                        <div class="month-detail-stat-label">KM OCUPAT</div>
+                        <div class="month-detail-stat-value" style="color:#4caf50;">${kmOcupatMes > 0 ? kmOcupatMes : '—'}</div>
+                    </div>
+                    <div class="month-detail-stat-card" style="min-width:80px;">
+                        <div class="month-detail-stat-label">KM LLIURE</div>
+                        <div class="month-detail-stat-value" style="color:#ff9800;">${kmLliureMes > 0 ? kmLliureMes : '—'}</div>
+                    </div>
+                </div>` : '';
+
             const contentHTML = `
                 <div class="month-detail-stats">
                     <div class="month-detail-stat-card">
@@ -2759,6 +2781,8 @@
                     </div>
                 </div>
                 
+                ${kmMesHTML}
+                
                 ${observacionesHTML}
                 
                 <div class="month-detail-days-title">Dies:</div>
@@ -2767,15 +2791,22 @@
                     const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
                     const revenueColor = getDailyRevenueColor(day.ingresos_dia || 0);
                     const hasObservations = day.observacions && day.observacions.trim() !== '';
+                    const kmDia = day.km_total != null
+                        ? `<span style="font-size:0.75rem;color:#00e5ff;margin-left:0.4rem;">🛣️${day.km_total}km</span>`
+                        : '';
+                    const kmOcDia = day.km_ocupat != null
+                        ? `<span style="font-size:0.7rem;color:#4caf50;margin-left:0.25rem;">🟢${day.km_ocupat}</span>`
+                        : '';
                     
                     return `
                         <div class="month-detail-day" onclick="openEditModal('${day.fecha}'); closeMonthDetailModal();">
                             <div class="month-detail-day-date">${formatDate(day.fecha)} - ${diaSemana.toUpperCase()}</div>
-                            <div style="display: flex; align-items: center; gap: 1rem;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
                                 <div class="month-detail-day-revenue" style="color: ${revenueColor}">
                                     ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(day.ingresos_dia))}
                                 </div>
-                                <div class="month-detail-day-icon">✏️</div>
+                                ${kmDia}${kmOcDia}
+                                <div class="month-detail-day-icon" style="margin-left:auto;">✏️</div>
                             </div>
                         </div>
                     `;
