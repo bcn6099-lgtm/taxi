@@ -2741,19 +2741,24 @@
             // Ordenar días
             const sortedDays = [...monthData].sort((a, b) => b.fecha.localeCompare(a.fecha));
             
+            const kmTotalMesR  = Math.round(kmTotalMes);
+            const kmOcupatMesR = Math.round(kmOcupatMes);
+            const kmLliureMesR = Math.round(kmLliureMes);
+            const pctOcMes = kmTotalMesR > 0 ? Math.round((kmOcupatMesR / kmTotalMesR) * 100) : 0;
+            const pctLlMes = 100 - pctOcMes;
             const kmMesHTML = tenimKmMes ? `
-                <div style="display:flex;gap:0.5rem;flex-wrap:wrap;justify-content:center;margin-top:0.75rem;margin-bottom:0.25rem;">
-                    <div class="month-detail-stat-card" style="min-width:80px;">
-                        <div class="month-detail-stat-label">KM TOTAL</div>
-                        <div class="month-detail-stat-value" style="color:#00e5ff;">${kmTotalMes > 0 ? kmTotalMes : '—'}</div>
+                <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;margin-top:0.75rem;margin-bottom:0.25rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.5rem;">
+                        <span style="font-size:0.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.07em;">🛣️ Km recorreguts</span>
+                        <span style="font-size:0.8rem;font-weight:700;color:#00e5ff;">${kmTotalMesR} km</span>
                     </div>
-                    <div class="month-detail-stat-card" style="min-width:80px;">
-                        <div class="month-detail-stat-label">KM OCUPAT</div>
-                        <div class="month-detail-stat-value" style="color:#4caf50;">${kmOcupatMes > 0 ? kmOcupatMes : '—'}</div>
+                    <div class="torn-timeline" style="margin-top:0;">
+                        <div class="torn-timeline-ocupat" style="width:${pctOcMes}%"></div>
+                        <div class="torn-timeline-lliure" style="width:${pctLlMes}%"></div>
                     </div>
-                    <div class="month-detail-stat-card" style="min-width:80px;">
-                        <div class="month-detail-stat-label">KM LLIURE</div>
-                        <div class="month-detail-stat-value" style="color:#ff9800;">${kmLliureMes > 0 ? kmLliureMes : '—'}</div>
+                    <div class="torn-timeline-legend" style="justify-content:space-between;">
+                        <span><i class="dot-green-sm"></i> Ocupat ${kmOcupatMesR} km (${pctOcMes}%)</span>
+                        <span><i class="dot-red-sm"></i> Lliure ${kmLliureMesR} km (${pctLlMes}%)</span>
                     </div>
                 </div>` : '';
 
@@ -2791,23 +2796,35 @@
                     const diaSemana = diasSemana[fecha.toLocaleDateString('en-US', { weekday: 'long' })] || '';
                     const revenueColor = getDailyRevenueColor(day.ingresos_dia || 0);
                     const hasObservations = day.observacions && day.observacions.trim() !== '';
-                    const kmDia = day.km_total != null
-                        ? `<span style="font-size:0.75rem;color:#00e5ff;margin-left:0.4rem;">🛣️${day.km_total}km</span>`
-                        : '';
-                    const kmOcDia = day.km_ocupat != null
-                        ? `<span style="font-size:0.7rem;color:#4caf50;margin-left:0.25rem;">🟢${day.km_ocupat}</span>`
-                        : '';
+                    const _kmT  = day.km_total  != null ? Math.round(day.km_total)  : null;
+                    const _kmOc = day.km_ocupat != null ? Math.round(day.km_ocupat) : null;
+                    const _kmLl = day.km_lliure != null ? Math.round(day.km_lliure) : null;
+                    const _pctOc = _kmT > 0 && _kmOc != null ? Math.round((_kmOc / _kmT) * 100) : null;
+                    const _pctLl = _pctOc != null ? (100 - _pctOc) : null;
+                    const kmDia = _kmT != null ? `
+                        <div style="margin-top:0.4rem;width:100%;">
+                            <div style="display:flex;justify-content:space-between;font-size:0.68rem;color:var(--text-secondary);margin-bottom:0.2rem;">
+                                <span style="color:#4caf50;">🟢 ${_kmOc ?? '—'} km (${_pctOc ?? '—'}%)</span>
+                                <span style="color:#00e5ff;font-weight:600;">🛣️ ${_kmT} km</span>
+                                <span style="color:#ff4444;">🔴 ${_kmLl ?? '—'} km (${_pctLl ?? '—'}%)</span>
+                            </div>
+                            <div class="torn-timeline" style="margin-top:0;height:6px;">
+                                <div class="torn-timeline-ocupat" style="width:${_pctOc ?? 0}%"></div>
+                                <div class="torn-timeline-lliure" style="width:${_pctLl ?? 100}%"></div>
+                            </div>
+                        </div>` : '';
+                    const kmOcDia = '';
                     
                     return `
                         <div class="month-detail-day" onclick="openEditModal('${day.fecha}'); closeMonthDetailModal();">
                             <div class="month-detail-day-date">${formatDate(day.fecha)} - ${diaSemana.toUpperCase()}</div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 0.5rem;">
                                 <div class="month-detail-day-revenue" style="color: ${revenueColor}">
                                     ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(day.ingresos_dia))}
                                 </div>
-                                ${kmDia}${kmOcDia}
                                 <div class="month-detail-day-icon" style="margin-left:auto;">✏️</div>
                             </div>
+                            ${kmDia}
                         </div>
                     `;
                 }).join('')}
