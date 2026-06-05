@@ -100,7 +100,6 @@
         <div class="sidebar-menu">
             <div class="menu-item" onclick="navigateTo('dashboard')">🏠 Inici</div>
             <div class="menu-item" id="menu-avui" onclick="navigateTo('jornada')">📅 Avui</div>
-            <div class="menu-item" id="menu-torns" onclick="navigateTo('torns')">🚕 Torns</div>
             <div class="menu-item" id="menu-carreres-global" onclick="navigateTo('carreres-global')">🚖 Carreres</div>
 
             <div class="menu-item" onclick="navigateTo('dies')">📅 Dies</div>
@@ -118,7 +117,7 @@
             <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
         <div style="padding: 1rem 1.25rem; text-align: center; border-top: 1px solid var(--border); margin-top: auto;">
-            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V4.00</span>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.00</span>
         </div>
     </div>
 
@@ -137,7 +136,7 @@
                         style="width:100%;background:#ff6d00;color:#fff;border:none;border-radius:14px;padding:1.1rem 1.25rem;display:flex;align-items:center;justify-content:space-between;cursor:pointer;font-size:1.1rem;font-weight:800;box-shadow:0 0 18px rgba(255,109,0,0.5);letter-spacing:0.02em;">
                         <span style="display:flex;align-items:center;gap:0.6rem;">
                             <span style="font-size:1.4rem;">🟢</span>
-                            <span>Torn obert</span>
+                            <span>Sessió oberta</span>
                         </span>
                         <span style="font-size:0.9rem;font-weight:600;opacity:0.9;">Veure carreres →</span>
                     </button>
@@ -614,12 +613,12 @@
     <!-- ════ ZONA TORN (JORNADA) – fora de mainContent ════ -->
     <div id="jornada-root" style="display:none; min-height:100vh; background:var(--bg-primary);">
 
-        <!-- VISTA JORNADA (botons + total) -->
-        <!-- ── Vista principal del torn: botons inici/fi i km ── -->
+        <!-- VISTA JORNADA (botons + total) - V5: Inici/Fi simplificat -->
+        <!-- ── Vista principal: dos botons, km, regla <6AM ── -->
         <div id="jornada-home" class="main-content" style="padding-top:4rem;">
-            <h1 class="page-title">🚕 Torn <span id="tornDateDisplay" style="font-size:1.75rem;font-weight:700;color:var(--accent);margin-left:0.4rem;"></span></h1>
+            <h1 class="page-title">🚕 Sessió <span id="tornDateDisplay" style="font-size:1.75rem;font-weight:700;color:var(--accent);margin-left:0.4rem;"></span></h1>
 
-            <!-- Camp Km Inici - visible fins que s'introdueixi -->
+            <!-- Bloc km inici — visible quan no hi ha sessió activa -->
             <div id="kmIniciBlock" style="background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:1rem;margin-bottom:1rem;">
                 <div style="font-size:0.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:0.5rem;">🛣️ Km Comptador Inici</div>
                 <div id="kmIniciInputWrap">
@@ -629,6 +628,11 @@
                 </div>
                 <div id="kmIniciHint" style="font-size:0.7rem;color:var(--text-secondary);text-align:center;margin-top:0.35rem;">Introdueix el valor complet i canvia de camp per confirmar</div>
                 <div id="kmIniciCollapsed" style="display:none;"></div>
+            </div>
+
+            <!-- Info dia assignat (regla <6AM) -->
+            <div id="sessioDiaAssignatBanner" style="display:none;background:#1a2a1a;border:1px solid #2e7d32;border-radius:10px;padding:0.7rem 1rem;margin-bottom:0.75rem;font-size:0.82rem;color:#a5d6a7;">
+                🌙 Les dades s'assignaran al <strong id="sessioDiaAssignatLabel" style="color:#69f0ae;"></strong> (regla de les 6 AM)
             </div>
 
             <!-- Banner carrera en curs (visible quan hi ha carrera pendent) -->
@@ -644,11 +648,11 @@
             </div>
 
             <div class="jornada-bar">
-                <button class="btn-jornada btn-jornada-start" id="btnIniciarJornada" onclick="iniciarJornada()">🟢 Iniciar Torn</button>
-                <button class="btn-jornada btn-jornada-end" id="btnFinalitzarJornada" onclick="finalitzarJornada()" disabled>🔴 Fi Torn</button>
+                <button class="btn-jornada btn-jornada-start" id="btnIniciarJornada" onclick="iniciarJornada()">🟢 Iniciar</button>
+                <button class="btn-jornada btn-jornada-end" id="btnFinalitzarJornada" onclick="finalitzarJornada()" disabled>🔴 Fi Sessió</button>
             </div>
 
-            <!-- Info horari del torn -->
+            <!-- Info horari de la sessió -->
             <div id="tornHorariBlock" style="display:none; background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:0.85rem 1rem; margin-top:0.75rem;">
                 <div id="tornHoraIniciRow" style="display:none; display:flex; align-items:center; gap:0.5rem; margin-bottom:0.35rem;">
                     <span style="font-size:0.7rem; color:var(--text-secondary); text-transform:uppercase; letter-spacing:0.08em; min-width:68px;">🟢 Inici</span>
@@ -664,14 +668,14 @@
                 </div>
             </div>
 
-            <!-- Botó Tancar torn definitivament (visible només quan torn tancat) -->
+            <!-- Botó Tancar sessió definitivament (visible només quan sessió tancada) -->
             <div id="btnTancarDefBlock" style="display:none; margin-top:1rem;">
                 <button onclick="tancarTornDefinitivament()"
                     style="width:100%;background:#7b1a1a;color:#ff6b6b;border:2px solid #ff4444;border-radius:14px;padding:1rem 1.25rem;font-size:1rem;font-weight:700;cursor:pointer;letter-spacing:0.03em;">
-                    🗑️ Tancar torn definitivament
+                    🗑️ Tancar sessió definitivament
                 </button>
                 <div style="font-size:0.72rem;color:var(--text-secondary);text-align:center;margin-top:0.4rem;">
-                    Prepara l'app per iniciar el torn del dia següent
+                    Prepara l'app per iniciar la sessió del dia següent
                 </div>
             </div>
 
@@ -687,7 +691,7 @@
         <div id="carreres-page" style="display:none;" class="main-content" style="padding-top:4rem;">
             <div class="carreres-header">
                 <button class="btn-back-jornada" onclick="tornarAJornadaHome()">← Tornar</button>
-                <button id="btnFiTornCarreres" onclick="finalitzarJornada()" style="display:none;background:#7b1a1a;color:#ff6b6b;border:none;border-radius:10px;padding:0.55rem 1rem;font-size:0.9rem;font-weight:700;cursor:pointer;">🔴 Fi Torn</button>
+                <button id="btnFiTornCarreres" onclick="finalitzarJornada()" style="display:none;background:#7b1a1a;color:#ff6b6b;border:none;border-radius:10px;padding:0.55rem 1rem;font-size:0.9rem;font-weight:700;cursor:pointer;">🔴 Fi Sessió</button>
             </div>
             <div class="carreres-total-bar">
                 <button id="btnToggleTotal" onclick="toggleTotalVisibility()" style="background:none;border:none;cursor:pointer;font-size:1.4rem;color:#2a6060;padding:0.25rem 0.5rem;align-self:center;" title="Mostrar/amagar total">👁</button>
@@ -938,53 +942,9 @@
         </div>
     </div>
 
-    <!-- TORN EDIT MODAL -->
-    <!-- ════ MODAL: EDITAR TORN (emergència) ════ -->
-    <div class="modal" id="tornEditModal">
-        <div class="modal-content" style="max-width:400px;">
-            <div class="modal-header">
-                <h2 class="modal-title">✏️ Editar Torn</h2>
-                <button class="modal-close" onclick="tancarTornEditModal()">×</button>
-            </div>
-            <div style="background:#3a1a1a;border:1px solid #ff4444;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1.25rem;font-size:0.8rem;color:#ff9999;line-height:1.6;">
-                ⚠️ <strong style="color:#ff6b6b;">Atenció:</strong> Estàs editant dades d'un torn tancat. Modifica només en cas d'emergència. Els canvis es desaran permanentment.
-            </div>
-            <div id="tornEditData" style="font-size:0.8rem;color:var(--text-secondary);margin-bottom:1rem;padding:0.6rem 0.75rem;background:var(--bg-secondary);border-radius:8px;line-height:1.8;"></div>
-            <div class="form-group">
-                <label class="form-label">Ingressos (€)</label>
-                <input type="text" id="tornEditIngresos" class="form-input" inputmode="decimal" placeholder="0,00">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Nombre de serveis</label>
-                <input type="number" id="tornEditServeis" class="form-input" inputmode="numeric" min="0">
-            </div>
-            <div class="form-group">
-                <label class="form-label">Hores treballades</label>
-                <input type="number" id="tornEditHores" class="form-input" inputmode="decimal" step="0.5" min="0">
-            </div>
-            <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
-                <div class="form-group" style="flex:1;margin-bottom:0;">
-                    <label class="form-label">Km inici</label>
-                    <input type="number" id="tornEditKmInici" class="form-input" inputmode="numeric" placeholder="–">
-                </div>
-                <div class="form-group" style="flex:1;margin-bottom:0;">
-                    <label class="form-label">Km fi</label>
-                    <input type="number" id="tornEditKmFi" class="form-input" inputmode="numeric" placeholder="–">
-                </div>
-            </div>
-            <div class="form-group">
-                <label class="form-label">Observacions</label>
-                <textarea id="tornEditObs" class="form-textarea" rows="2"></textarea>
-            </div>
-            <div id="btnReobrirTornContainer" style="display:none;margin-bottom:0.75rem;">
-                <button class="btn" style="width:100%;background:#1a3a1a;color:#69f0ae;border:1px solid #2e7d32;font-weight:700;" onclick="confirmarReobrirTorn()">🔄 Reobrir torn avui</button>
-            </div>
-            <div class="modal-actions">
-                <button class="btn btn-danger" style="flex:1;" onclick="guardarTornEdit()">💾 Desar canvis</button>
-                <button class="btn btn-secondary" onclick="tancarTornEditModal()">Cancel·lar</button>
-            </div>
-        </div>
-    </div>
+    <!-- TORN EDIT MODAL — eliminat: ara s'usa editModal unificat -->
+    <!-- (el modal tornEditModal ja no s'usa, però el div es manté buit per compatibilitat) -->
+    <div id="tornEditModal" style="display:none;"></div>
 
     <!-- DRIVE CONFIG MODAL -->
     <!-- ════ MODAL: CONFIGURAR GOOGLE DRIVE ════ -->
@@ -1022,39 +982,76 @@
     </div>
 
     <!-- EDIT MODAL -->
-    <!-- ════ MODAL: EDITAR DIA ════ -->
+    <!-- ════ MODAL: DETALL / EDITAR DIA (unificat V5) ════ -->
     <div class="modal" id="editModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 class="modal-title">Editar Dia</h2>
+                <h2 class="modal-title" id="editModalTitle">📅 Detall del Dia</h2>
                 <button class="modal-close" onclick="closeModal()">×</button>
             </div>
             
             <div id="alertContainerMonth"></div>
-            
+
+            <!-- Avís d'edició de dades sensibles (ocult per defecte) -->
+            <div id="editModalWarning" style="display:none;background:#3a1a1a;border:1px solid #ff4444;border-radius:8px;padding:0.75rem 1rem;margin-bottom:1rem;font-size:0.8rem;color:#ff9999;line-height:1.6;">
+                ⚠️ <strong style="color:#ff6b6b;">Atenció:</strong> Estàs modificant dades d'una sessió tancada. Els canvis es desaran permanentment.
+            </div>
+
+            <!-- Resum del dia (generat per JS) -->
+            <div id="diaResumTorn"></div>
+
             <form id="addDayFormMonth" onsubmit="addNewDay(event, 'month'); return false;">
+                <input type="hidden" id="fechaMonth">
+
+                <!-- Ingressos -->
                 <div class="form-group">
-                    <label class="form-label" for="fechaMonth">Data</label>
-                    <input type="date" id="fechaMonth" class="form-input" required>
+                    <label class="form-label" for="ingresosMonth">💶 Ingressos del Dia (€)</label>
+                    <input type="number" id="ingresosMonth" class="form-input" step="0.01"
+                        onfocus="mostrarAvisEdicio()" required>
                 </div>
+
+                <!-- Serveis -->
                 <div class="form-group">
-                    <label class="form-label" for="ingresosMonth">Ingressos del Dia (€)</label>
-                    <input type="number" id="ingresosMonth" class="form-input" step="0.01" required>
+                    <label class="form-label" for="serviciosMonth">🚕 Nombre de Serveis</label>
+                    <input type="number" id="serviciosMonth" class="form-input"
+                        onfocus="mostrarAvisEdicio()" required>
                 </div>
+
+                <!-- Hores -->
                 <div class="form-group">
-                    <label class="form-label" for="serviciosMonth">Nombre de Serveis</label>
-                    <input type="number" id="serviciosMonth" class="form-input" required>
+                    <label class="form-label" for="horasMonth">⏱ Hores Treballades</label>
+                    <input type="number" id="horasMonth" class="form-input" step="0.5"
+                        onfocus="mostrarAvisEdicio()">
                 </div>
+
+                <!-- Km Inici / Km Fi -->
+                <div style="display:flex;gap:0.5rem;margin-bottom:0.75rem;">
+                    <div class="form-group" style="flex:1;margin-bottom:0;">
+                        <label class="form-label">🛣️ Km Inici</label>
+                        <input type="number" id="editKmInici" class="form-input" inputmode="numeric" placeholder="–"
+                            onfocus="mostrarAvisEdicio()">
+                    </div>
+                    <div class="form-group" style="flex:1;margin-bottom:0;">
+                        <label class="form-label">🏁 Km Fi</label>
+                        <input type="number" id="editKmFi" class="form-input" inputmode="numeric" placeholder="–"
+                            onfocus="mostrarAvisEdicio()">
+                    </div>
+                </div>
+
+                <!-- Observacions (camp unificat — dia + sessió) -->
                 <div class="form-group">
-                    <label class="form-label" for="horasMonth">Hores Treballades</label>
-                    <input type="number" id="horasMonth" class="form-input" step="0.5">
+                    <label class="form-label" for="observacionsMonth">📝 Observacions</label>
+                    <textarea id="observacionsMonth" class="form-textarea" rows="2"
+                        onfocus="mostrarAvisEdicio()"></textarea>
                 </div>
-                <div class="form-group">
-                    <label class="form-label" for="observacionsMonth">Observacions</label>
-                    <textarea id="observacionsMonth" class="form-textarea"></textarea>
+
+                <!-- Botó Reobrir sessió (visible si la data és avui) -->
+                <div id="btnReobrirTornContainer" style="display:none;margin-bottom:0.75rem;">
+                    <button type="button" class="btn" style="width:100%;background:#1a3a1a;color:#69f0ae;border:1px solid #2e7d32;font-weight:700;" onclick="confirmarReobrirTorn()">🔄 Reobrir sessió d'avui</button>
                 </div>
+
                 <div class="modal-actions">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <button type="submit" class="btn btn-primary">💾 Guardar</button>
                     <button type="button" class="btn btn-danger" onclick="deleteDay(currentEditDate)">Eliminar</button>
                     <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel·lar</button>
                 </div>
@@ -3405,20 +3402,34 @@
             const data = allData.find(d => d.fecha === fecha);
             if (!data) return;
             currentEditDate = fecha;
+
+            // Títol del modal
+            const DIES_NOM = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+            const dateObj = new Date(fecha + 'T12:00:00');
+            const diaNom = DIES_NOM[dateObj.getDay()];
+            document.getElementById('editModalTitle').textContent = `📅 ${diaNom}, ${formatDate(fecha)}`;
+
+            // Amagar avís (es mostrarà en fer focus en un camp sensible)
+            document.getElementById('editModalWarning').style.display = 'none';
+
+            // Omplir camps del formulari
             document.getElementById('fechaMonth').value = fecha;
-            document.getElementById('ingresosMonth').value = data.ingresos_dia ? (Math.round(data.ingresos_dia * 100) / 100) : '';
-            document.getElementById('serviciosMonth').value = data.servicios_dia || '';
+            document.getElementById('ingresosMonth').value = data.ingresos_dia != null ? (Math.round(data.ingresos_dia * 100) / 100) : '';
+            document.getElementById('serviciosMonth').value = data.servicios_dia != null ? data.servicios_dia : '';
             document.getElementById('horasMonth').value = data.horas_trabajadas || '';
             document.getElementById('observacionsMonth').value = data.observacions || '';
+            // Km inici i fi (camps nous unificats)
+            document.getElementById('editKmInici').value = data.km_inici ?? '';
+            document.getElementById('editKmFi').value = data.km_fi ?? '';
 
-            // ── Resum complet del torn ──
+            // Botó Reobrir sessió: visible si la data és avui
+            const avui = getTodayStr();
+            const btnReobrir = document.getElementById('btnReobrirTornContainer');
+            if (btnReobrir) btnReobrir.style.display = (fecha === avui && tornFinalitzatAt) ? 'block' : 'none';
+
+            // ── Resum complet del dia ──
             const pad2 = n => String(n).padStart(2,'0');
-            const fmtHores = h => h != null ? `${pad2(Math.floor(h))}:${pad2(Math.round((h % 1) * 60))}` : '—';
             const euroHora = (data.horas_trabajadas && data.ingresos_dia) ? (data.ingresos_dia / data.horas_trabajadas).toFixed(2) : null;
-
-            // Hora inici i fi del torn (guardat als torns)
-            const horaIniciStr = data.hora_inici ? data.hora_inici : '—';
-            const horaFiStr    = data.hora_fi    ? data.hora_fi    : '—';
 
             let resumHtml = `<div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:0.85rem 1rem;margin-bottom:1rem;display:grid;grid-template-columns:1fr 1fr;gap:0.5rem 1rem;">`;
             const stat = (label, val, color) => `<div><div style="font-size:0.62rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.07em;">${label}</div><div style="font-size:1rem;font-weight:700;color:${color||'var(--text-primary)'};">${val}</div></div>`;
@@ -3427,6 +3438,10 @@
             resumHtml += stat('🚕 Serveis', data.servicios_dia ?? '—');
             resumHtml += stat('⏱ Hores', data.horas_trabajadas != null ? `${data.horas_trabajadas}h` : '—');
             resumHtml += stat('💶 €/hora', euroHora ? `${euroHora}€` : '—', getObjectiuColor(parseFloat(euroHora), loadObjectius().hora));
+            if (data.hora_inici || data.hora_fi) {
+                resumHtml += stat('🟢 Hora inici', data.hora_inici || '—');
+                resumHtml += stat('🔴 Hora fi', data.hora_fi || '—');
+            }
             if (data.km_inici != null || data.km_fi != null) {
                 resumHtml += stat('🛣️ Km inici', data.km_inici != null ? data.km_inici : '—');
                 resumHtml += stat('🏁 Km fi', data.km_fi != null ? data.km_fi : '—');
@@ -3435,18 +3450,9 @@
             if (data.km_ocupat != null) resumHtml += stat('🟢 Km ocupat', `${data.km_ocupat} km`, '#4caf50');
             if (data.km_lliure != null) resumHtml += stat('🔴 Km lliure', `${data.km_lliure} km`, '#ff9800');
             if (data.media_precio_servicio != null) resumHtml += stat('📊 €/servei', `${data.media_precio_servicio.toFixed(2)}€`);
-            if (data.observacions) resumHtml += `<div style="grid-column:1/-1;font-size:0.8rem;color:var(--text-secondary);font-style:italic;">${data.observacions}</div>`;
             resumHtml += `</div>`;
 
-            // Inserir o actualitzar el resum al modal
-            let resumEl = document.getElementById('diaResumTorn');
-            if (!resumEl) {
-                resumEl = document.createElement('div');
-                resumEl.id = 'diaResumTorn';
-                const form = document.getElementById('addDayFormMonth');
-                form.parentNode.insertBefore(resumEl, form);
-            }
-            resumEl.innerHTML = resumHtml;
+            document.getElementById('diaResumTorn').innerHTML = resumHtml;
 
             // Carreres del dia
             carreresDelDia = await getCarreresForDate(fecha);
@@ -3470,12 +3476,19 @@
             }
 
             renderDiaCarreres();
-
             document.getElementById('editModal').classList.add('active');
+        }
+
+        // Mostra l'avís d'edició de dades sensibles (es crida en onfocus)
+        function mostrarAvisEdicio() {
+            const w = document.getElementById('editModalWarning');
+            if (w) w.style.display = 'block';
         }
 
         function closeModal() {
             document.getElementById('editModal').classList.remove('active');
+            const w = document.getElementById('editModalWarning');
+            if (w) w.style.display = 'none';
             currentEditDate = null;
         }
 
@@ -3502,6 +3515,15 @@
             const servicios = parseInt(document.getElementById(serviciosId).value);
             const horas = parseFloat(document.getElementById(horasId).value) || null;
             const observacions = document.getElementById(observacionsId).value.trim() || null;
+
+            // Km inici/fi: llegir dels nous camps unificats (source 'month')
+            let kmIniciEdit = null, kmFiEdit = null;
+            if (source === 'month') {
+                const kiRaw = document.getElementById('editKmInici')?.value;
+                const kfRaw = document.getElementById('editKmFi')?.value;
+                kmIniciEdit = (kiRaw !== '' && kiRaw != null) ? parseInt(kiRaw) : null;
+                kmFiEdit    = (kfRaw !== '' && kfRaw != null) ? parseInt(kfRaw) : null;
+            }
             
             const newEntry = {
                 mes_anio: fecha.substring(0, 7),
@@ -3516,16 +3538,23 @@
                 observacions: observacions
             };
 
-            // Conservar camps km si ja existien (no els sobreescrivim en edició manual)
+            // Conservar/actualitzar camps km
             if (source === 'month') {
                 const existing = allData.find(d => d.fecha === fecha);
-                if (existing) {
-                    if (existing.km_inici  != null) newEntry.km_inici  = existing.km_inici;
-                    if (existing.km_fi     != null) newEntry.km_fi     = existing.km_fi;
-                    if (existing.km_total  != null) newEntry.km_total  = existing.km_total;
-                    if (existing.km_ocupat != null) newEntry.km_ocupat = existing.km_ocupat;
-                    if (existing.km_lliure != null) newEntry.km_lliure = existing.km_lliure;
+                // Usar valors editats si s'han introduït, sinó conservar els existents
+                newEntry.km_inici  = kmIniciEdit  != null ? kmIniciEdit  : (existing?.km_inici  ?? null);
+                newEntry.km_fi     = kmFiEdit      != null ? kmFiEdit      : (existing?.km_fi     ?? null);
+                // Recalcular km_total si hi ha km_inici i km_fi
+                if (newEntry.km_inici != null && newEntry.km_fi != null) {
+                    newEntry.km_total = newEntry.km_fi - newEntry.km_inici;
+                } else if (existing?.km_total != null) {
+                    newEntry.km_total = existing.km_total;
                 }
+                if (existing?.km_ocupat != null) newEntry.km_ocupat = existing.km_ocupat;
+                if (existing?.km_lliure != null) newEntry.km_lliure = existing.km_lliure;
+                // Conservar hora_inici / hora_fi de la sessió
+                if (existing?.hora_inici) newEntry.hora_inici = existing.hora_inici;
+                if (existing?.hora_fi)    newEntry.hora_fi    = existing.hora_fi;
             }
             
             try {
@@ -3566,8 +3595,7 @@
 
         function resetForm(source) {
             if (source === 'month') {
-                document.getElementById('addDayFormMonth').reset();
-                document.getElementById('fechaMonth').valueAsDate = new Date();
+                // No fem reset() — el modal es tanca i els camps es repoblen a openEditModal
             } else if (source === 'monthAdd') {
                 document.getElementById('addDayFormMonthModal').reset();
             } else {
@@ -5176,6 +5204,35 @@
             return `${avui.getFullYear()}-${String(avui.getMonth()+1).padStart(2,'0')}-${String(avui.getDate()).padStart(2,'0')}`;
         }
 
+        // Retorna la data a la qual assignar la sessió:
+        // si ara és < 06:00, els serveis pertanyen al dia anterior
+        function getSessionDateStr() {
+            const ara = new Date();
+            if (ara.getHours() < 6) {
+                const ahir = new Date(ara);
+                ahir.setDate(ahir.getDate() - 1);
+                return `${ahir.getFullYear()}-${String(ahir.getMonth()+1).padStart(2,'0')}-${String(ahir.getDate()).padStart(2,'0')}`;
+            }
+            return getTodayStr();
+        }
+
+        // Actualitza el banner que mostra al dia que s'assignarà la sessió
+        function updateSessioDiaAssignat() {
+            const banner = document.getElementById('sessioDiaAssignatBanner');
+            const label = document.getElementById('sessioDiaAssignatLabel');
+            if (!banner || !label) return;
+            const ara = new Date();
+            if (ara.getHours() < 6) {
+                const ahir = new Date(ara);
+                ahir.setDate(ahir.getDate() - 1);
+                const DIES = ['Diumenge','Dilluns','Dimarts','Dimecres','Dijous','Divendres','Dissabte'];
+                label.textContent = DIES[ahir.getDay()] + ', ' + formatDate(getSessionDateStr());
+                banner.style.display = 'block';
+            } else {
+                banner.style.display = 'none';
+            }
+        }
+
         async function saveJornadaFlag() {
             const kmInici = parseInt(document.getElementById('kmIniciInput')?.value) || null;
             await setSetting(JORNADA_KEY, JSON.stringify({
@@ -5354,15 +5411,15 @@
             if (jornadaActiva) {
                 // Torn actiu
                 if (btnStart) { btnStart.disabled = false; btnStart.textContent = '🚕 Carreres'; }
-                if (btnEnd) { btnEnd.disabled = false; btnEnd.textContent = '🔴 Fi Torn'; }
+                if (btnEnd) { btnEnd.disabled = false; btnEnd.textContent = '🔴 Fi Sessió'; }
             } else if (tornTancat) {
                 // Torn finalitzat: botó inici desactivat fins tancar definitivament
-                if (btnStart) { btnStart.disabled = true; btnStart.textContent = '🟢 Iniciar Torn'; }
-                if (btnEnd) { btnEnd.disabled = true; btnEnd.textContent = '🔴 Fi Torn'; }
+                if (btnStart) { btnStart.disabled = true; btnStart.textContent = '🟢 Iniciar'; }
+                if (btnEnd) { btnEnd.disabled = true; btnEnd.textContent = '🔴 Fi Sessió'; }
             } else {
                 // Sense torn
-                if (btnStart) { btnStart.disabled = false; btnStart.textContent = '🟢 Iniciar Torn'; }
-                if (btnEnd) { btnEnd.disabled = true; btnEnd.textContent = '🔴 Fi Torn'; }
+                if (btnStart) { btnStart.disabled = false; btnStart.textContent = '🟢 Iniciar'; }
+                if (btnEnd) { btnEnd.disabled = true; btnEnd.textContent = '🔴 Fi Sessió'; }
             }
 
             // Bloc horari
@@ -5508,7 +5565,7 @@
 
         // Tanca el torn definitivament i prepara l'app per al torn del dia següent
         async function tancarTornDefinitivament() {
-            const ok = confirm('⚠️ Tancar el torn definitivament?\n\nEsborrarà les carreres de memòria i prepararà l\'app per al nou torn.\n\nAquesta acció no es pot desfer.');
+            const ok = confirm('⚠️ Tancar la sessió definitivament?\n\nEsborrarà les carreres de memòria i prepararà l\'app per a la nova sessió.\n\nAquesta acció no es pot desfer.');
             if (!ok) return;
 
             // Recuperar km_fi del torn actual abans de resetejar
@@ -5597,7 +5654,7 @@
             if (!jornadaActiva) return;
             const total = calcularTotalCarreres();
             if (carreresAvui.length === 0) {
-                alert('No hi ha carreres registrades. Afegeix almenys una carrera abans de finalitzar el torn.');
+                alert('No hi ha carreres registrades. Afegeix almenys una carrera abans de finalitzar la sessió.');
                 return;
             }
 
@@ -5612,7 +5669,6 @@
             kmFiVal = kmFiResult.val;
 
             // ── Càlcul km ──
-            // Mostrar feedback mentre es consulta OSRM
             const btnFi = document.getElementById('btnFinalitzarJornada');
             const btnFiOrigText = btnFi ? btnFi.textContent : '';
             if (btnFi) { btnFi.disabled = true; btnFi.textContent = '🛣️ Calculant ruta...'; }
@@ -5628,6 +5684,10 @@
             const kmTotal   = (kmIniciVal != null && kmFiVal != null) ? (kmFiVal - kmIniciVal) : null;
             const kmLliure  = (kmTotal != null) ? Math.max(0, Math.round((kmTotal - kmOcupat) * 10) / 10) : null;
 
+            // ── Data de la sessió (regla <6AM → dia anterior) ──
+            const fechaStr = getSessionDateStr();
+            const esDiaAnterior = fechaStr !== getTodayStr();
+
             // Resum km per al confirm
             let kmResum = '';
             if (kmTotal != null) {
@@ -5636,26 +5696,31 @@
                 kmResum = `\nKm ocupat (GPS): ${kmOcupat} km`;
             }
 
-            const conf = confirm(`Finalitzar torn?\n\nTotal recaptat: ${formatEur(total)}\nCarreres: ${carreresAvui.length}${kmResum}\n\nS'afegirà com a recaptació d'avui.`);
+            const diaMsg = esDiaAnterior ? `\n⚠️ Assignat al dia anterior (${formatDate(fechaStr)})` : '';
+            const conf = confirm(`Finalitzar sessió?\n\nTotal recaptat: ${formatEur(total)}\nCarreres: ${carreresAvui.length}${kmResum}${diaMsg}`);
             if (!conf) return;
 
-            // Guardar hora de fi de torn
+            // Guardar hora de fi de sessió
             tornFinalitzatAt = Date.now();
             jornadaActiva = false;
             saveJornadaFlag();
 
-            const fechaStr = getTodayStr();
-            const dd = fechaStr.substring(8, 10);
-            const mm = fechaStr.substring(5, 7);
-            const yyyy = fechaStr.substring(2, 4);
+            // fechaStr ja calculat abans (regla <6AM)
             const mesAnio = fechaStr.substring(0, 7);
 
             // Hores treballades
             let horasTreballades = null;
             if (tornIniciatAt) {
-                const diffMs = Date.now() - tornIniciatAt;
+                const diffMs = tornFinalitzatAt - tornIniciatAt;
                 horasTreballades = Math.floor((diffMs / 3600000) * 2) / 2;
             }
+
+            // Hora inici / hora fi de la sessió (format HH:MM)
+            const fmtHHMM = ts => {
+                if (!ts) return null;
+                const d = new Date(ts);
+                return String(d.getHours()).padStart(2,'0') + ':' + String(d.getMinutes()).padStart(2,'0');
+            };
 
             const nouRegistre = {
                 mes_anio: mesAnio,
@@ -5668,6 +5733,8 @@
                 horas_trabajadas: horasTreballades,
                 media_ingresos_hora: horasTreballades && total ? Math.round((total / horasTreballades) * 100) / 100 : null,
                 observacions: null,
+                hora_inici: fmtHHMM(tornIniciatAt),
+                hora_fi:    fmtHHMM(tornFinalitzatAt),
                 km_inici:  kmIniciVal,
                 km_fi:     kmFiVal,
                 km_total:  kmTotal,
@@ -5679,6 +5746,8 @@
             const storedData = await getStoredData();
             const existingIdx = storedData.findIndex(d => d.fecha === fechaStr);
             if (existingIdx >= 0) {
+                // Conservar observacions existents si el registre ja existia
+                if (storedData[existingIdx].observacions) nouRegistre.observacions = storedData[existingIdx].observacions;
                 storedData[existingIdx] = nouRegistre;
             } else {
                 storedData.push(nouRegistre);
@@ -5694,17 +5763,14 @@
             updateMesosView();
             updateHistoricView();
 
-            let kmMsg = '';
-            if (kmTotal != null) kmMsg = `\n🛣 Km total: ${kmTotal} | Ocupat: ${kmOcupat} | Lliure: ${kmLliure}`;
-            else if (kmOcupat > 0) kmMsg = `\n🛣 Km ocupat (GPS): ${kmOcupat}`;
-            // Tornar a la vista de torns (sense possibilitat de reobrir des d'aquí)
+            // Tornar a la vista de Dies (on es veu el registre acabat de crear)
             updateJornadaUI();
             mostrarMainContent();
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.getElementById('torns').classList.add('active');
-            updateTornsView();
+            document.getElementById('dies').classList.add('active');
+            updateDiesView();
 
-            // ── Còpia local automàtica del JSON al finalitzar el torn ──
+            // ── Còpia local automàtica del JSON al finalitzar la sessió ──
             try {
                 await exportJSONAutomatic();
             } catch(e) {
@@ -5732,6 +5798,7 @@
             document.body.scrollTop = 0;
             updateBackupStatusBar();
             updateCarreraPendentBanner();
+            updateSessioDiaAssignat();
             
             // Aplicar modo taxímetre cuando se entra a la página
             (async () => {
@@ -5747,7 +5814,7 @@
             document.getElementById('mainContent').style.display = 'block';
         }
 
-        // Mostra/amaga la pastilla "Torn obert" al dashboard
+        // Mostra/amaga la pastilla "Sessió oberta" al dashboard
         function updateTornObertBanner() {
             const banner = document.getElementById('tornObertBanner');
             if (!banner) return;
@@ -7620,87 +7687,27 @@
         function tornsPaginaCanviar(p) {
             tornsCurrentPage = p;
             renderTorns();
-            // Scroll al top de la pàgina torns
-            document.getElementById('torns').scrollIntoView({ behavior: 'smooth', block: 'start' });
+            // Scroll al top de la pàgina
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         function obrirTornEdit(fecha) {
-            if (!confirm('⚠️ Estàs a punt d\'editar un torn tancat.\n\nFes-ho només en cas d\'emergència. Vols continuar?')) return;
-
-            const d = allData.find(r => r.fecha === fecha);
-            if (!d) return;
-            tornEditantFecha = fecha;
-
-            const dataFmt = formatDate(fecha);
-            document.getElementById('tornEditData').innerHTML =
-                `📅 <strong style="color:var(--text-primary);">${dataFmt}</strong>`;
-
-            document.getElementById('tornEditIngresos').value = d.ingresos_dia != null ? String(d.ingresos_dia).replace('.',',') : '';
-            document.getElementById('tornEditServeis').value = d.servicios_dia ?? '';
-            document.getElementById('tornEditHores').value = d.horas_trabajadas ?? '';
-            document.getElementById('tornEditKmInici').value = d.km_inici ?? '';
-            document.getElementById('tornEditKmFi').value = d.km_fi ?? '';
-            document.getElementById('tornEditObs').value = d.observacions ?? '';
-
-            // Mostrar botó "Reobrir torn" només si la data del torn és avui
-            const avui = getTodayStr();
-            const btnReobrir = document.getElementById('btnReobrirTornContainer');
-            if (btnReobrir) btnReobrir.style.display = (fecha === avui) ? 'block' : 'none';
-
-            document.getElementById('tornEditModal').classList.add('active');
-        }
-
-        function tancarTornEditModal() {
-            document.getElementById('tornEditModal').classList.remove('active');
-            tornEditantFecha = null;
+            // V5: usa el modal unificat editModal (sense confirm previ)
+            openEditModal(fecha);
         }
 
         async function confirmarReobrirTorn() {
-            if (!confirm('⚠️ Reobres el torn d\'avui.\n\nPodràs afegir carreres i hauràs de tornar a fer "Fi Torn" per tancar-lo de nou.\n\nContinues?')) return;
-            tancarTornEditModal();
+            if (!confirm('⚠️ Reobres la sessió d\'avui.\n\nPodràs afegir carreres i hauràs de tornar a fer "Fi Sessió" per tancar-la de nou.\n\nContinues?')) return;
+            closeModal();
             await reobrirTornAvui();
         }
 
+        // guardarTornEdit — V5: substituït per addNewDay (modal unificat)
+        // Mantenim la funció per compatibilitat però delega al guardar normal
         async function guardarTornEdit() {
-            if (!tornEditantFecha) return;
-            if (!confirm('💾 Confirmes que vols desar els canvis en aquest torn?\n\nAquesta acció modificarà les dades permanentment.')) return;
-
-            const storedData = await getStoredData();
-            const idx = storedData.findIndex(d => d.fecha === tornEditantFecha);
-            if (idx < 0) { alert('Error: torn no trobat.'); return; }
-
-            const ingresos = parseImport(document.getElementById('tornEditIngresos').value);
-            const serveis = parseInt(document.getElementById('tornEditServeis').value) || 0;
-            const hores = parseFloat(document.getElementById('tornEditHores').value) || null;
-            const kmInici = document.getElementById('tornEditKmInici').value !== '' ? parseInt(document.getElementById('tornEditKmInici').value) : null;
-            const kmFi = document.getElementById('tornEditKmFi').value !== '' ? parseInt(document.getElementById('tornEditKmFi').value) : null;
-            const obs = document.getElementById('tornEditObs').value.trim() || null;
-
-            const kmTotal = (kmInici != null && kmFi != null) ? (kmFi - kmInici) : storedData[idx].km_total;
-
-            storedData[idx] = {
-                ...storedData[idx],
-                ingresos_dia: ingresos,
-                servicios_dia: serveis,
-                media_precio_servicio: serveis > 0 ? ingresos / serveis : null,
-                horas_trabajadas: hores,
-                media_ingresos_hora: hores && ingresos ? Math.round((ingresos / hores) * 100) / 100 : null,
-                km_inici: kmInici,
-                km_fi: kmFi,
-                km_total: kmTotal,
-                observacions: obs
-            };
-
-            await saveToStorage(storedData);
-            await loadData();
-            populateYearFilters();
-            updateDashboard();
-            updateDiesView();
-            updateMesosView();
-            updateHistoricView();
-            renderTorns();
-
-            tancarTornEditModal();
+            // Ja no s'usa (tornEditModal eliminat), però per si hi hagués crides legacy
+            const form = document.getElementById('addDayFormMonth');
+            if (form) form.dispatchEvent(new Event('submit', { cancelable: true, bubbles: true }));
         }
 
         // ==========================================
