@@ -2816,13 +2816,15 @@
                     const kmOcDia = '';
                     
                     return `
-                        <div class="month-detail-day" onclick="openEditModal('${day.fecha}'); closeMonthDetailModal();">
-                            <div class="month-detail-day-date">${formatDate(day.fecha)} - ${diaSemana.toUpperCase()}</div>
-                            <div style="display: flex; align-items: center; gap: 0.5rem;">
-                                <div class="month-detail-day-revenue" style="color: ${revenueColor}">
-                                    ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(day.ingresos_dia))}
+                        <div class="month-detail-day" style="flex-direction:column;align-items:stretch;" onclick="openEditModal('${day.fecha}'); closeMonthDetailModal();">
+                            <div style="display:flex;justify-content:space-between;align-items:center;">
+                                <div class="month-detail-day-date">${formatDate(day.fecha)} - ${diaSemana.toUpperCase()}</div>
+                                <div style="display:flex;align-items:center;gap:0.5rem;">
+                                    <div class="month-detail-day-revenue" style="color: ${revenueColor}">
+                                        ${hasObservations ? '<span class="observation-alert">⚠</span> ' : ''}${formatCurrency(Math.round(day.ingresos_dia))}
+                                    </div>
+                                    <div class="month-detail-day-icon">✏️</div>
                                 </div>
-                                <div class="month-detail-day-icon" style="margin-left:auto;">✏️</div>
                             </div>
                             ${kmDia}
                         </div>
