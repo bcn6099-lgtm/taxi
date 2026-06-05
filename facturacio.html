@@ -7,7 +7,7 @@
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
     <title>Facturació Taxi</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js" async defer></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
     
@@ -4771,78 +4771,90 @@
                 console.error('Error en initApp:', error);
             }
             
-            dbg('4 loadData...');
-            await loadData();
-            dbg('5 loadData OK');
-            
-            dbg('6 gastos...');
-            // Cargar datos de gastos
-            try {
-                await loadGastosData();
-                console.log('Gastos cargados:', gastosData.length);
-                
-                // Si no hay datos de gastos, cargar datos iniciales
-                if (gastosData.length === 0) {
-                    console.log('No hay datos de gastos, cargando datos iniciales...');
-                    const gastosIniciales = [
-                        {"mes_anio":"2020-02","gastos":1169},{"mes_anio":"2020-03","gastos":1169},{"mes_anio":"2020-04","gastos":1169},
-                        {"mes_anio":"2020-05","gastos":1169},{"mes_anio":"2020-06","gastos":1169},{"mes_anio":"2020-07","gastos":1169},
-                        {"mes_anio":"2020-08","gastos":1169},{"mes_anio":"2020-09","gastos":1169},{"mes_anio":"2020-10","gastos":1169},
-                        {"mes_anio":"2020-11","gastos":1169},{"mes_anio":"2020-12","gastos":1169},{"mes_anio":"2021-01","gastos":1169},
-                        {"mes_anio":"2021-02","gastos":1169},{"mes_anio":"2021-03","gastos":1169},{"mes_anio":"2021-04","gastos":1169},
-                        {"mes_anio":"2021-05","gastos":1169},{"mes_anio":"2021-06","gastos":1169},{"mes_anio":"2021-07","gastos":1169},
-                        {"mes_anio":"2021-08","gastos":1169},{"mes_anio":"2021-09","gastos":1169},{"mes_anio":"2021-10","gastos":1169},
-                        {"mes_anio":"2021-11","gastos":1169},{"mes_anio":"2021-12","gastos":1675},{"mes_anio":"2022-01","gastos":1621},
-                        {"mes_anio":"2022-02","gastos":1621},{"mes_anio":"2022-03","gastos":1621},{"mes_anio":"2022-04","gastos":1621},
-                        {"mes_anio":"2022-05","gastos":1621},{"mes_anio":"2022-06","gastos":1621},{"mes_anio":"2022-07","gastos":1621},
-                        {"mes_anio":"2022-08","gastos":1321},{"mes_anio":"2022-09","gastos":2239},{"mes_anio":"2022-10","gastos":2492},
-                        {"mes_anio":"2022-11","gastos":2538},{"mes_anio":"2022-12","gastos":2538},{"mes_anio":"2023-01","gastos":2549},
-                        {"mes_anio":"2023-02","gastos":2549},{"mes_anio":"2023-03","gastos":2688},{"mes_anio":"2023-04","gastos":2688},
-                        {"mes_anio":"2023-05","gastos":2688},{"mes_anio":"2023-06","gastos":2688},{"mes_anio":"2023-07","gastos":2688},
-                        {"mes_anio":"2023-08","gastos":2688},{"mes_anio":"2023-09","gastos":2688},{"mes_anio":"2023-10","gastos":2896},
-                        {"mes_anio":"2023-11","gastos":2896},{"mes_anio":"2023-12","gastos":2896},{"mes_anio":"2024-01","gastos":2950},
-                        {"mes_anio":"2024-02","gastos":2950},{"mes_anio":"2024-03","gastos":2959},{"mes_anio":"2024-04","gastos":2959},
-                        {"mes_anio":"2024-05","gastos":2959},{"mes_anio":"2024-06","gastos":2959},{"mes_anio":"2024-07","gastos":2959},
-                        {"mes_anio":"2024-08","gastos":2959},{"mes_anio":"2024-09","gastos":2959},{"mes_anio":"2024-10","gastos":2959},
-                        {"mes_anio":"2024-11","gastos":2959},{"mes_anio":"2024-12","gastos":2959},{"mes_anio":"2025-01","gastos":2959},
-                        {"mes_anio":"2025-02","gastos":2959},{"mes_anio":"2025-03","gastos":2922},{"mes_anio":"2025-04","gastos":2922},
-                        {"mes_anio":"2025-05","gastos":2922},{"mes_anio":"2025-06","gastos":2922},{"mes_anio":"2025-07","gastos":2922},
-                        {"mes_anio":"2025-08","gastos":2922},{"mes_anio":"2025-09","gastos":2922},{"mes_anio":"2025-10","gastos":3005},
-                        {"mes_anio":"2025-11","gastos":3005},{"mes_anio":"2025-12","gastos":3005},{"mes_anio":"2026-01","gastos":3005}
-                    ];
-                    
-                    const saved = await saveGastosToStorage(gastosIniciales);
-                    if (saved) {
-                        await loadGastosData();
-                        console.log('Datos iniciales de gastos guardados:', gastosData.length);
-                    } else {
-                        console.error('Error al guardar datos iniciales de gastos');
+            dbg('4 loadData (paral·lel)...');
+
+            // Helper: carrega gastos i si és buit inserta dades inicials
+            async function loadGastosDataAmbInicials() {
+                try {
+                    await loadGastosData();
+                    console.log('Gastos cargados:', gastosData.length);
+                    if (gastosData.length === 0) {
+                        console.log('No hay datos de gastos, cargando datos iniciales...');
+                        const gastosIniciales = [
+                            {"mes_anio":"2020-02","gastos":1169},{"mes_anio":"2020-03","gastos":1169},{"mes_anio":"2020-04","gastos":1169},
+                            {"mes_anio":"2020-05","gastos":1169},{"mes_anio":"2020-06","gastos":1169},{"mes_anio":"2020-07","gastos":1169},
+                            {"mes_anio":"2020-08","gastos":1169},{"mes_anio":"2020-09","gastos":1169},{"mes_anio":"2020-10","gastos":1169},
+                            {"mes_anio":"2020-11","gastos":1169},{"mes_anio":"2020-12","gastos":1169},{"mes_anio":"2021-01","gastos":1169},
+                            {"mes_anio":"2021-02","gastos":1169},{"mes_anio":"2021-03","gastos":1169},{"mes_anio":"2021-04","gastos":1169},
+                            {"mes_anio":"2021-05","gastos":1169},{"mes_anio":"2021-06","gastos":1169},{"mes_anio":"2021-07","gastos":1169},
+                            {"mes_anio":"2021-08","gastos":1169},{"mes_anio":"2021-09","gastos":1169},{"mes_anio":"2021-10","gastos":1169},
+                            {"mes_anio":"2021-11","gastos":1169},{"mes_anio":"2021-12","gastos":1675},{"mes_anio":"2022-01","gastos":1621},
+                            {"mes_anio":"2022-02","gastos":1621},{"mes_anio":"2022-03","gastos":1621},{"mes_anio":"2022-04","gastos":1621},
+                            {"mes_anio":"2022-05","gastos":1621},{"mes_anio":"2022-06","gastos":1621},{"mes_anio":"2022-07","gastos":1621},
+                            {"mes_anio":"2022-08","gastos":1321},{"mes_anio":"2022-09","gastos":2239},{"mes_anio":"2022-10","gastos":2492},
+                            {"mes_anio":"2022-11","gastos":2538},{"mes_anio":"2022-12","gastos":2538},{"mes_anio":"2023-01","gastos":2549},
+                            {"mes_anio":"2023-02","gastos":2549},{"mes_anio":"2023-03","gastos":2688},{"mes_anio":"2023-04","gastos":2688},
+                            {"mes_anio":"2023-05","gastos":2688},{"mes_anio":"2023-06","gastos":2688},{"mes_anio":"2023-07","gastos":2688},
+                            {"mes_anio":"2023-08","gastos":2688},{"mes_anio":"2023-09","gastos":2688},{"mes_anio":"2023-10","gastos":2896},
+                            {"mes_anio":"2023-11","gastos":2896},{"mes_anio":"2023-12","gastos":2896},{"mes_anio":"2024-01","gastos":2950},
+                            {"mes_anio":"2024-02","gastos":2950},{"mes_anio":"2024-03","gastos":2959},{"mes_anio":"2024-04","gastos":2959},
+                            {"mes_anio":"2024-05","gastos":2959},{"mes_anio":"2024-06","gastos":2959},{"mes_anio":"2024-07","gastos":2959},
+                            {"mes_anio":"2024-08","gastos":2959},{"mes_anio":"2024-09","gastos":2959},{"mes_anio":"2024-10","gastos":2959},
+                            {"mes_anio":"2024-11","gastos":2959},{"mes_anio":"2024-12","gastos":2959},{"mes_anio":"2025-01","gastos":2959},
+                            {"mes_anio":"2025-02","gastos":2959},{"mes_anio":"2025-03","gastos":2922},{"mes_anio":"2025-04","gastos":2922},
+                            {"mes_anio":"2025-05","gastos":2922},{"mes_anio":"2025-06","gastos":2922},{"mes_anio":"2025-07","gastos":2922},
+                            {"mes_anio":"2025-08","gastos":2922},{"mes_anio":"2025-09","gastos":2922},{"mes_anio":"2025-10","gastos":3005},
+                            {"mes_anio":"2025-11","gastos":3005},{"mes_anio":"2025-12","gastos":3005},{"mes_anio":"2026-01","gastos":3005}
+                        ];
+                        const saved = await saveGastosToStorage(gastosIniciales);
+                        if (saved) {
+                            await loadGastosData();
+                            console.log('Datos iniciales de gastos guardados:', gastosData.length);
+                        } else {
+                            console.error('Error al guardar datos iniciales de gastos');
+                        }
                     }
+                } catch (error) {
+                    console.error('Error loading gastos:', error);
+                    gastosData = [];
                 }
-            } catch (error) {
-                console.error('Error loading gastos:', error);
-                gastosData = [];
             }
 
-            // Cargar datos de despeses detall
-            try {
-                await ensureCategoriesDefault();
-                await loadDespesesData();
-                await checkIAfegirGastosFixosMensuals();
-                console.log('Despeses detall carregades:', despesesData.length);
-            } catch (error) {
-                console.error('Error loading despeses:', error);
-                despesesData = [];
-                categoriesData = [];
+            // Helper: carrega despeses i categories
+            async function loadDespesesDataAmbCategories() {
+                try {
+                    await ensureCategoriesDefault();
+                    await loadDespesesData();
+                    await checkIAfegirGastosFixosMensuals();
+                    console.log('Despeses detall carregades:', despesesData.length);
+                } catch (error) {
+                    console.error('Error loading despeses:', error);
+                    despesesData = [];
+                    categoriesData = [];
+                }
             }
+
+            // Les quatre lectures IDB s'executen en paral·lel
+            await Promise.all([
+                loadData(),
+                loadGastosDataAmbInicials(),
+                loadDespesesDataAmbCategories(),
+                getAllCarreres().then(r => { globalCarreresData = r; })
+            ]);
+            dbg('5 loadData + gastos + despeses + carreres OK');
+
             
             populateYearFilters();
             await initDrumRoller();
             initMonthSpinner();
+            // Renderitza immediatament només la vista activa (dashboard)
             updateDashboard();
-            updateDiesView();
-            updateMesosView();
-            updateHistoricView();
+            // Les vistes no visibles es difereixen al següent frame per no bloquejar el render inicial
+            setTimeout(() => {
+                updateDiesView();
+                updateMesosView();
+                updateHistoricView();
+            }, 0);
             document.getElementById('fecha').valueAsDate = new Date();
             document.getElementById('fechaMonth').valueAsDate = new Date();
             
