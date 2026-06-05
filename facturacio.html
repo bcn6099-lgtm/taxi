@@ -1829,27 +1829,16 @@
 
         function populateYearFilters() {
             const years = [...new Set(allData.map(d => d.fecha.substring(0, 4)))].sort().reverse();
+            const yearOptions = '<option value="all">Tots els anys</option>' + years.map(y => `<option value="${y}">${y}</option>`).join('');
             
             // Filter para Dies
-            const yearFilterDies = document.getElementById('yearFilterDies');
-            yearFilterDies.innerHTML = '<option value="all">Tots els anys</option>';
-            years.forEach(year => {
-                yearFilterDies.innerHTML += `<option value="${year}">${year}</option>`;
-            });
+            document.getElementById('yearFilterDies').innerHTML = yearOptions;
 
             // Filter para Mesos
-            const yearFilterMesos = document.getElementById('yearFilterMesos');
-            yearFilterMesos.innerHTML = '<option value="all">Tots els anys</option>';
-            years.forEach(year => {
-                yearFilterMesos.innerHTML += `<option value="${year}">${year}</option>`;
-            });
+            document.getElementById('yearFilterMesos').innerHTML = yearOptions;
 
             // Filter para Beneficis
-            const yearFilterBeneficis = document.getElementById('yearFilterBeneficis');
-            yearFilterBeneficis.innerHTML = '<option value="all">Tots els anys</option>';
-            years.forEach(year => {
-                yearFilterBeneficis.innerHTML += `<option value="${year}">${year}</option>`;
-            });
+            document.getElementById('yearFilterBeneficis').innerHTML = yearOptions;
 
             // Build month spinner data
             const allMonths = [...new Set(allData.map(d => d.mes_anio || d.fecha.substring(0, 7)))].sort().reverse();
@@ -1892,16 +1881,17 @@
             
             if (!startSelect || !endSelect) return;
             
-            startSelect.innerHTML = '';
-            endSelect.innerHTML = '';
-            
-            months.forEach((month, index) => {
+            const lastIdx = months.length - 1;
+            const startOpts = months.map((month, index) => {
                 const [year, monthNum] = month.split('-');
-                const monthName = monthNames[monthNum];
-                const label = `${monthName} ${year}`;
-                startSelect.innerHTML += `<option value="${month}" ${index === 0 ? 'selected' : ''}>${label}</option>`;
-                endSelect.innerHTML += `<option value="${month}" ${index === months.length - 1 ? 'selected' : ''}>${label}</option>`;
-            });
+                return `<option value="${month}"${index === 0 ? ' selected' : ''}>${monthNames[monthNum]} ${year}</option>`;
+            }).join('');
+            const endOpts = months.map((month, index) => {
+                const [year, monthNum] = month.split('-');
+                return `<option value="${month}"${index === lastIdx ? ' selected' : ''}>${monthNames[monthNum]} ${year}</option>`;
+            }).join('');
+            startSelect.innerHTML = startOpts;
+            endSelect.innerHTML = endOpts;
         }
 
         // ==========================================
@@ -2325,15 +2315,18 @@
                 }
             });
 
-            // Agregar propines per mes des de globalCarreresData
-            const propinesMes = {};
-            (globalCarreresData || []).forEach(c => {
-                const p = parseFloat(c.propina) || 0;
-                if (p > 0 && c.fecha) {
-                    const mes = c.fecha.substring(0, 7);
-                    propinesMes[mes] = (propinesMes[mes] || 0) + p;
-                }
-            });
+            // Agregar propines per mes des de globalCarreresData (amb cache)
+            if (!_propinesMesCache) {
+                _propinesMesCache = {};
+                (globalCarreresData || []).forEach(c => {
+                    const p = parseFloat(c.propina) || 0;
+                    if (p > 0 && c.fecha) {
+                        const mes = c.fecha.substring(0, 7);
+                        _propinesMesCache[mes] = (_propinesMesCache[mes] || 0) + p;
+                    }
+                });
+            }
+            const propinesMes = _propinesMesCache;
 
             const sortedMonths = Object.keys(monthlyData).sort().reverse();
             
@@ -4508,6 +4501,7 @@
         let gcfPagament = new Set();
         let gcfAeroport = 'tots';
         let globalCarreresData = [];
+        let _propinesMesCache = null; // cache calculada quan globalCarreresData es carrega
         let gcfDataDes = null;   // string YYYY-MM-DD o null
         let gcfDataFins = null;  // string YYYY-MM-DD o null
 
@@ -4574,6 +4568,7 @@
 
         async function loadAndRenderGlobalCarreres() {
             globalCarreresData = await getAllCarreres();
+            _propinesMesCache = null; // invalidar cache
             gcfTarifa = 'tots'; gcfOrigen = 'tots'; gcfPagament = new Set(); gcfAeroport = 'tots';
             initGcfDates();  // aplica preset 30d i crida renderGlobalCarreres
         }
@@ -4759,12 +4754,17 @@
         }
 
         async function initApp() {
+            console.time('[INIT] total');
             dbg('1 initDB...');
             try {
+                console.time('[INIT] initDB');
                 await initDB();
+                console.timeEnd('[INIT] initDB');
                 dbg('2 initObjectius...');
+                console.time('[INIT] initObjectius+loadSyncCache');
                 await initObjectius();
                 await loadSyncCache(); // carrega cache síncron de IDB
+                console.timeEnd('[INIT] initObjectius+loadSyncCache');
                 dbg('3 OK');
             } catch (error) {
                 dbg('ERR init: ' + error);
@@ -4772,6 +4772,7 @@
             }
             
             dbg('4 loadData (paral·lel)...');
+            console.time('[INIT] Promise.all IDB');
 
             // Helper: carrega gastos i si és buit inserta dades inicials
             async function loadGastosDataAmbInicials() {
@@ -4841,22 +4842,20 @@
                 loadDespesesDataAmbCategories(),
                 getAllCarreres().then(r => { globalCarreresData = r; })
             ]);
+            console.timeEnd('[INIT] Promise.all IDB');
             dbg('5 loadData + gastos + despeses + carreres OK');
 
-            
+            console.time('[INIT] populateYearFilters+drumRoller+spinner');
             populateYearFilters();
             await initDrumRoller();
             initMonthSpinner();
-            // Renderitza immediatament només la vista activa (dashboard)
+            console.timeEnd('[INIT] populateYearFilters+drumRoller+spinner');
+            console.time('[INIT] updateDashboard');
             updateDashboard();
-            // Les vistes no visibles es difereixen al següent frame per no bloquejar el render inicial
-            setTimeout(() => {
-                updateDiesView();
-                updateMesosView();
-                updateHistoricView();
-            }, 0);
+            console.timeEnd('[INIT] updateDashboard');
+            // Les vistes Dies/Mesos/Històric es renderitzen lazy quan l'usuari hi navega (via navigateTo)
             document.getElementById('fecha').valueAsDate = new Date();
-            document.getElementById('fechaMonth').valueAsDate = new Date();
+            const _fmNow = new Date(); document.getElementById("fechaMonth").value = `${_fmNow.getFullYear()}-${String(_fmNow.getMonth()+1).padStart(2,"0")}`;
             
             await loadJornadaState();
             await initTotalVisibility();
@@ -4902,7 +4901,7 @@
             setTimeout(() => checkAutoBackup(), 3000);
 
             dbg('7 render...');
-            setTimeout(() => {
+            requestAnimationFrame(() => {
                 document.getElementById('loading').style.display = 'none';
                 // Mostrar dashboard com a vista inicial
                 mostrarMainContent();
@@ -4910,7 +4909,7 @@
                 document.getElementById('dashboard').classList.add('active');
                 updateDashboard();
                 updateTornObertBanner();
-            }, 500);
+            });
         }
 
         // ==========================================
@@ -6773,6 +6772,7 @@
                 await eliminarDespesaApp(cursaEditantId);
                 await deleteCarreraFromStorage(cursaEditantId);
                 globalCarreresData = globalCarreresData.filter(x => x.id !== cursaEditantId);
+                _propinesMesCache = null; // invalidar cache propines
                 detailOrigin = 'jornada';
                 cursaEditantId = null;
                 cursaEditantIndex = -1;
