@@ -197,6 +197,10 @@ table.inv-table{width:100%;border-collapse:collapse}
 .btn-info:hover{background:rgba(21,101,192,.06)}
 
 @media(max-width:600px){.form-grid{grid-template-columns:1fr}.filter-row{flex-direction:column;align-items:flex-start}}
+@media(max-width:560px){
+  .th-cif,.td-cif{display:none}
+  .th-date,.td-date{white-space:nowrap;padding-left:8px;padding-right:8px;width:1%}
+}
 </style>
 </head>
 <body>
@@ -264,9 +268,9 @@ table.inv-table{width:100%;border-collapse:collapse}
     <table class="inv-table">
       <thead><tr>
         <th style="width:34px"><input type="checkbox" id="chkAll" onclick="toggleAllChecks(this)" title="Sel·leccionar tot"></th>
-        <th class="th-sort" onclick="setSortCol('date')" id="th-date">Data <span class="sort-arrow" id="sa-date"></span></th>
+        <th class="th-sort th-date" onclick="setSortCol('date')" id="th-date">Data <span class="sort-arrow" id="sa-date"></span></th>
         <th class="th-sort" onclick="setSortCol('provider')" id="th-provider">Proveïdor <span class="sort-arrow" id="sa-provider"></span></th>
-        <th class="th-sort" onclick="setSortCol('cif')" id="th-cif">CIF / NIF <span class="sort-arrow" id="sa-cif"></span></th>
+        <th class="th-sort th-cif" onclick="setSortCol('cif')" id="th-cif">CIF / NIF <span class="sort-arrow" id="sa-cif"></span></th>
         <th style="text-align:right">Total</th>
       </tr></thead>
       <tbody id="invoiceTableBody"></tbody>
@@ -641,9 +645,9 @@ async function renderInvoices(){
     const hasProv=!!r.provider;
     return `<tr onclick="rowClick(event,${r.id})" class="${sel?'selected':''}">
       <td onclick="event.stopPropagation()"><input type="checkbox" ${sel?'checked':''} onchange="toggleCheck(${r.id},this.checked)"></td>
-      <td class="td-num">${r.date?r.date.split('-').reverse().join('/'):'—'}</td>
+      <td class="td-num td-date">${r.date?r.date.split('-').reverse().join('/'):'—'}</td>
       <td class="td-prov">${hasProv?r.provider:`<span class="td-pending">— pendent assignació —</span>`}</td>
-      <td class="td-num">${r.cif||'—'}</td>
+      <td class="td-num td-cif">${r.cif||'—'}</td>
       <td class="td-amount">${fmt(r.total)} €</td>
     </tr>`;
   }).join('');
@@ -651,7 +655,8 @@ async function renderInvoices(){
   const total=data.reduce((s,r)=>s+(+r.total||0),0);
   const base=data.reduce((s,r)=>s+(+r.base||0),0);
   const iva=data.reduce((s,r)=>s+(+r.iva||0),0);
-  tfoot.innerHTML=`<tr><td colspan="4" style="text-align:right;font-size:11px;opacity:.6;padding:8px 10px">Base: ${fmt(base)} € &nbsp;·&nbsp; IVA: ${fmt(iva)} €</td><td class="td-amount">${fmt(total)} €</td></tr>`;
+  const footColspan=window.matchMedia('(max-width:560px)').matches?3:4;
+  tfoot.innerHTML=`<tr><td colspan="${footColspan}" style="text-align:right;font-size:11px;opacity:.6;padding:8px 10px">Base: ${fmt(base)} € &nbsp;·&nbsp; IVA: ${fmt(iva)} €</td><td class="td-amount">${fmt(total)} €</td></tr>`;
   updateBulkBar();
 }
 
@@ -1413,6 +1418,8 @@ async function init(){
   updatePendingBadge();
 }
 init();
+let _resizeTO;
+window.addEventListener('resize',()=>{clearTimeout(_resizeTO);_resizeTO=setTimeout(()=>{if(document.getElementById('page-home')?.classList.contains('active'))renderInvoices()},150)});
 </script>
 </body>
 </html>
