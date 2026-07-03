@@ -432,6 +432,14 @@
                         <button class="dia-filter-btn" id="despesesPresetTots" onclick="despesesSetPreset('tots')">Tots</button>
                     </div>
                     <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="despesesFilterCatBtns"></div>
+                    <!-- Cercador per rang de dates personalitzat -->
+                    <div style="display:flex;gap:0.4rem;align-items:center;flex-wrap:wrap;margin-top:0.6rem;padding-top:0.6rem;border-top:1px solid var(--border);">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;">📅 Des de</span>
+                        <input type="date" id="despesesRangDesInput" class="form-input" style="flex:1;min-width:130px;padding:0.4rem 0.6rem;font-size:0.85rem;" onchange="despesesAplicarRangPersonalitzat()">
+                        <span style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;">fins</span>
+                        <input type="date" id="despesesRangFinsInput" class="form-input" style="flex:1;min-width:130px;padding:0.4rem 0.6rem;font-size:0.85rem;" onchange="despesesAplicarRangPersonalitzat()">
+                        <button class="btn btn-secondary" style="padding:0.4rem 0.7rem;font-size:0.85rem;" onclick="despesesNetejarRangPersonalitzat()" title="Netejar rang">✕</button>
+                    </div>
                 </div>
 
                 <!-- Resum del mes -->
@@ -5799,6 +5807,11 @@
             document.getElementById('mainContent').style.display = 'none';
             document.getElementById('jornada-root').style.display = 'block';
             document.getElementById('jornada-home').style.display = 'block';
+            // Sincronitzar sempre l'estat dels botons (Iniciar/Fi Sessió) amb jornadaActiva real.
+            // Sense això, si s'entra aquí després d'un refresc (p.ex. clicant el banner taronja
+            // "Sessió oberta"), el botó es queda amb el text per defecte del HTML ("🟢 Iniciar")
+            // encara que el torn ja estigui actiu, cosa que confon molt.
+            updateJornadaUI();
             // Aplicar mínim km inici basat en l'últim km_fi
             if (!jornadaActiva) aplicarMinimKmInici();
             document.getElementById('carreres-page').style.display = 'none';
@@ -8177,6 +8190,38 @@
             despesesSetPreset('mes');
         }
 
+        // Aplica un rang de dates personalitzat introduït als inputs "Des de" / "fins"
+        function despesesAplicarRangPersonalitzat() {
+            const desInput = document.getElementById('despesesRangDesInput');
+            const finsInput = document.getElementById('despesesRangFinsInput');
+            const des = desInput ? desInput.value : '';
+            const fins = finsInput ? finsInput.value : '';
+            if (!des && !fins) return;
+            // Si les dues estan informades i "des" és posterior a "fins", les intercanviem
+            if (des && fins && des > fins) {
+                if (desInput) desInput.value = fins;
+                if (finsInput) finsInput.value = des;
+                despesesRangDes = fins;
+                despesesRangFins = des;
+            } else {
+                despesesRangDes = des || null;
+                despesesRangFins = fins || null;
+            }
+            despesesPresetActual = 'personalitzat';
+            despesesPaginaActual = 1;
+            document.getElementById('despesesFilterMes').value = '';
+            renderDespesesPage();
+        }
+
+        // Neteja el rang personalitzat i torna al preset "Tots"
+        function despesesNetejarRangPersonalitzat() {
+            const desInput = document.getElementById('despesesRangDesInput');
+            const finsInput = document.getElementById('despesesRangFinsInput');
+            if (desInput) desInput.value = '';
+            if (finsInput) finsInput.value = '';
+            despesesSetPreset('tots');
+        }
+
         async function renderDespesesPage() {
             await migrarEliminarCampFutura();
             await loadDespesesData();
@@ -8187,6 +8232,12 @@
                 const btn = document.getElementById('despesesPreset' + idMap[p]);
                 if (btn) btn.classList.toggle('active', p === despesesPresetActual);
             });
+
+            // ── Sincronitzar inputs del rang personalitzat amb el rang actiu ──
+            const despesesRangDesInputEl = document.getElementById('despesesRangDesInput');
+            const despesesRangFinsInputEl = document.getElementById('despesesRangFinsInput');
+            if (despesesRangDesInputEl) despesesRangDesInputEl.value = despesesRangDes || '';
+            if (despesesRangFinsInputEl) despesesRangFinsInputEl.value = despesesRangFins || '';
 
             // Render filter category buttons
             const catBtnsEl = document.getElementById('despesesFilterCatBtns');
@@ -8269,7 +8320,10 @@
                 const totalRang = filtered.reduce((sum,d) => sum + (parseFloat(d.import)||0), 0);
                 const labelRang = despesesPresetActual==='avui' ? 'Avui'
                     : despesesPresetActual==='mes' ? 'Aquest mes'
-                    : despesesPresetActual==='3m' ? 'Últims 3 mesos' : 'Total general';
+                    : despesesPresetActual==='mes_actual' ? 'Mes actual'
+                    : despesesPresetActual==='3m' ? 'Últims 3 mesos'
+                    : despesesPresetActual==='personalitzat' ? `${despesesRangDes||'…'} → ${despesesRangFins||'…'}`
+                    : 'Total general';
                 const totalCat = despesesFilterCat !== 'tots'
                     ? filtered.reduce((sum,d) => sum + (parseFloat(d.import)||0), 0) : null;
                 const catHtml = totalCat !== null && despesesFilterCat !== 'tots'
