@@ -112,7 +112,7 @@
             <a class="menu-item" href="https://bcn6099-lgtm.github.io/taxi/analisi.html" target="_blank" style="display:block;text-decoration:none;">📊 Informe 2018-2026</a>
             <div class="menu-divider"></div>
             <div class="menu-item" onclick="navigateTo('configuracio')">⚙️ Configuració</div>
-            <div class="menu-item" onclick="mostrarDiagnostic()" style="color:#ff9800;">🔧 Debug Torn</div>
+            <!--<div class="menu-item" onclick="mostrarDiagnostic()" style="color:#ff9800;">🔧 Debug Torn</div>-->
             <input type="file" id="importFile" accept=".json" style="display:none" onchange="importJSON(event)">
             <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
@@ -264,6 +264,8 @@
                     <div class="calendar-grid" id="calendarGrid"></div>
 
                     <div class="stats-grid" id="diesStats" style="margin-top:1rem;"></div>
+
+                    <div id="diesKmBar"></div>
                 </div>
 
                 <div style="padding: 0.5rem 0 1.5rem; text-align:center;">
@@ -2197,6 +2199,7 @@
             }
             
             const stats = calculateStats(monthData);
+            const mediaDiaColorDies = getObjectiuColor(monthData.length > 0 ? stats.ingresos / monthData.length : 0, loadObjectius().diari);
             const mediaHoraColor = getObjectiuColor(stats.mediaHora, loadObjectius().hora);
             
             // Mitjana d'hores per dia (només dies amb hores registrades)
@@ -2211,6 +2214,10 @@
                 <div class="stat-card">
                     <div class="stat-label">Total</div>
                     <div class="stat-value">${formatCurrency(stats.ingresos)}</div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-label">Mitjana/dia</div>
+                    <div class="stat-value" style="color: ${mediaDiaColorDies}">${monthData.length > 0 ? formatCurrency(roundTo5Cents(stats.ingresos / monthData.length)) : '-'}</div>
                 </div>
                 <div class="stat-card">
                     <div class="stat-label">Serveis</div>
@@ -2234,6 +2241,34 @@
                     ${diesAmbHores.length < monthData.length ? `<div class="stat-change" style="color:var(--text-secondary)">${diesAmbHores.length}/${monthData.length} dies</div>` : ''}
                 </div>
             `;
+
+            // Km recorreguts del mes (mateixa barra que la vista de detall de Mesos)
+            const kmTotalMesDies  = monthData.reduce((s, d) => s + (d.km_total  != null ? d.km_total  : 0), 0);
+            const kmOcupatMesDies = monthData.reduce((s, d) => s + (d.km_ocupat != null ? d.km_ocupat : 0), 0);
+            const kmLliureMesDies = monthData.reduce((s, d) => s + (d.km_lliure != null ? d.km_lliure : 0), 0);
+            const tenimKmMesDies  = monthData.some(d => d.km_total != null || d.km_ocupat != null);
+
+            const kmTotalMesDiesR  = Math.round(kmTotalMesDies);
+            const kmOcupatMesDiesR = Math.round(kmOcupatMesDies);
+            const kmLliureMesDiesR = Math.round(kmLliureMesDies);
+            const pctOcMesDies = kmTotalMesDiesR > 0 ? Math.round((kmOcupatMesDiesR / kmTotalMesDiesR) * 100) : 0;
+            const pctLlMesDies = 100 - pctOcMesDies;
+
+            document.getElementById('diesKmBar').innerHTML = tenimKmMesDies ? `
+                <div style="background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;padding:0.75rem 1rem;margin-top:0.75rem;">
+                    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:0.5rem;">
+                        <span style="font-size:0.72rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:0.07em;">🛣️ Km recorreguts</span>
+                        <span style="font-size:0.8rem;font-weight:700;color:#00e5ff;">${kmTotalMesDiesR} km</span>
+                    </div>
+                    <div class="torn-timeline" style="margin-top:0;">
+                        <div class="torn-timeline-ocupat" style="width:${pctOcMesDies}%"></div>
+                        <div class="torn-timeline-lliure" style="width:${pctLlMesDies}%"></div>
+                    </div>
+                    <div class="torn-timeline-legend" style="justify-content:space-between;">
+                        <span><i class="dot-green-sm"></i> Ocupat ${kmOcupatMesDiesR} km (${pctOcMesDies}%)</span>
+                        <span><i class="dot-red-sm"></i> Lliure ${kmLliureMesDiesR} km (${pctLlMesDies}%)</span>
+                    </div>
+                </div>` : '';
             
             const calendarGrid = document.getElementById('calendarGrid');
             calendarGrid.innerHTML = '';
@@ -2708,6 +2743,15 @@
             const mediaDiaColor = getObjectiuColor(stats.ingresos / monthData.length, loadObjectius().diari);
             const mediaHoraColor = getObjectiuColor(stats.mediaHora, loadObjectius().hora);
             
+            // Dies treballats i mitjana d'hores per dia
+            const diesTreballatsMes = monthData.length;
+            const diesAmbHoresMes = monthData.filter(d => d.horas_trabajadas && d.horas_trabajadas > 0);
+            const totalHoresMesDetail = diesAmbHoresMes.reduce((sum, d) => sum + d.horas_trabajadas, 0);
+            const mediaHoresDiaMes = diesAmbHoresMes.length > 0 ? totalHoresMesDetail / diesAmbHoresMes.length : 0;
+            const mediaHoresDiaMesStr = mediaHoresDiaMes > 0
+                ? `${Math.floor(mediaHoresDiaMes)}h ${Math.round((mediaHoresDiaMes % 1) * 60).toString().padStart(2,'0')}m`
+                : '-';
+            
             // Calcular km totals del mes
             const kmTotalMes   = monthData.reduce((s, d) => s + (d.km_total  != null ? d.km_total  : 0), 0);
             const kmOcupatMes  = monthData.reduce((s, d) => s + (d.km_ocupat != null ? d.km_ocupat : 0), 0);
@@ -2781,6 +2825,15 @@
                     <div class="month-detail-stat-card">
                         <div class="month-detail-stat-label">€/HORA</div>
                         <div class="month-detail-stat-value" style="color: ${mediaHoraColor}">${formatCurrency(stats.mediaHora)}</div>
+                    </div>
+                    <div class="month-detail-stat-card">
+                        <div class="month-detail-stat-label">DIES TREBALLATS</div>
+                        <div class="month-detail-stat-value">${diesTreballatsMes}</div>
+                    </div>
+                    <div class="month-detail-stat-card">
+                        <div class="month-detail-stat-label">MITJANA HORES/DIA</div>
+                        <div class="month-detail-stat-value">${mediaHoresDiaMesStr}</div>
+                        ${diesAmbHoresMes.length < diesTreballatsMes ? `<div style="font-size:0.65rem;color:var(--text-secondary);margin-top:0.15rem;">${diesAmbHoresMes.length}/${diesTreballatsMes} dies</div>` : ''}
                     </div>
                 </div>
                 
