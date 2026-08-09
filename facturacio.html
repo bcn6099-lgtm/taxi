@@ -117,7 +117,7 @@
             <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
         <div style="padding: 1rem 1.25rem; text-align: center; border-top: 1px solid var(--border); margin-top: auto;">
-            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.10</span>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.20</span>
         </div>
     </div>
 
@@ -8497,7 +8497,7 @@
             const autoIcon = d.auto_afegit && !esFutura ? ' <span style="font-size:0.65rem;color:var(--text-secondary);background:var(--bg-secondary);border-radius:4px;padding:1px 4px;">auto</span>' : '';
             const futuraIcon = esFutura ? ' <span style="font-size:0.65rem;color:#888;background:var(--bg-secondary);border-radius:4px;padding:1px 4px;">previst</span>' : '';
             const appIcon = d.auto_app ? ' <span style="font-size:0.65rem;color:#69f0ae;background:var(--bg-secondary);border-radius:4px;padding:1px 4px;">app auto</span>' : '';
-            const isReadOnly = d.auto_app || esFutura;
+            const isReadOnly = d.auto_app || (d.id && d.id.startsWith('_projecció_'));
             const opacity = esFutura ? 'opacity:0.4;' : '';
             return `
                 <div class="carrera-item" ${isReadOnly ? '' : `onclick="obrirEditarDespesa('${d.id}')"`} style="padding:0.75rem 0.85rem;margin-bottom:0.4rem;${isReadOnly?'cursor:default;':''}${opacity}">
@@ -8891,6 +8891,36 @@
                         ? despesesData.find(d => d.id === plantillaId && d.plantilla)
                         : null;
 
+                    // Comprovem si hi ha altres instàncies de la sèrie (a banda d'aquesta)
+                    const altresInstanciesSerie = plantillaId ? despesesData.filter(x =>
+                        !x.plantilla && x.tipus === 'fix_mensual' && x.plantilla_id === plantillaId && x.id !== despesaEditantId
+                    ) : [];
+
+                    let aplicarATotesFutures = false;
+                    if (altresInstanciesSerie.length > 0) {
+                        aplicarATotesFutures = confirm(
+                            `Aquesta despesa forma part d'una sèrie periòdica ("${despesaActual.nom}").\n\n` +
+                            `Prem OK per aplicar aquest canvi a AQUESTA despesa i a TOTES les properes.\n` +
+                            `Prem Cancel·lar per aplicar el canvi NOMÉS a aquesta despesa d'aquest mes.`
+                        );
+                    }
+
+                    if (!aplicarATotesFutures) {
+                        // ── Només aquesta instància: no toquem la plantilla ni les altres ──
+                        await saveDespesa({
+                            ...despesaActual,
+                            nom, import: imp,
+                            data: data || despesaActual.data,
+                            mes_anio: mesAnio || despesaActual.mes_anio,
+                            categoria: cat
+                        });
+                        await loadDespesesData();
+                        tancarDespesaModal();
+                        renderDespesesPage();
+                        updateBeneficisView();
+                        return;
+                    }
+
                     if (!plantillaExistent) {
                         // Crear plantilla si no existia (compatibilitat enrere)
                         plantillaId = `desp_plantilla_${Date.now()}`;
@@ -8927,14 +8957,15 @@
                         categoria: cat
                     });
 
-                    // Recalcular el dia de TOTES les altres instàncies auto (passat i futur)
+                    // Recalcular el dia de les instàncies FUTURES (a partir d'avui), no les passades
                     await loadDespesesData();
                     const totesInstancies = despesesData.filter(x =>
                         !x.plantilla &&
                         x.tipus === 'fix_mensual' &&
                         x.plantilla_id === plantillaId &&
                         x.auto_afegit &&
-                        x.id !== despesaEditantId
+                        x.id !== despesaEditantId &&
+                        (x.data || '') > avuiStr2
                     );
                     for (const inst of totesInstancies) {
                         if (!inst.mes_anio) continue;
