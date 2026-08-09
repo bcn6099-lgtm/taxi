@@ -35,6 +35,26 @@
         }
         .numpad-btn:active { background: var(--accent); color: #000; transform: scale(0.95); }
         .numpad-btn-del { font-size: 1.3rem; }
+        /* ── Despeses: grups plegables (vista Per categories / Per mesos) ── */
+        .despesa-grup { margin-bottom: 0.85rem; }
+        .despesa-grup-summary {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0.45rem 0.5rem; margin-bottom: 0.35rem;
+            background: var(--bg-secondary); border-radius: 8px;
+            cursor: pointer; list-style: none; user-select: none;
+        }
+        .despesa-grup-summary::-webkit-details-marker { display: none; }
+        .despesa-grup-summary::marker { content: ''; }
+        .despesa-grup-right { display: flex; align-items: center; gap: 0.5rem; }
+        .despesa-grup-arrow {
+            display: inline-flex; align-items: center; justify-content: center;
+            width: 20px; height: 20px; border-radius: 6px;
+            background: var(--bg-card); border: 1px solid var(--border);
+            font-size: 0.7rem; color: var(--text-secondary);
+            transition: transform 0.15s;
+        }
+        .despesa-grup[open] > .despesa-grup-summary .despesa-grup-arrow { transform: rotate(90deg); }
+        .despesa-grup-body { padding-top: 0.1rem; }
         /* ── Categoria resum badge ── */
         .import-cat-resum {
             display: flex; gap: 0.4rem; flex-wrap: wrap; justify-content: center;
@@ -8574,13 +8594,16 @@
                 const totalCat = grups[cat].reduce((s, d) => s + (parseFloat(d.import) || 0), 0);
                 const itemsHtml = grups[cat].map(d => renderDespesaItem(d)).join('');
                 return `
-                    <div style="margin-bottom:0.85rem;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.45rem 0.5rem;margin-bottom:0.35rem;background:var(--bg-secondary);border-radius:8px;border-left:3px solid #8ab4ff;">
+                    <details class="despesa-grup">
+                        <summary class="despesa-grup-summary" style="border-left:3px solid #8ab4ff;">
                             <span style="font-size:0.78rem;font-weight:700;color:var(--text-primary);">📂 ${cat}</span>
-                            <span style="font-size:0.85rem;font-weight:700;color:#ff6b6b;">${Math.round(totalCat * 100) / 100}€</span>
-                        </div>
-                        ${itemsHtml}
-                    </div>`;
+                            <span class="despesa-grup-right">
+                                <span style="font-size:0.85rem;font-weight:700;color:#ff6b6b;">${Math.round(totalCat * 100) / 100}€</span>
+                                <span class="despesa-grup-arrow">▸</span>
+                            </span>
+                        </summary>
+                        <div class="despesa-grup-body">${itemsHtml}</div>
+                    </details>`;
             }).join('');
         }
 
@@ -8599,13 +8622,16 @@
                     ? renderDespesesAgrupatPerCategoria(grups[mes])
                     : grups[mes].map(d => renderDespesaItem(d)).join('');
                 return `
-                    <div style="margin-bottom:1.1rem;">
-                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0.6rem;margin-bottom:0.5rem;background:var(--bg-secondary);border-radius:8px;border-left:3px solid #ff6b6b;">
+                    <details class="despesa-grup">
+                        <summary class="despesa-grup-summary" style="border-left:3px solid #ff6b6b;">
                             <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.03em;">📅 ${_formatMesAnioLabel(mes)}</span>
-                            <span style="font-size:0.95rem;font-weight:700;color:#ff6b6b;">${Math.round(totalMes * 100) / 100}€</span>
-                        </div>
-                        ${contingut}
-                    </div>`;
+                            <span class="despesa-grup-right">
+                                <span style="font-size:0.95rem;font-weight:700;color:#ff6b6b;">${Math.round(totalMes * 100) / 100}€</span>
+                                <span class="despesa-grup-arrow">▸</span>
+                            </span>
+                        </summary>
+                        <div class="despesa-grup-body">${contingut}</div>
+                    </details>`;
             }).join('');
         }
 
