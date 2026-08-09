@@ -137,7 +137,7 @@
             <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
         <div style="padding: 1rem 1.25rem; text-align: center; border-top: 1px solid var(--border); margin-top: auto;">
-            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.22</span>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.25</span>
         </div>
     </div>
 
@@ -8475,8 +8475,8 @@
                         </button>
                     </div>`;
                 const htmlAgrupat = despesesVistaMes
-                    ? renderDespesesAgrupatPerMes(filtered, despesesVistaCategoria)
-                    : renderDespesesAgrupatPerCategoria(filtered);
+                    ? renderDespesesAgrupatPerMes(filtered, true)
+                    : renderDespesesAgrupatPerCategoria(filtered, true);
                 llistaEl.innerHTML = barraOrdreAgrupat + htmlAgrupat;
                 return;
             }
@@ -8578,7 +8578,7 @@
             return `${_despesesMesNoms[idx] || ''} ${parts[0]}`;
         }
 
-        function renderDespesesAgrupatPerCategoria(items) {
+        function renderDespesesAgrupatPerCategoria(items, ambMes) {
             const grups = {};
             items.forEach(d => {
                 const cat = d.categoria || 'Sense categoria';
@@ -8592,7 +8592,9 @@
             });
             return cats.map(cat => {
                 const totalCat = grups[cat].reduce((s, d) => s + (parseFloat(d.import) || 0), 0);
-                const itemsHtml = grups[cat].map(d => renderDespesaItem(d)).join('');
+                const contingut = ambMes
+                    ? renderDespesesAgrupatPerMes(grups[cat])
+                    : grups[cat].map(d => renderDespesaItem(d)).join('');
                 return `
                     <details class="despesa-grup">
                         <summary class="despesa-grup-summary" style="border-left:3px solid #8ab4ff;">
@@ -8602,7 +8604,7 @@
                                 <span class="despesa-grup-arrow">▸</span>
                             </span>
                         </summary>
-                        <div class="despesa-grup-body">${itemsHtml}</div>
+                        <div class="despesa-grup-body">${contingut}</div>
                     </details>`;
             }).join('');
         }
