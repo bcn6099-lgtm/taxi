@@ -117,7 +117,7 @@
             <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
         <div style="padding: 1rem 1.25rem; text-align: center; border-top: 1px solid var(--border); margin-top: auto;">
-            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.21</span>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.22</span>
         </div>
     </div>
 
@@ -420,6 +420,13 @@
                 <div style="display:flex;gap:0.5rem;margin-bottom:1rem;flex-wrap:wrap;">
                     <button class="btn btn-primary" style="flex:1;padding:0.75rem;" onclick="obrirAfegirDespesa()">➕ Nova despesa</button>
                     <button class="btn btn-secondary" style="flex:1;padding:0.75rem;" onclick="obrirCategoriesDespeses()">🏷️ Categories</button>
+                </div>
+
+                <!-- Mode de visualització -->
+                <div style="display:flex;gap:0.4rem;flex-wrap:wrap;margin-bottom:0.75rem;">
+                    <button class="dia-filter-btn" id="despesesViewDetall" style="flex:1;" onclick="despesesSetViewDetall()">📋 Detall</button>
+                    <button class="dia-filter-btn" id="despesesViewCategoria" style="flex:1;" onclick="despesesToggleViewCategoria()">📂 Per categories</button>
+                    <button class="dia-filter-btn" id="despesesViewMes" style="flex:1;" onclick="despesesToggleViewMes()">📅 Per mesos</button>
                 </div>
 
                 <!-- Filtres -->
@@ -8197,6 +8204,28 @@
         // Rang de dates actiu (null = sense límit)
         let despesesRangDes = null;
         let despesesRangFins = null;
+        // Mode de visualització: Detall (per defecte) o agrupat per categoria/mes (complementaris)
+        let despesesVistaCategoria = false;
+        let despesesVistaMes = false;
+
+        function despesesSetViewDetall() {
+            despesesVistaCategoria = false;
+            despesesVistaMes = false;
+            despesesPaginaActual = 1;
+            renderDespesesPage();
+        }
+
+        function despesesToggleViewCategoria() {
+            despesesVistaCategoria = !despesesVistaCategoria;
+            despesesPaginaActual = 1;
+            renderDespesesPage();
+        }
+
+        function despesesToggleViewMes() {
+            despesesVistaMes = !despesesVistaMes;
+            despesesPaginaActual = 1;
+            renderDespesesPage();
+        }
 
         function despesesSetPreset(preset) {
             despesesPresetActual = preset;
@@ -8287,6 +8316,14 @@
                 const btn = document.getElementById('despesesPreset' + idMap[p]);
                 if (btn) btn.classList.toggle('active', p === despesesPresetActual);
             });
+
+            // ── Actualitzar botons de mode de visualització ──
+            const btnViewDetall = document.getElementById('despesesViewDetall');
+            const btnViewCategoria = document.getElementById('despesesViewCategoria');
+            const btnViewMes = document.getElementById('despesesViewMes');
+            if (btnViewDetall) btnViewDetall.classList.toggle('active', !despesesVistaCategoria && !despesesVistaMes);
+            if (btnViewCategoria) btnViewCategoria.classList.toggle('active', despesesVistaCategoria);
+            if (btnViewMes) btnViewMes.classList.toggle('active', despesesVistaMes);
 
             // ── Sincronitzar inputs del rang personalitzat amb el rang actiu ──
             const despesesRangDesInputEl = document.getElementById('despesesRangDesInput');
@@ -8405,6 +8442,26 @@
                 return;
             }
 
+            const flechaOrdreTop = despesesOrdreDateDesc ? '↓' : '↑';
+
+            // ── Vista agrupada (Per categories / Per mesos / totes dues combinades) ──
+            // No es pagina: es mostra tot el rang filtrat, ja acotat pel selector de dates.
+            if (despesesVistaCategoria || despesesVistaMes) {
+                const barraOrdreAgrupat = `
+                    <div style="display:flex;justify-content:flex-end;align-items:center;padding:0.4rem 0.25rem 0.75rem;">
+                        <button onclick="despesesOrdreDateDesc=!despesesOrdreDateDesc;renderDespesesPage()"
+                            style="background:var(--bg-card);border:1px solid var(--border);border-radius:8px;padding:0.3rem 0.7rem;color:var(--text-primary);font-size:0.8rem;cursor:pointer;display:flex;align-items:center;gap:0.3rem;">
+                            📅 Data <span style="font-size:1rem;font-weight:700;">${flechaOrdreTop}</span>
+                        </button>
+                    </div>`;
+                const htmlAgrupat = despesesVistaMes
+                    ? renderDespesesAgrupatPerMes(filtered, despesesVistaCategoria)
+                    : renderDespesesAgrupatPerCategoria(filtered);
+                llistaEl.innerHTML = barraOrdreAgrupat + htmlAgrupat;
+                return;
+            }
+
+            // ── Vista Detall (per defecte): paginada i agrupada per dia ──
             const totalItems = filtered.length;
             const totalPag = Math.ceil(totalItems / DESPESES_PER_PAG);
             if (despesesPaginaActual > totalPag) despesesPaginaActual = Math.max(1, totalPag);
@@ -8413,7 +8470,7 @@
             const pagItems = filtered.slice(inici, fi);
 
             // ── Barra superior: toggle data + selector per pàgina ──
-            const flechaOrdre = despesesOrdreDateDesc ? '↓' : '↑';
+            const flechaOrdre = flechaOrdreTop;
             const barraOrdre = `
                 <div style="display:flex;justify-content:space-between;align-items:center;padding:0.4rem 0.25rem 0.75rem;">
                     <button onclick="despesesOrdreDateDesc=!despesesOrdreDateDesc;despesesPaginaActual=1;renderDespesesPage()"
@@ -8489,6 +8546,67 @@
             despesesPaginaActual = p;
             renderDespesesPage();
             document.getElementById('despesesLlista')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        // ── Vista agrupada: Per categories ──
+        const _despesesMesNoms = ['Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
+
+        function _formatMesAnioLabel(mesAnio) {
+            if (!mesAnio || mesAnio === 'sense-mes') return 'Sense data';
+            const parts = mesAnio.split('-');
+            const idx = parseInt(parts[1], 10) - 1;
+            return `${_despesesMesNoms[idx] || ''} ${parts[0]}`;
+        }
+
+        function renderDespesesAgrupatPerCategoria(items) {
+            const grups = {};
+            items.forEach(d => {
+                const cat = d.categoria || 'Sense categoria';
+                if (!grups[cat]) grups[cat] = [];
+                grups[cat].push(d);
+            });
+            const cats = Object.keys(grups).sort((a, b) => {
+                const totalA = grups[a].reduce((s, d) => s + (parseFloat(d.import) || 0), 0);
+                const totalB = grups[b].reduce((s, d) => s + (parseFloat(d.import) || 0), 0);
+                return totalB - totalA;
+            });
+            return cats.map(cat => {
+                const totalCat = grups[cat].reduce((s, d) => s + (parseFloat(d.import) || 0), 0);
+                const itemsHtml = grups[cat].map(d => renderDespesaItem(d)).join('');
+                return `
+                    <div style="margin-bottom:0.85rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.45rem 0.5rem;margin-bottom:0.35rem;background:var(--bg-secondary);border-radius:8px;border-left:3px solid #8ab4ff;">
+                            <span style="font-size:0.78rem;font-weight:700;color:var(--text-primary);">📂 ${cat}</span>
+                            <span style="font-size:0.85rem;font-weight:700;color:#ff6b6b;">${Math.round(totalCat * 100) / 100}€</span>
+                        </div>
+                        ${itemsHtml}
+                    </div>`;
+            }).join('');
+        }
+
+        // ── Vista agrupada: Per mesos (opcionalment amb categoria imbricada) ──
+        function renderDespesesAgrupatPerMes(items, ambCategoria) {
+            const grups = {};
+            items.forEach(d => {
+                const mes = d.mes_anio || 'sense-mes';
+                if (!grups[mes]) grups[mes] = [];
+                grups[mes].push(d);
+            });
+            const mesos = Object.keys(grups).sort((a, b) => despesesOrdreDateDesc ? b.localeCompare(a) : a.localeCompare(b));
+            return mesos.map(mes => {
+                const totalMes = grups[mes].reduce((s, d) => s + (parseFloat(d.import) || 0), 0);
+                const contingut = ambCategoria
+                    ? renderDespesesAgrupatPerCategoria(grups[mes])
+                    : grups[mes].map(d => renderDespesaItem(d)).join('');
+                return `
+                    <div style="margin-bottom:1.1rem;">
+                        <div style="display:flex;justify-content:space-between;align-items:center;padding:0.55rem 0.6rem;margin-bottom:0.5rem;background:var(--bg-secondary);border-radius:8px;border-left:3px solid #ff6b6b;">
+                            <span style="font-size:0.85rem;font-weight:700;color:var(--text-primary);text-transform:uppercase;letter-spacing:0.03em;">📅 ${_formatMesAnioLabel(mes)}</span>
+                            <span style="font-size:0.95rem;font-weight:700;color:#ff6b6b;">${Math.round(totalMes * 100) / 100}€</span>
+                        </div>
+                        ${contingut}
+                    </div>`;
+            }).join('');
         }
 
         function renderDespesaItem(d) {
