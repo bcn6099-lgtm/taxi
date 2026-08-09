@@ -117,7 +117,7 @@
             <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
         <div style="padding: 1rem 1.25rem; text-align: center; border-top: 1px solid var(--border); margin-top: auto;">
-            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.20</span>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.21</span>
         </div>
     </div>
 
@@ -430,7 +430,7 @@
                         <button class="dia-filter-btn" id="despesesPresetAvui" onclick="despesesSetPreset('avui')">Avui</button>
                         <button class="dia-filter-btn" id="despesesPresetMes" onclick="despesesSetPreset('mes')">Fins avui</button>
                         <button class="dia-filter-btn" id="despesesPresetMesActual" onclick="despesesSetPreset('mes_actual')">Mes actual</button>
-                        <button class="dia-filter-btn" id="despesesPreset3m" onclick="despesesSetPreset('3m')">Últims 3 mesos</button>
+                        <button class="dia-filter-btn" id="despesesPresetProperMes" onclick="despesesSetPreset('proper_mes')">Proper mes</button>
                         <button class="dia-filter-btn" id="despesesPresetTots" onclick="despesesSetPreset('tots')">Tots</button>
                     </div>
                     <div style="display:flex;gap:0.4rem;flex-wrap:wrap;" id="despesesFilterCatBtns"></div>
@@ -8192,7 +8192,7 @@
         let DESPESES_PER_PAG = 20;
         let despesesPaginaActual = 1;
         let _despesaNomSuggIdx = -1; // índex seleccionat al dropdown suggeriments
-        let despesesPresetActual = 'mes'; // 'avui' | 'mes' | 'mes_actual' | '3m' | 'tots'
+        let despesesPresetActual = 'mes'; // 'avui' | 'mes' | 'mes_actual' | 'proper_mes' | 'tots'
         let despesesOrdreDateDesc = true; // true = data desc, false = data asc
         // Rang de dates actiu (null = sense límit)
         let despesesRangDes = null;
@@ -8223,13 +8223,15 @@
                 despesesRangDes = primerDia;
                 despesesRangFins = darrerDia;
                 document.getElementById('despesesFilterMes').value = `${avui.getFullYear()}-${pad(avui.getMonth()+1)}`;
-            } else if (preset === '3m') {
-                const fa3m = new Date(avui);
-                fa3m.setMonth(fa3m.getMonth() - 2);
-                fa3m.setDate(1);
-                despesesRangDes = `${fa3m.getFullYear()}-${pad(fa3m.getMonth()+1)}-01`;
-                despesesRangFins = avuiStr;
-                document.getElementById('despesesFilterMes').value = '';
+            } else if (preset === 'proper_mes') {
+                // Tot el mes vinent (proper mes complet)
+                const properMes = new Date(avui.getFullYear(), avui.getMonth() + 1, 1);
+                const primerDia = `${properMes.getFullYear()}-${pad(properMes.getMonth()+1)}-01`;
+                const diesDelMes = new Date(properMes.getFullYear(), properMes.getMonth() + 1, 0).getDate();
+                const darrerDia = `${properMes.getFullYear()}-${pad(properMes.getMonth()+1)}-${pad(diesDelMes)}`;
+                despesesRangDes = primerDia;
+                despesesRangFins = darrerDia;
+                document.getElementById('despesesFilterMes').value = `${properMes.getFullYear()}-${pad(properMes.getMonth()+1)}`;
             } else { // 'tots'
                 despesesRangDes = null;
                 despesesRangFins = null;
@@ -8280,8 +8282,8 @@
             await loadDespesesData();
 
             // ── Actualitzar botons preset ──
-            ['avui','mes','mes_actual','3m','tots'].forEach(p => {
-                const idMap = { avui:'Avui', mes:'Mes', mes_actual:'MesActual', '3m':'3m', tots:'Tots' };
+            ['avui','mes','mes_actual','proper_mes','tots'].forEach(p => {
+                const idMap = { avui:'Avui', mes:'Mes', mes_actual:'MesActual', proper_mes:'ProperMes', tots:'Tots' };
                 const btn = document.getElementById('despesesPreset' + idMap[p]);
                 if (btn) btn.classList.toggle('active', p === despesesPresetActual);
             });
@@ -8374,7 +8376,7 @@
                 const labelRang = despesesPresetActual==='avui' ? 'Avui'
                     : despesesPresetActual==='mes' ? 'Aquest mes'
                     : despesesPresetActual==='mes_actual' ? 'Mes actual'
-                    : despesesPresetActual==='3m' ? 'Últims 3 mesos'
+                    : despesesPresetActual==='proper_mes' ? 'Proper mes'
                     : despesesPresetActual==='personalitzat' ? `${despesesRangDes||'…'} → ${despesesRangFins||'…'}`
                     : 'Total general';
                 const totalCat = despesesFilterCat !== 'tots'
