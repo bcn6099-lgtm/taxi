@@ -1,5 +1,0 @@
-Trigger GitHub Pages rebuild
-
-This temporary file was added automatically by GitHub Copilot to force a Pages rebuild.
-
-Timestamp: 2026-08-17T18:56:00Z
