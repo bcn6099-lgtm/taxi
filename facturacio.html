@@ -137,7 +137,7 @@
             <input type="file" id="importCSVFile" accept=".csv" style="display:none" onchange="importarCSVTaximeter(event)">
         </div>
         <div style="padding: 1rem 1.25rem; text-align: center; border-top: 1px solid var(--border); margin-top: auto;">
-            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.25</span>
+            <span style="font-size: 0.72rem; color: var(--text-secondary); letter-spacing: 0.08em; font-family: 'Orbitron', sans-serif; opacity: 0.6;">V5.26</span>
         </div>
     </div>
 
@@ -561,6 +561,14 @@
                             <input type="checkbox" id="checkboxModeTaximetre" style="width:20px;height:20px;cursor:pointer;">
                         </div>
                         <button onclick="guardarConfigModeTaximetre()" style="width:100%;padding:0.8rem 1rem;background:var(--accent);border:none;border-radius:10px;color:#000;font-size:0.95rem;font-weight:600;cursor:pointer;transition:opacity 0.2s;">💾 Guardar Configuració</button>
+                    </div>
+
+                    <!-- Eines -->
+                    <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:1.1rem 1.25rem;">
+                        <div style="font-size:0.72rem;font-weight:700;letter-spacing:0.08em;color:var(--text-secondary);margin-bottom:0.85rem;text-transform:uppercase;">Eines</div>
+                        <div style="display:flex;flex-direction:column;gap:0.5rem;">
+                            <button onclick="obrirCarreraManualModal()" style="width:100%;padding:0.8rem 1rem;background:var(--bg-secondary);border:1px solid var(--border);border-radius:10px;color:var(--text-primary);font-size:0.9rem;text-align:left;cursor:pointer;">🚕 Afegir carrera a un torn</button>
+                        </div>
                     </div>
 
                     <!-- Exportar / Importar -->
@@ -1383,6 +1391,40 @@
             </div>
             <div id="despesaDeleteBtn" style="display:none;margin-top:0.75rem;">
                 <button class="btn btn-danger" style="width:100%;" onclick="eliminarDespesa()">🗑️ Eliminar aquesta despesa</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- CARRERA MANUAL (assignada a un torn) MODAL -->
+    <div class="modal" id="carreraManualModal">
+        <div class="modal-content" style="max-width:420px;">
+            <div class="modal-header">
+                <h2 class="modal-title">🚕 Afegir Carrera a un Torn</h2>
+                <button class="modal-close" onclick="tancarCarreraManualModal()">×</button>
+            </div>
+            <p style="font-size:0.72rem;color:var(--text-secondary);margin-bottom:1rem;line-height:1.5;">
+                Afegeix una carrera a un torn ja existent. No cal ubicació: només import, propina, quilòmetres i el torn al qual s'associa. Es sumarà automàticament als càlculs d'aquell torn.
+            </p>
+            <div id="alertContainerCarreraManual"></div>
+            <div class="form-group">
+                <label class="form-label">Torn (dia)</label>
+                <select id="carreraManualTorn" class="form-input"></select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Import (€)</label>
+                <input type="number" id="carreraManualImport" class="form-input" step="0.01" min="0" placeholder="0.00" inputmode="decimal">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Propina (€)</label>
+                <input type="number" id="carreraManualPropina" class="form-input" step="0.01" min="0" placeholder="0.00" inputmode="decimal">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Quilòmetres</label>
+                <input type="number" id="carreraManualKm" class="form-input" step="0.1" min="0" placeholder="0.0" inputmode="decimal">
+            </div>
+            <div class="modal-actions">
+                <button class="btn btn-primary" style="flex:1;" onclick="guardarCarreraManual()">💾 Guardar</button>
+                <button class="btn btn-secondary" onclick="tancarCarreraManualModal()">Cancel·lar</button>
             </div>
         </div>
     </div>
@@ -7521,6 +7563,123 @@
                 total += await roadDistanceKm(c.origenLat, c.origenLon, c.destiLat, c.destiLon);
             }
             return Math.round(total * 10) / 10;
+        }
+
+        // ── Recalcula els totals d'un torn (ingressos, serveis, km ocupat/lliure) ──
+        // a partir de TOTES les carreres emmagatzemades per aquella data. S'invoca
+        // cada cop que s'afegeix/edita/elimina manualment una carrera d'un torn ja tancat.
+        async function recalcularTornDesDeCarreres(fecha) {
+            const carreres = await getCarreresForDate(fecha);
+            const storedData = await getStoredData();
+            const idx = storedData.findIndex(d => d.fecha === fecha);
+            if (idx < 0) return false; // No hi ha torn per aquesta data
+
+            const reg = storedData[idx];
+            const ingressos = Math.round(carreres.reduce((s, c) => s + (parseFloat(c.import) || 0), 0) * 100) / 100;
+            const serveis = carreres.length;
+
+            reg.ingresos_dia = ingressos;
+            reg.servicios_dia = serveis;
+            reg.media_precio_servicio = serveis > 0 ? ingressos / serveis : null;
+            reg.media_ingresos_hora = (reg.horas_trabajadas && ingressos)
+                ? Math.round((ingressos / reg.horas_trabajadas) * 100) / 100
+                : reg.media_ingresos_hora;
+
+            const kmOcupatNou = calcularKmOcupat(carreres);
+            if (kmOcupatNou > 0) {
+                reg.km_ocupat = kmOcupatNou;
+                if (reg.km_total != null) {
+                    reg.km_lliure = Math.max(0, Math.round((reg.km_total - kmOcupatNou) * 10) / 10);
+                }
+            }
+
+            storedData[idx] = reg;
+            await saveToStorage(storedData);
+            await loadData();
+            populateYearFilters();
+            updateDashboard();
+            updateDiesView();
+            updateMesosView();
+            updateHistoricView();
+            return true;
+        }
+
+        // ── Modal: Afegir carrera manual a un torn (des de Configuració) ──
+        function obrirCarreraManualModal() {
+            const sel = document.getElementById('carreraManualTorn');
+            const torns = [...allData].sort((a, b) => b.fecha.localeCompare(a.fecha));
+            if (torns.length === 0) {
+                sel.innerHTML = '<option value="">Cap torn disponible</option>';
+            } else {
+                sel.innerHTML = torns.map(d => `<option value="${d.fecha}">${formatDate(d.fecha)}</option>`).join('');
+            }
+            document.getElementById('carreraManualImport').value = '';
+            document.getElementById('carreraManualPropina').value = '';
+            document.getElementById('carreraManualKm').value = '';
+            document.getElementById('alertContainerCarreraManual').innerHTML = '';
+            document.getElementById('carreraManualModal').classList.add('active');
+        }
+
+        function tancarCarreraManualModal() {
+            document.getElementById('carreraManualModal').classList.remove('active');
+        }
+
+        async function guardarCarreraManual() {
+            const fecha = document.getElementById('carreraManualTorn').value;
+            const importVal = parseFloat((document.getElementById('carreraManualImport').value || '').replace(',', '.'));
+            const propinaVal = parseFloat((document.getElementById('carreraManualPropina').value || '').replace(',', '.')) || 0;
+            const kmVal = parseFloat((document.getElementById('carreraManualKm').value || '').replace(',', '.')) || 0;
+
+            const alertBox = document.getElementById('alertContainerCarreraManual');
+            alertBox.innerHTML = '';
+
+            if (!fecha) {
+                alertBox.innerHTML = '<div style="color:#ff6b6b;font-size:0.8rem;margin-bottom:0.75rem;">Selecciona el torn al qual s\'associarà la carrera.</div>';
+                return;
+            }
+            if (!importVal || importVal <= 0) {
+                alertBox.innerHTML = '<div style="color:#ff6b6b;font-size:0.8rem;margin-bottom:0.75rem;">Introdueix un import vàlid.</div>';
+                return;
+            }
+
+            const novaCarrera = {
+                id: `${fecha}_${Date.now()}`,
+                fecha: fecha,
+                origen: 'Carrera manual',
+                desti: 'Carrera manual',
+                import: Math.round(importVal * 100) / 100,
+                propina: propinaVal > 0 ? Math.round(propinaVal * 100) / 100 : undefined,
+                pagament: 'efectiu',
+                origenCarrera: 'carrer',
+                tarifa: 'taxímetre',
+                aeroport: null,
+                horaInici: null,
+                horaFi: null,
+                hora: null,
+                origenLat: null,
+                origenLon: null,
+                destiLat: null,
+                destiLon: null,
+                kmOcupat: kmVal > 0 ? Math.round(kmVal * 10) / 10 : undefined,
+                manual: true
+            };
+
+            await saveCarreraToStorage(novaCarrera);
+            await recalcularTornDesDeCarreres(fecha);
+
+            // Si el torn afectat és el que s'està visualitzant al modal de detall del dia, refresca'l
+            if (typeof currentEditDate !== 'undefined' && currentEditDate === fecha
+                && document.getElementById('editModal')?.classList.contains('active')) {
+                openEditModal(fecha);
+            }
+            // Si és el torn actiu d'avui (carreresAvui), refresca-la també
+            if (fecha === getTodayStr() && jornadaActiva) {
+                carreresAvui = await getCarreresForDate(fecha);
+                updateJornadaUI();
+            }
+
+            tancarCarreraManualModal();
+            alert(`✅ Carrera de ${formatImport(novaCarrera.import)}€ afegida al torn del ${formatDate(fecha)}.`);
         }
 
         function mostrarDiagnostic() {
