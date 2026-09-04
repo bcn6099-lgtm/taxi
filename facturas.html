@@ -359,7 +359,7 @@ table.inv-table{width:100%;border-collapse:collapse}
       <input type="file" id="provFileInput" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple onchange="handleProvUpload(event)">
       <div class="upload-icon">⬡</div>
       <div class="upload-text">Arrossega PDFs aquí per detectar proveïdors</div>
-      <div class="upload-sub">Mistral extraurà nom d'empresa i CIF</div>
+      <div class="upload-sub">Gemini extraurà nom d'empresa i CIF</div>
     </div>
     <div id="provQueuePanel" style="display:none"></div>
   </div>
@@ -398,7 +398,7 @@ table.inv-table{width:100%;border-collapse:collapse}
       <input type="file" id="invFileInput" accept=".pdf,.jpg,.jpeg,.png,.webp" multiple onchange="handleInvUpload(event)">
       <div class="upload-icon">⬡</div>
       <div class="upload-text">Arrossega PDFs de factures aquí</div>
-      <div class="upload-sub">Mistral extraurà tots els camps i assignarà el proveïdor automàticament</div>
+      <div class="upload-sub">Gemini extraurà tots els camps i assignarà el proveïdor automàticament</div>
     </div>
     <div id="invQueuePanel" style="display:none"></div>
   </div>
@@ -440,12 +440,12 @@ table.inv-table{width:100%;border-collapse:collapse}
 <div class="page" id="page-apiconfig">
   <div class="page-header"><div class="page-title">⚙ Configuració API</div></div>
   <div class="form-section">
-    <div class="form-section-title">Mistral API Key</div>
-    <p class="help-text">Obtén la teva clau gratuïta a <strong>console.mistral.ai</strong> → API Keys. La clau es guarda localment (IndexedDB). No s'envia a cap servidor.</p>
+    <div class="form-section-title">Gemini API Key</div>
+    <p class="help-text">Obtén la teva clau gratuïta a <strong>aistudio.google.com</strong> → Get API key. La clau es guarda localment (IndexedDB). No s'envia a cap servidor.</p>
     <div class="form-grid">
       <div class="form-group form-full">
         <label>API Key</label>
-        <input type="password" id="cfg_apikey" placeholder="Enganxa aquí la teva Mistral API Key..." autocomplete="off">
+        <input type="password" id="cfg_apikey" placeholder="Enganxa aquí la teva Gemini API Key..." autocomplete="off">
       </div>
     </div>
     <div class="form-actions">
@@ -456,7 +456,20 @@ table.inv-table{width:100%;border-collapse:collapse}
   </div>
   <div class="form-section" style="margin-top:16px">
     <div class="form-section-title">Model actiu</div>
-    <p class="help-text"><strong>mistral-small-latest</strong> — Suficient per llegir factures. Inclòs al pla gratuït Experiment.</p>
+    <p class="help-text">Model que s'usa per llegir i extreure dades dels PDFs. Els models més potents solen ser més precisos amb factures difícils (escanejades, mala qualitat) però consumeixen més quota i van més lents.</p>
+    <div class="form-grid">
+      <div class="form-group form-full">
+        <label>Model de lectura (PDFs)</label>
+        <select id="cfg_model">
+          <option value="gemini-3.5-flash-lite">Flash-Lite — ràpid i econòmic (recomanat, pla gratuït)</option>
+          <option value="gemini-3.6-flash">Flash — equilibrat, més precís</option>
+          <option value="gemini-3.1-pro">Pro — màxima precisió, el més car</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveModelConfig()">DESAR MODEL</button>
+    </div>
   </div>
   <div class="form-section" style="margin-top:16px">
     <div class="form-section-title">El teu DNI / NIF</div>
@@ -482,7 +495,7 @@ table.inv-table{width:100%;border-collapse:collapse}
 
 <script>
 // ===== GLOBALS =====
-let _cachedApiKey=null,_cachedDni=null,db,_providerCache=null;
+let _cachedApiKey=null,_cachedDni=null,_cachedModel=null,db,_providerCache=null;
 let _batchRunning=false,_batchStopped=false;
 let _selectedIds=new Set();
 let _pendingSelectedIds=new Set();
@@ -511,8 +524,10 @@ async function dbGet(s,id){return new Promise((res,rej)=>{const tx=db.transactio
 // ===== SETTINGS =====
 async function getSetting(key){try{const tx=db.transaction('settings','readonly');const r=tx.objectStore('settings').get(key);return await new Promise((res,rej)=>{r.onsuccess=e=>res(e.target.result?.value);r.onerror=rej})}catch{return null}}
 async function setSetting(key,value){const tx=db.transaction('settings','readwrite');tx.objectStore('settings').put({key,value});return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej})}
-async function getApiKey(){if(_cachedApiKey)return _cachedApiKey;_cachedApiKey=await getSetting('mistral_api_key');return _cachedApiKey}
-async function saveApiKey(k){_cachedApiKey=k;await setSetting('mistral_api_key',k)}
+async function getApiKey(){if(_cachedApiKey)return _cachedApiKey;_cachedApiKey=await getSetting('gemini_api_key');return _cachedApiKey}
+async function saveApiKey(k){_cachedApiKey=k;await setSetting('gemini_api_key',k)}
+async function getModel(){if(_cachedModel)return _cachedModel;_cachedModel=await getSetting('gemini_model')||'gemini-3.5-flash-lite';return _cachedModel}
+async function saveModel(m){_cachedModel=m;await setSetting('gemini_model',m)}
 async function getMyDni(){if(_cachedDni!==null)return _cachedDni;const v=await getSetting('my_dni');_cachedDni=(v||'').trim().toUpperCase();return _cachedDni}
 async function saveMyDni(d){_cachedDni=d.trim().toUpperCase();await setSetting('my_dni',_cachedDni)}
 
@@ -520,18 +535,15 @@ async function saveMyDni(d){_cachedDni=d.trim().toUpperCase();await setSetting('
 function normName(s){return s?s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim():''}
 function fmt(n){return isNaN(n)||n===null?'—':Number(n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
-function throwMistralError(resp,data,label){
-  const retryAfter=resp.headers?.get('retry-after');
-  const limit=resp.headers?.get('x-ratelimit-limit');
-  const remaining=resp.headers?.get('x-ratelimit-remaining');
-  const reset=resp.headers?.get('x-ratelimit-reset');
-  let extra='';
-  if(resp.status===429&&(limit||remaining!==null)){
-    extra=` [límit:${limit||'?'} restant:${remaining||'0'}${reset?' reset:'+reset+'s':''}]`;
-  }
-  const err=new Error(label+' ('+resp.status+'): '+(data?.message||JSON.stringify(data))+extra);
-  err.status=resp.status;err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;
-  console.error('Mistral error detail',{status:resp.status,limit,remaining,reset,retryAfter,data});
+function throwGeminiError(resp,data,label){
+  const ge=data?.error||{};
+  let retryAfter=null;
+  const retryInfo=(ge.details||[]).find(d=>String(d['@type']||'').includes('RetryInfo'));
+  if(retryInfo?.retryDelay){const m=String(retryInfo.retryDelay).match(/([\d.]+)s/);if(m)retryAfter=Math.ceil(parseFloat(m[1]))}
+  if(retryAfter===null){const m=String(ge.message||'').match(/retry in ([\d.]+)s/i);if(m)retryAfter=Math.ceil(parseFloat(m[1]))}
+  const err=new Error(label+' ('+resp.status+'): '+(ge.message||JSON.stringify(data)));
+  err.status=resp.status;err.retryAfter=retryAfter;
+  console.error('Gemini error detail',{status:resp.status,geminiStatus:ge.status,retryAfter,data});
   throw err;
 }
 function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)})}
@@ -807,7 +819,7 @@ async function findProviderBySimilarity(name){
 function buildQueue(files){
   return Array.from(files).map(f=>({name:f.name,file:f,state:'pending',detail:'',provider:'',cif:'',total:''}));
 }
-function delayForFile(file){const kb=file.size/1024;return kb<50?2000:kb<150?3000:4000}
+function delayForFile(file){return 1500}
 
 function renderQueue(items,panelId,stopFn){
   const panel=document.getElementById(panelId);
@@ -885,7 +897,7 @@ function stopProvBatch(){_provBatchStopped=true}
 
 async function processProvBatch(files){
   const apiKey=await getApiKey();
-  if(!apiKey){toast('Cal configurar la Mistral API Key (menú ⚙)','err');return}
+  if(!apiKey){toast('Cal configurar la Gemini API Key (menú ⚙)','err');return}
   if(_provBatchRunning){toast('Ja hi ha una cua en curs','err');return}
   _provQueue=buildQueue(files);
   _provBatchRunning=true;_provBatchStopped=false;
@@ -951,62 +963,30 @@ async function processProvBatch(files){
   toast(`✓ ${done} proveïdor${done!==1?'s':''} nous detectats`,'ok');
 }
 
+// Crida genèrica a Gemini: un únic request amb el fitxer (PDF o imatge) inline en base64
+async function geminiExtract(file,apiKey,model,systemPrompt,userPrompt,maxOutputTokens){
+  const b64=await fileToBase64(file);
+  const mime=isImageFile(file)?(file.type||'image/jpeg'):'application/pdf';
+  const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/'+model+':generateContent',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},
+    body:JSON.stringify({
+      contents:[{parts:[{inline_data:{mime_type:mime,data:b64}},{text:userPrompt}]}],
+      systemInstruction:{parts:[{text:systemPrompt}]},
+      generationConfig:{temperature:0,maxOutputTokens,responseMimeType:'application/json',thinkingConfig:{thinkingLevel:'low'}}
+    })
+  });
+  const data=await resp.json();
+  if(!resp.ok)throwGeminiError(resp,data,'API');
+  const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  return JSON.parse(rawText.replace(/```json?|```/g,'').trim());
+}
+
 async function extractProviderData(file,apiKey){
-  // Extreu NOMÉS nom i CIF
-  if(isImageFile(file)){
-    const b64=await fileToBase64(file);
-    const mtype=file.type||'image/jpeg';
-    const resp=await fetch('https://api.mistral.ai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({
-        model:'pixtral-12b-2409',temperature:0,max_tokens:150,
-        response_format:{type:'json_object'},
-        messages:[
-          {role:'system',content:'Extreu el nom i CIF de l\'empresa emissora (proveïdor) d\'aquesta factura. Retorna ÚNICAMENT JSON: {"name":"nom empresa","cif":"CIF/NIF"}. Si no trobes un camp usa null.'},
-          {role:'user',content:[{type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},{type:'text',text:'Quin és el nom i CIF de l\'empresa que emet aquesta factura (proveïdor)?'}]}
-        ]
-      })
-    });
-    const data=await resp.json();
-    if(!resp.ok){const err=new Error('API ('+resp.status+'): '+(data.message||'Error'));err.status=resp.status;throw err}
-    const rawText=data.choices?.[0]?.message?.content||'';
-    const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
-    const myDni=await getMyDni();
-    return {name:json.name||'',cif:cleanCif(json.cif,myDni)};
-  }
-  // PDF via Files API
-  const formData=new FormData();
-  formData.append('purpose','ocr');formData.append('file',file,file.name);
-  const upResp=await fetch('https://api.mistral.ai/v1/files',{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:formData});
-  const upData=await upResp.json();
-  if(!upResp.ok)throwMistralError(upResp,upData,'Error pujant arxiu');
-  const fileId=upData.id;if(!fileId)throw new Error("No file_id");
-  await delay(1100);
-  const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
-  const urlData=await urlResp.json();
-  if(!urlResp.ok)throwMistralError(urlResp,urlData,'Error URL');
-  const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
-  await delay(1100);
-  let chatData,chatResp;
-  try{
-    chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({
-        model:'mistral-small-latest',temperature:0,max_tokens:150,
-        response_format:{type:'json_object'},
-        messages:[
-          {role:'system',content:'Ets un extractor de dades de factures espanyoles. La teva tasca és trobar el nom i CIF/NIF de l\'empresa EMISSORA (proveïdor, qui emet la factura). El CIF/NIF pot aparèixer com "CIF:", "NIF:", "C.I.F.", "N.I.F.", o sense etiqueta, en format B12345678, A58225137, 12345678Z, X1234567Z, etc. Pot tenir punts o espais (ex: B-12.345.678). Retorna ÚNICAMENT JSON: {"name":"nom empresa","cif":"CIF sense punts ni espais"}. Si no trobes un camp usa null.'},
-          {role:'user',content:[{type:'document_url',document_url:signedUrl},{type:'text',text:'Quin és el nom i CIF de l\'empresa que emet aquesta factura (proveïdor)?'}]}
-        ]
-      })
-    });
-    chatData=await chatResp.json();
-  } finally {fetch('https://api.mistral.ai/v1/files/'+fileId,{method:'DELETE',headers:{'Authorization':'Bearer '+apiKey}}).catch(()=>{})}
-  if(!chatResp.ok)throwMistralError(chatResp,chatData,'API');
-  const rawText=chatData.choices?.[0]?.message?.content||'';
-  const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
+  // Extreu NOMÉS nom i CIF — sempre amb el model ràpid, independentment del model configurat
+  const json=await geminiExtract(file,apiKey,'gemini-3.5-flash-lite',
+    'Extreu el nom i CIF de l\'empresa emissora (proveïdor) d\'aquesta factura. Retorna ÚNICAMENT JSON: {"name":"nom empresa","cif":"CIF/NIF"}. Si no trobes un camp usa null.',
+    'Quin és el nom i CIF de l\'empresa que emet aquesta factura (proveïdor)?',150);
   const myDni=await getMyDni();
   return {name:json.name||'',cif:cleanCif(json.cif,myDni)};
 }
@@ -1033,7 +1013,7 @@ function stopInvBatch(){_invBatchStopped=true}
 
 async function processInvBatch(files){
   const apiKey=await getApiKey();
-  if(!apiKey){toast('Cal configurar la Mistral API Key (menú ⚙)','err');return}
+  if(!apiKey){toast('Cal configurar la Gemini API Key (menú ⚙)','err');return}
   if(_invBatchRunning){toast('Ja hi ha una cua en curs','err');return}
   _invQueue=buildQueue(files);
   _invBatchRunning=true;_invBatchStopped=false;
@@ -1116,66 +1096,14 @@ function cleanCif(raw,myDni){
   return n;
 }
 async function extractPDFData(file,apiKey){
-  if(isImageFile(file)){
-    const b64=await fileToBase64(file);
-    const mtype=file.type||'image/jpeg';
-    const resp=await fetch('https://api.mistral.ai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({
-        model:'pixtral-12b-2409',temperature:0,max_tokens:300,
-        response_format:{type:'json_object'},
-        messages:[
-          {role:'system',content:`Ets un extractor de dades de factures. Retorna SEMPRE un JSON valid: {"invoiceNum":"","date":"YYYY-MM-DD","provider":"","cif":"","cif2":"","base":0,"iva":0,"total":0}. 'cif' = CIF del PROVEÏDOR (emissor). 'cif2' = NIF del CLIENT. Si no trobes un camp usa null.`},
-          {role:'user',content:[{type:'image_url',image_url:{url:'data:'+mtype+';base64,'+b64}},{type:'text',text:"Extreu les dades d'aquesta factura."}]}
-        ]
-      })
-    });
-    const data=await resp.json();
-    if(!resp.ok){const err=new Error('API ('+resp.status+'): '+(data.message||'Error'));err.status=resp.status;throw err}
-    const rawText=data.choices?.[0]?.message?.content||'';
-    const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
-    const myDni=await getMyDni();
-    const cifA=cleanCif(json.cif,myDni);
-    const cifB=cifA===''?cleanCif(json.cif2,myDni):'';
-    return {invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',cif:cifA||cifB,base:+json.base||0,iva:+json.iva||0,total:+json.total||0};
-  }
-  // PDF via Files API
-  const formData=new FormData();
-  formData.append('purpose','ocr');formData.append('file',file,file.name);
-  const upResp=await fetch('https://api.mistral.ai/v1/files',{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:formData});
-  const upData=await upResp.json();
-  if(!upResp.ok)throwMistralError(upResp,upData,'Error pujant');
-  const fileId=upData.id;if(!fileId)throw new Error("No file_id");
-  await delay(1100);
-  const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
-  const urlData=await urlResp.json();
-  if(!urlResp.ok)throwMistralError(urlResp,urlData,'Error URL');
-  const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
-  await delay(1100);
-  let chatData,chatResp;
-  try{
-    chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
-      method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
-      body:JSON.stringify({
-        model:'mistral-small-latest',temperature:0,max_tokens:300,
-        response_format:{type:'json_object'},
-        messages:[
-          {role:'system',content:`Ets un extractor de dades de factures espanyoles. Retorna SEMPRE un JSON valid: {"invoiceNum":"","date":"YYYY-MM-DD","provider":"","cif":"","cif2":"","base":0,"iva":0,"total":0}. 'cif' = CIF/NIF del PROVEÏDOR (qui emet la factura, l'emissor). 'cif2' = NIF del CLIENT (destinatari). El CIF pot tenir format B12345678, A58225137, 12345678Z, X1234567Z, etc., pot aparèixer amb punts o espais (ex: B-12.345.678), neteja-ho. Si no trobes un camp usa null.`},
-          {role:'user',content:[{type:'document_url',document_url:signedUrl},{type:'text',text:"Extreu les dades d'aquesta factura."}]}
-        ]
-      })
-    });
-    chatData=await chatResp.json();
-  } finally {fetch('https://api.mistral.ai/v1/files/'+fileId,{method:'DELETE',headers:{'Authorization':'Bearer '+apiKey}}).catch(()=>{})}
-  if(!chatResp.ok)throwMistralError(chatResp,chatData,'API');
-  const rawText=chatData.choices?.[0]?.message?.content||'';
-  const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
+  const model=await getModel();
+  const json=await geminiExtract(file,apiKey,model,
+    `Ets un extractor de dades de factures espanyoles. Retorna SEMPRE un JSON valid: {"invoiceNum":"","date":"YYYY-MM-DD","provider":"","cif":"","cif2":"","base":0,"iva":0,"total":0}. 'cif' = CIF/NIF del PROVEÏDOR (qui emet la factura, l'emissor). 'cif2' = NIF del CLIENT (destinatari). El CIF pot tenir format B12345678, A58225137, 12345678Z, X1234567Z, etc., pot aparèixer amb punts o espais (ex: B-12.345.678), neteja-ho. Si no trobes un camp usa null.`,
+    "Extreu les dades d'aquesta factura.",300);
   const myDni=await getMyDni();
-  const cifC=cleanCif(json.cif,myDni);
-  const cifD=cifC===''?cleanCif(json.cif2,myDni):'';
-  return {invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',cif:cifC||cifD,base:+json.base||0,iva:+json.iva||0,total:+json.total||0};
+  const cif=cleanCif(json.cif,myDni);
+  const cif2=cif===''?cleanCif(json.cif2,myDni):'';
+  return {invoiceNum:json.invoiceNum||'',date:json.date||'',provider:json.provider||'',cif:cif||cif2,base:+json.base||0,iva:+json.iva||0,total:+json.total||0};
 }
 
 // ===== PENDING INVOICES =====
@@ -1325,6 +1253,9 @@ async function loadApiConfigPage(){
   const inp=document.getElementById('cfg_apikey');
   if(key){inp.value=key;showCfgStatus('✓ Clau configurada','ok')}
   else{inp.value='';showCfgStatus('No hi ha cap clau configurada','warn')}
+  const model=await getModel();
+  const modelSel=document.getElementById('cfg_model');
+  if(modelSel)modelSel.value=model;
   const dni=await getMyDni();
   const dniInp=document.getElementById('cfg_dni');
   if(dniInp)dniInp.value=dni;
@@ -1335,6 +1266,11 @@ async function saveApiConfig(){
   const key=document.getElementById('cfg_apikey').value.trim();
   if(!key){showCfgStatus('Introdueix una clau vàlida','err');return}
   await saveApiKey(key);showCfgStatus('✓ Clau desada','ok');toast('API Key desada','ok');
+}
+async function saveModelConfig(){
+  const model=document.getElementById('cfg_model').value;
+  await saveModel(model);
+  toast('Model desat: '+model,'ok');
 }
 function toggleApiKeyVisibility(){const inp=document.getElementById('cfg_apikey');inp.type=inp.type==='password'?'text':'password'}
 function showCfgStatus(msg,type){const el=document.getElementById('cfg_status');el.textContent=msg;el.style.display='block';el.style.color=type==='ok'?'var(--ok)':type==='warn'?'var(--warn)':'var(--err)'}
