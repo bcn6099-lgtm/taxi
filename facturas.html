@@ -520,6 +520,12 @@ async function saveMyDni(d){_cachedDni=d.trim().toUpperCase();await setSetting('
 function normName(s){return s?s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]/g,' ').replace(/\s+/g,' ').trim():''}
 function fmt(n){return isNaN(n)||n===null?'—':Number(n).toLocaleString('de-DE',{minimumFractionDigits:2,maximumFractionDigits:2})}
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function throwMistralError(resp,data,label){
+  const retryAfter=resp.headers?.get('retry-after');
+  const err=new Error(label+' ('+resp.status+'): '+(data?.message||JSON.stringify(data)));
+  err.status=resp.status;err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;
+  throw err;
+}
 function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)})}
 
 // Similitud de cadenes (Jaccard sobre trigrames)
@@ -892,17 +898,23 @@ async function processProvBatch(files){
       }
     };
 
-    try{await tryExtract()}
-    catch(err){
-      if(err.status===429||String(err.message).includes('429')){
-        let secs=err.retryAfter&&err.retryAfter>0?err.retryAfter+5:65;
-        it.state='waiting';it.detail=`Rate limit — reintentant en ${secs}s`;
-        const tick=setInterval(()=>{secs--;it.detail=`Rate limit — reintentant en ${secs}s`;renderQueue(_provQueue,'provQueuePanel',stopProvBatch);if(secs<=0)clearInterval(tick)},1000);
-        await delay(secs*1000);clearInterval(tick);
-        it.state='retrying';it.detail='';renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
-        try{await tryExtract()}catch(e2){it.state='error';it.detail=e2.message.slice(0,80)}
-      }else{it.state='error';it.detail=err.message.slice(0,80)}
+    let attempt=0,lastErr=null;
+    while(attempt<4){
+      try{await tryExtract();lastErr=null;break}
+      catch(err){
+        lastErr=err;
+        if(err.status===429||String(err.message).includes('429')){
+          attempt++;
+          if(attempt>=4)break;
+          let secs=err.retryAfter&&err.retryAfter>0?err.retryAfter+5:65;
+          it.state='waiting';it.detail=`Rate limit — reintentant en ${secs}s (${attempt}/3)`;
+          const tick=setInterval(()=>{secs--;it.detail=`Rate limit — reintentant en ${secs}s (${attempt}/3)`;renderQueue(_provQueue,'provQueuePanel',stopProvBatch);if(secs<=0)clearInterval(tick)},1000);
+          await delay(secs*1000);clearInterval(tick);
+          it.state='retrying';it.detail='';renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
+        } else break;
+      }
     }
+    if(lastErr){it.state='error';it.detail=lastErr.message.slice(0,80)}
     renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
     if(i<_provQueue.length-1&&!_provBatchStopped){
       const w=delayForFile(it.file);
@@ -945,12 +957,14 @@ async function extractProviderData(file,apiKey){
   formData.append('purpose','ocr');formData.append('file',file,file.name);
   const upResp=await fetch('https://api.mistral.ai/v1/files',{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:formData});
   const upData=await upResp.json();
-  if(!upResp.ok)throw new Error('Error pujant arxiu ('+upResp.status+'): '+(upData.message||JSON.stringify(upData)));
+  if(!upResp.ok)throwMistralError(upResp,upData,'Error pujant arxiu');
   const fileId=upData.id;if(!fileId)throw new Error("No file_id");
+  await delay(600);
   const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
   const urlData=await urlResp.json();
-  if(!urlResp.ok)throw new Error('Error URL: '+(urlData.message||JSON.stringify(urlData)));
+  if(!urlResp.ok)throwMistralError(urlResp,urlData,'Error URL');
   const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
+  await delay(600);
   let chatData,chatResp;
   try{
     chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
@@ -967,11 +981,7 @@ async function extractProviderData(file,apiKey){
     });
     chatData=await chatResp.json();
   } finally {fetch('https://api.mistral.ai/v1/files/'+fileId,{method:'DELETE',headers:{'Authorization':'Bearer '+apiKey}}).catch(()=>{})}
-  if(!chatResp.ok){
-    const retryAfter=chatResp.headers?.get('retry-after');
-    const err=new Error('API ('+chatResp.status+'): '+(chatData?.message||'Error'));
-    err.status=chatResp.status;err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;throw err;
-  }
+  if(!chatResp.ok)throwMistralError(chatResp,chatData,'API');
   const rawText=chatData.choices?.[0]?.message?.content||'';
   const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
   const myDni=await getMyDni();
@@ -1028,17 +1038,23 @@ async function processInvBatch(files){
       }
     };
 
-    try{await tryExtract()}
-    catch(err){
-      if(err.status===429||String(err.message).includes('429')){
-        let secs=err.retryAfter&&err.retryAfter>0?err.retryAfter+5:65;
-        it.state='waiting';it.detail=`Rate limit — reintentant en ${secs}s`;
-        const tick=setInterval(()=>{secs--;it.detail=`Rate limit — reintentant en ${secs}s`;renderQueue(_invQueue,'invQueuePanel',stopInvBatch);if(secs<=0)clearInterval(tick)},1000);
-        await delay(secs*1000);clearInterval(tick);
-        it.state='retrying';it.detail='';renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
-        try{await tryExtract()}catch(e2){it.state='error';it.detail=e2.message.slice(0,80);errors++}
-      }else{it.state='error';it.detail=err.message.slice(0,80);errors++}
+    let attempt=0,lastErr=null;
+    while(attempt<4){
+      try{await tryExtract();lastErr=null;break}
+      catch(err){
+        lastErr=err;
+        if(err.status===429||String(err.message).includes('429')){
+          attempt++;
+          if(attempt>=4)break;
+          let secs=err.retryAfter&&err.retryAfter>0?err.retryAfter+5:65;
+          it.state='waiting';it.detail=`Rate limit — reintentant en ${secs}s (${attempt}/3)`;
+          const tick=setInterval(()=>{secs--;it.detail=`Rate limit — reintentant en ${secs}s (${attempt}/3)`;renderQueue(_invQueue,'invQueuePanel',stopInvBatch);if(secs<=0)clearInterval(tick)},1000);
+          await delay(secs*1000);clearInterval(tick);
+          it.state='retrying';it.detail='';renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
+        } else break;
+      }
     }
+    if(lastErr){it.state='error';it.detail=lastErr.message.slice(0,80);errors++}
     renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
     if(i<_invQueue.length-1&&!_invBatchStopped){
       const w=delayForFile(it.file);
@@ -1104,12 +1120,14 @@ async function extractPDFData(file,apiKey){
   formData.append('purpose','ocr');formData.append('file',file,file.name);
   const upResp=await fetch('https://api.mistral.ai/v1/files',{method:'POST',headers:{'Authorization':'Bearer '+apiKey},body:formData});
   const upData=await upResp.json();
-  if(!upResp.ok)throw new Error('Error pujant ('+upResp.status+'): '+(upData.message||JSON.stringify(upData)));
+  if(!upResp.ok)throwMistralError(upResp,upData,'Error pujant');
   const fileId=upData.id;if(!fileId)throw new Error("No file_id");
+  await delay(600);
   const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
   const urlData=await urlResp.json();
-  if(!urlResp.ok)throw new Error('Error URL: '+(urlData.message||JSON.stringify(urlData)));
+  if(!urlResp.ok)throwMistralError(urlResp,urlData,'Error URL');
   const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
+  await delay(600);
   let chatData,chatResp;
   try{
     chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
@@ -1126,11 +1144,7 @@ async function extractPDFData(file,apiKey){
     });
     chatData=await chatResp.json();
   } finally {fetch('https://api.mistral.ai/v1/files/'+fileId,{method:'DELETE',headers:{'Authorization':'Bearer '+apiKey}}).catch(()=>{})}
-  if(!chatResp.ok){
-    const retryAfter=chatResp.headers?.get('retry-after');
-    const err=new Error('API ('+chatResp.status+'): '+(chatData?.message||'Error'));
-    err.status=chatResp.status;err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;throw err;
-  }
+  if(!chatResp.ok)throwMistralError(chatResp,chatData,'API');
   const rawText=chatData.choices?.[0]?.message?.content||'';
   const json=JSON.parse(rawText.replace(/```json?|```/g,'').trim());
   const myDni=await getMyDni();
