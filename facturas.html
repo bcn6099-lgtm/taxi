@@ -522,8 +522,16 @@ function fmt(n){return isNaN(n)||n===null?'—':Number(n).toLocaleString('de-DE'
 function delay(ms){return new Promise(r=>setTimeout(r,ms))}
 function throwMistralError(resp,data,label){
   const retryAfter=resp.headers?.get('retry-after');
-  const err=new Error(label+' ('+resp.status+'): '+(data?.message||JSON.stringify(data)));
+  const limit=resp.headers?.get('x-ratelimit-limit');
+  const remaining=resp.headers?.get('x-ratelimit-remaining');
+  const reset=resp.headers?.get('x-ratelimit-reset');
+  let extra='';
+  if(resp.status===429&&(limit||remaining!==null)){
+    extra=` [límit:${limit||'?'} restant:${remaining||'0'}${reset?' reset:'+reset+'s':''}]`;
+  }
+  const err=new Error(label+' ('+resp.status+'): '+(data?.message||JSON.stringify(data))+extra);
   err.status=resp.status;err.retryAfter=retryAfter?Math.ceil(parseFloat(retryAfter)):null;
+  console.error('Mistral error detail',{status:resp.status,limit,remaining,reset,retryAfter,data});
   throw err;
 }
 function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)})}
@@ -846,17 +854,32 @@ function renderQueue(items,panelId,stopFn){
 let _provQueue=[];
 let _provBatchRunning=false,_provBatchStopped=false;
 
+function isPdfOrImage(f){
+  if(f.type==='application/pdf'||f.type.startsWith('image/'))return true;
+  // Fallback per mòbils: alguns navegadors (Android/iOS) retornen type buit
+  // en agafar un PDF/foto des de Drive, Fitxers o la càmera
+  if(f.type==='')return /\.(pdf|jpe?g|png|webp)$/i.test(f.name);
+  return false;
+}
+function isImageFile(f){
+  if(f.type.startsWith('image/'))return true;
+  if(f.type==='')return /\.(jpe?g|png|webp)$/i.test(f.name);
+  return false;
+}
+
 const provZone=document.getElementById('provUploadZone');
 provZone.addEventListener('dragover',e=>{e.preventDefault();provZone.classList.add('drag')});
 provZone.addEventListener('dragleave',()=>provZone.classList.remove('drag'));
 provZone.addEventListener('drop',e=>{
   e.preventDefault();provZone.classList.remove('drag');
-  const files=[...e.dataTransfer.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  const files=[...e.dataTransfer.files].filter(isPdfOrImage);
   if(files.length)processProvBatch(files);else toast('Només PDFs i imatges','err');
 });
 function handleProvUpload(e){
-  const files=[...e.target.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  const all=[...e.target.files];
+  const files=all.filter(isPdfOrImage);
   if(files.length)processProvBatch(files);
+  else if(all.length)toast('Cap arxiu vàlid (només PDFs i imatges)','err');
 }
 function stopProvBatch(){_provBatchStopped=true}
 
@@ -914,7 +937,7 @@ async function processProvBatch(files){
         } else break;
       }
     }
-    if(lastErr){it.state='error';it.detail=lastErr.message.slice(0,80)}
+    if(lastErr){it.state='error';it.detail=lastErr.message.slice(0,160)}
     renderQueue(_provQueue,'provQueuePanel',stopProvBatch);
     if(i<_provQueue.length-1&&!_provBatchStopped){
       const w=delayForFile(it.file);
@@ -930,7 +953,7 @@ async function processProvBatch(files){
 
 async function extractProviderData(file,apiKey){
   // Extreu NOMÉS nom i CIF
-  if(file.type.startsWith('image/')){
+  if(isImageFile(file)){
     const b64=await fileToBase64(file);
     const mtype=file.type||'image/jpeg';
     const resp=await fetch('https://api.mistral.ai/v1/chat/completions',{
@@ -959,12 +982,12 @@ async function extractProviderData(file,apiKey){
   const upData=await upResp.json();
   if(!upResp.ok)throwMistralError(upResp,upData,'Error pujant arxiu');
   const fileId=upData.id;if(!fileId)throw new Error("No file_id");
-  await delay(600);
+  await delay(1100);
   const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
   const urlData=await urlResp.json();
   if(!urlResp.ok)throwMistralError(urlResp,urlData,'Error URL');
   const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
-  await delay(600);
+  await delay(1100);
   let chatData,chatResp;
   try{
     chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
@@ -997,12 +1020,14 @@ invZone.addEventListener('dragover',e=>{e.preventDefault();invZone.classList.add
 invZone.addEventListener('dragleave',()=>invZone.classList.remove('drag'));
 invZone.addEventListener('drop',e=>{
   e.preventDefault();invZone.classList.remove('drag');
-  const files=[...e.dataTransfer.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  const files=[...e.dataTransfer.files].filter(isPdfOrImage);
   if(files.length)processInvBatch(files);else toast('Només PDFs i imatges','err');
 });
 function handleInvUpload(e){
-  const files=[...e.target.files].filter(f=>f.type==='application/pdf'||f.type.startsWith('image/'));
+  const all=[...e.target.files];
+  const files=all.filter(isPdfOrImage);
   if(files.length)processInvBatch(files);
+  else if(all.length)toast('Cap arxiu vàlid (només PDFs i imatges)','err');
 }
 function stopInvBatch(){_invBatchStopped=true}
 
@@ -1054,7 +1079,7 @@ async function processInvBatch(files){
         } else break;
       }
     }
-    if(lastErr){it.state='error';it.detail=lastErr.message.slice(0,80);errors++}
+    if(lastErr){it.state='error';it.detail=lastErr.message.slice(0,160);errors++}
     renderQueue(_invQueue,'invQueuePanel',stopInvBatch);
     if(i<_invQueue.length-1&&!_invBatchStopped){
       const w=delayForFile(it.file);
@@ -1091,7 +1116,7 @@ function cleanCif(raw,myDni){
   return n;
 }
 async function extractPDFData(file,apiKey){
-  if(file.type.startsWith('image/')){
+  if(isImageFile(file)){
     const b64=await fileToBase64(file);
     const mtype=file.type||'image/jpeg';
     const resp=await fetch('https://api.mistral.ai/v1/chat/completions',{
@@ -1122,12 +1147,12 @@ async function extractPDFData(file,apiKey){
   const upData=await upResp.json();
   if(!upResp.ok)throwMistralError(upResp,upData,'Error pujant');
   const fileId=upData.id;if(!fileId)throw new Error("No file_id");
-  await delay(600);
+  await delay(1100);
   const urlResp=await fetch('https://api.mistral.ai/v1/files/'+fileId+'/url?expiry=24',{headers:{'Authorization':'Bearer '+apiKey}});
   const urlData=await urlResp.json();
   if(!urlResp.ok)throwMistralError(urlResp,urlData,'Error URL');
   const signedUrl=urlData.url;if(!signedUrl)throw new Error("No signed URL");
-  await delay(600);
+  await delay(1100);
   let chatData,chatResp;
   try{
     chatResp=await fetch('https://api.mistral.ai/v1/chat/completions',{
