@@ -1333,7 +1333,7 @@ async function exportJSON(){
   const inv=await dbAll('invoices'),prov=await dbAll('providers');
   const a=document.createElement('a');
   a.href='data:application/json;charset=utf-8,'+encodeURIComponent(JSON.stringify({invoices:inv,providers:prov,exportDate:new Date().toISOString()},null,2));
-  a.download=`factures_backup_${new Date().toISOString().slice(0,10)}.json`;
+  a.download=`factures_${new Date().toISOString().slice(0,10)}.json`;
   a.click();toast('JSON exportat','ok');
 }
 async function importJSON(e){
