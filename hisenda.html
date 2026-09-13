@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>HISENDA</title>
+<link rel="stylesheet" href="style-1.css">
+<style>
+:root{
+  --warn:#e65100;
+  --info:#1565c0;
+}
+/* ── Overrides específics d'aplicació (complementen style-1.css) ── */
+/* NOTA: mai toquem style-1.css directament (el fa servir facturas.html també).
+   Qualsevol ajust visual es fa aquí, dins d'aquest <style> propi de hisenda.html. */
+
+body{line-height:1.6}
+.inv-table{line-height:1.4}
+.inv-table td,.inv-table th{line-height:1.4;vertical-align:middle}
+.inv-table td.td-prov{line-height:1.5}
+.badge{line-height:1.6;vertical-align:middle}
+.cat-title{line-height:1.3}
+.page-sub{line-height:1.5}
+
+/* Detall d'any: cada categoria s'embolcalla en una targeta (mateix llenguatge visual que .form-section de Configuració) */
+.year-section{background:var(--bg2);border:1px solid var(--border);padding:22px;margin-bottom:20px}
+.year-section:last-child{margin-bottom:0}
+.year-section .form-section-title{display:flex;align-items:baseline;gap:8px}
+.year-section .table-wrap{margin:0 -22px -22px;padding:0 22px 4px}
+.section-cnt{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--dim);font-weight:400;letter-spacing:0}
+
+.topbar-section{font-size:10px;letter-spacing:3px;text-transform:uppercase;color:var(--muted);margin-left:auto;margin-right:4px}
+.nav-section{font-size:9px;letter-spacing:3px;color:var(--dim);padding:14px 24px 6px;text-transform:uppercase}
+.nav-badge{margin-left:auto;background:#111;color:#fff;font-size:9px;font-weight:700;padding:1px 7px;border-radius:8px}
+.nav-badge.zero{display:none}
+.year-nav-list{max-height:260px;overflow-y:auto}
+.nav-item .nav-count{margin-left:auto;font-size:10px;color:var(--dim);font-family:'DM Mono',monospace}
+
+.main{margin-top:52px;padding:28px 24px;max-width:1040px;margin-left:auto;margin-right:auto}
+.page{display:none}.page.active{display:block}
+
+.page-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:22px;padding-bottom:14px;border-bottom:2px solid var(--accent);flex-wrap:wrap;gap:10px}
+.page-title{font-family:'Playfair Display',serif;font-size:20px;color:var(--accent)}
+.page-sub{font-size:11px;color:var(--dim);letter-spacing:1px;margin-top:5px}
+.page-count{font-size:11px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;white-space:nowrap}
+
+/* Upload zone */
+.upload-zone{border:2px dashed var(--border);padding:40px 24px;text-align:center;cursor:pointer;transition:all .2s;position:relative;background:var(--bg2);margin-bottom:22px}
+.upload-zone:hover,.upload-zone.drag{border-color:var(--accent);background:var(--bg3)}
+.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{font-size:30px;color:var(--accent2);opacity:.6;margin-bottom:12px}
+.upload-text{font-size:12px;color:var(--muted);margin-bottom:5px;letter-spacing:2px;text-transform:uppercase}
+.upload-sub{font-size:11px;color:var(--dim)}
+
+/* Queue panel */
+.queue-panel{margin-top:0;margin-bottom:22px;border:1px solid var(--border);overflow:hidden;background:var(--bg2)}
+.queue-panel-header{background:var(--bg3);border-bottom:1px solid var(--border);padding:12px 16px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.queue-panel-title{font-size:10px;letter-spacing:2px;color:var(--muted);font-weight:700;flex:1;text-transform:uppercase}
+.queue-summary{font-size:12px;font-weight:600;color:var(--text);font-family:'DM Mono',monospace}
+.queue-stop-btn{background:transparent;border:1px solid var(--danger);color:var(--danger);padding:4px 10px;cursor:pointer;font-size:10px;letter-spacing:1px;transition:all .15s;font-family:'DM Sans',sans-serif}
+.queue-stop-btn:hover{background:rgba(198,40,40,.08)}
+.queue-global-bar{height:2px;background:var(--bg3)}
+.queue-global-fill{height:100%;background:var(--accent);transition:width .4s ease}
+.queue-list{max-height:320px;overflow-y:auto;padding:8px}
+.queue-item{display:flex;align-items:flex-start;gap:10px;padding:8px 10px;border:1px solid transparent;margin-bottom:4px;transition:all .2s}
+.qi-icon{font-size:13px;min-width:16px;margin-top:1px}
+.qi-body{flex:1;min-width:0}
+.qi-name{font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--text)}
+.qi-detail{font-size:10px;color:var(--muted);margin-top:2px}
+.qi-pending{opacity:.5}
+.qi-processing{border-color:rgba(21,101,192,.3);background:rgba(21,101,192,.04)}
+.qi-processing .qi-icon{color:var(--info);animation:spin 1.2s linear infinite;display:inline-block}
+.qi-ok{border-color:rgba(46,125,50,.25);background:rgba(46,125,50,.04)}
+.qi-ok .qi-icon{color:var(--ok)}
+.qi-dup{border-color:rgba(230,81,0,.25);background:rgba(230,81,0,.04)}
+.qi-dup .qi-icon{color:var(--warn)}
+.qi-error{border-color:rgba(198,40,40,.25);background:rgba(198,40,40,.04)}
+.qi-error .qi-icon{color:var(--err,var(--danger))}
+.qi-waiting{border-color:rgba(230,81,0,.2)}
+.qi-waiting .qi-icon{color:var(--warn)}
+.qi-retrying .qi-icon{color:var(--info)}
+.qi-stopped .qi-icon{color:var(--dim)}
+@keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
+
+/* Stat cards / dashboard */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:30px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);padding:18px}
+.stat-num{font-family:'DM Mono',monospace;font-size:26px;font-weight:700;color:var(--accent)}
+.stat-num.money{font-size:18px}
+.stat-label{font-size:10px;color:var(--dim);letter-spacing:2px;text-transform:uppercase;margin-top:6px}
+
+.cat-title{font-family:'Playfair Display',serif;font-size:15px;color:var(--accent);margin:28px 0 10px;padding-bottom:8px;border-bottom:1px solid var(--border);display:flex;align-items:baseline;gap:8px}
+.cat-title:first-child{margin-top:0}
+.cat-title .cnt{font-family:'DM Sans',sans-serif;font-size:11px;color:var(--dim);font-weight:400}
+
+.year-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.year-card{background:var(--bg2);border:1px solid var(--border);padding:18px;cursor:pointer;transition:all .15s}
+.year-card:hover{border-color:var(--accent);background:#f7f7f7}
+.year-card-num{font-family:'Playfair Display',serif;font-size:28px;color:var(--accent)}
+.year-card-meta{font-size:11px;color:var(--muted);margin-top:10px;display:flex;flex-direction:column;gap:4px}
+.year-card-row{display:flex;justify-content:space-between}
+.year-card-row .n{font-family:'DM Mono',monospace;color:var(--text);font-weight:700}
+.year-card-row.warn{color:var(--warn)}
+.year-card-row.warn .n{color:var(--warn)}
+
+/* Result badges */
+.badge{display:inline-flex;align-items:center;padding:2px 9px;font-size:9px;letter-spacing:1px;border:1px solid;text-transform:uppercase;font-weight:700;white-space:nowrap}
+.b-ingressar{color:var(--danger);border-color:var(--danger)}
+.b-devolver{color:var(--ok);border-color:var(--ok)}
+.b-deduir{color:var(--info);border-color:var(--info)}
+.b-negatiu{color:var(--dim);border-color:var(--border2)}
+.b-domiciliat{color:var(--info);border-color:var(--info)}
+.b-review{color:var(--warn);border-color:var(--warn);margin-left:6px}
+
+/* Filters */
+.filter-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+.filter-select{background:var(--bg2);border:1px solid var(--border);color:var(--muted);padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:11px;cursor:pointer;outline:none}
+.filter-select:focus{border-color:var(--accent)}
+.filter-input{background:var(--bg2);border:1px solid var(--border);color:var(--text);padding:6px 10px;font-family:'DM Sans',sans-serif;font-size:12px;outline:none;flex:1;min-width:180px}
+.filter-input:focus{border-color:var(--accent)}
+
+/* Table sort headers */
+.th-sort{cursor:pointer;user-select:none}
+.th-sort:hover{color:var(--accent)}
+
+/* Doc detail modal (wider, 2 columns) */
+.modal.doc-modal{max-width:900px}
+.doc-body{display:grid;grid-template-columns:1fr 1fr;gap:26px;padding:20px}
+@media(max-width:760px){.doc-body{grid-template-columns:1fr}}
+.doc-col-title{font-size:10px;letter-spacing:2px;text-transform:uppercase;color:var(--muted);margin-bottom:12px}
+.pdf-frame{width:100%;height:440px;border:1px solid var(--border);background:#e8e8e8}
+.doc-body .form-grid{gap:12px}
+.doc-actions{display:flex;gap:8px;margin-top:12px}
+
+/* Config page */
+.config-block{background:var(--bg2);border:1px solid var(--border);padding:22px;margin-bottom:18px;max-width:560px}
+.pw-wrap{display:flex;gap:6px}
+.pw-wrap input{flex:1}
+.pw-toggle{background:var(--bg3);border:1px solid var(--border);color:var(--muted);cursor:pointer;padding:0 12px;font-size:13px}
+
+@media(max-width:600px){.doc-body{grid-template-columns:1fr}.filter-row{flex-direction:column;align-items:stretch}.filter-input{min-width:0}}
+</style>
+</head>
+<body>
+
+<div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-header">
+    <div class="sidebar-title">⬡ HISENDA</div>
+    <div class="sidebar-sub">Arxiu Fiscal // v1.0</div>
+  </div>
+  <nav>
+    <div class="nav-section">General</div>
+    <div class="nav-item active" onclick="showPage('dashboard')" data-page="dashboard"><span class="nav-icon">◈</span> Resum</div>
+    <div class="nav-item" onclick="showPage('upload')" data-page="upload"><span class="nav-icon">⇧</span> Pujar documents</div>
+    <div class="nav-item" onclick="showPage('alldocs')" data-page="alldocs"><span class="nav-icon">☰</span> Tots els documents</div>
+    <div class="nav-item" onclick="showPage('pending')" data-page="pending"><span class="nav-icon">⚠</span> Per revisar <span class="nav-badge zero" id="pendingBadge">0</span></div>
+
+    <div class="nav-section">Per exercici</div>
+    <div class="year-nav-list" id="yearNavList"></div>
+
+    <div class="nav-section">Sistema</div>
+    <div class="nav-item" onclick="showPage('config')" data-page="config"><span class="nav-icon">⚙</span> Configuració</div>
+  </nav>
+  <div class="sidebar-footer">100% LOCAL // CAP DADA SURT DEL NAVEGADOR</div>
+</aside>
+
+<header class="topbar">
+  <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+  <div class="topbar-title">HISENDA</div>
+  <div class="topbar-section" id="topbarSection"></div>
+</header>
+
+<main class="main">
+
+  <!-- ===================== DASHBOARD ===================== -->
+  <div class="page active" id="page-dashboard">
+    <div class="page-header">
+      <div><div class="page-title">◈ Resum general</div><div class="page-sub">Hisenda · Seguretat Social — tot l'arxiu fiscal en un sol lloc</div></div>
+    </div>
+    <div class="stat-grid" id="dashStats"></div>
+    <div id="dashYearGrid"></div>
+  </div>
+
+  <!-- ===================== UPLOAD ===================== -->
+  <div class="page" id="page-upload">
+    <div class="page-header"><div><div class="page-title">⇧ Pujar documents</div><div class="page-sub">PDFs o imatges d'Hisenda / Seguretat Social — es classifiquen automàticament</div></div></div>
+    <div class="upload-zone" id="uploadZone">
+      <input type="file" id="fileInput" multiple accept="application/pdf,image/*" onchange="handleUpload(event)">
+      <div class="upload-icon">⇧</div>
+      <div class="upload-text">Arrossega arxius aquí o clica per seleccionar</div>
+      <div class="upload-sub">Model 100, 130, 131, 303, 390, retencions, Seguretat Social... — la IA identificarà de què es tracta</div>
+    </div>
+    <div class="queue-panel" id="queuePanel" style="display:none">
+      <div class="queue-panel-header">
+        <div class="queue-panel-title">Cua de processament</div>
+        <div class="queue-summary" id="queueSummary"></div>
+        <button class="queue-stop-btn" onclick="stopBatch()">■ Aturar</button>
+      </div>
+      <div class="queue-global-bar"><div class="queue-global-fill" id="queueFill" style="width:0%"></div></div>
+      <div class="queue-list" id="queueList"></div>
+    </div>
+  </div>
+
+  <!-- ===================== ALL DOCS ===================== -->
+  <div class="page" id="page-alldocs">
+    <div class="page-header">
+      <div><div class="page-title">☰ Tots els documents</div><div class="page-sub" id="allDocsSub"></div></div>
+      <div class="page-count" id="allDocsCount"></div>
+    </div>
+    <div class="filter-row">
+      <input class="filter-input" id="fltSearch" placeholder="Cerca per NIF, titular, núm. justificant..." oninput="renderAllDocs()">
+      <select class="filter-select" id="fltYear" onchange="renderAllDocs()"><option value="">Tots els anys</option></select>
+      <select class="filter-select" id="fltCat" onchange="renderAllDocs()"><option value="">Totes les categories</option></select>
+      <select class="filter-select" id="fltResult" onchange="renderAllDocs()">
+        <option value="">Tots els resultats</option>
+        <option value="A_INGRESAR">A ingressar</option>
+        <option value="A_DEVOLVER">A retornar</option>
+        <option value="A_DEDUCIR">A deduir</option>
+        <option value="NEGATIVO">Negatiu</option>
+        <option value="SIN_ACTIVIDAD">Sense activitat</option>
+        <option value="DOMICILIADO">Domiciliat</option>
+        <option value="INFORMATIVO">Informatiu</option>
+      </select>
+    </div>
+    <div id="allDocsTableWrap"></div>
+  </div>
+
+  <!-- ===================== YEAR DETAIL ===================== -->
+  <div class="page" id="page-year">
+    <div class="page-header">
+      <div><div class="page-title" id="yearTitle">Exercici</div><div class="page-sub" id="yearSub">Documents agrupats per categoria</div></div>
+      <div class="page-count" id="yearCount"></div>
+    </div>
+    <div id="yearContent"></div>
+  </div>
+
+  <!-- ===================== PENDING ===================== -->
+  <div class="page" id="page-pending">
+    <div class="page-header"><div><div class="page-title">⚠ Per revisar</div><div class="page-sub">La IA no ha pogut extreure alguna dada clau — revisa-ho manualment</div></div><div class="page-count" id="pendingCount"></div></div>
+    <div id="pendingList"></div>
+  </div>
+
+  <!-- ===================== CONFIG ===================== -->
+  <div class="page" id="page-config">
+    <div class="page-header"><div><div class="page-title">⚙ Configuració</div></div></div>
+
+    <div class="config-block">
+      <div class="form-section-title">Gemini API Key</div>
+      <p class="help-text">Necessària per llegir i classificar els documents automàticament. Obtén-ne una de franc a <strong>aistudio.google.com</strong> → Get API key. Es guarda només al teu navegador (IndexedDB), mai s'envia a cap altre servidor.</p>
+      <div class="form-group">
+        <label>Clau</label>
+        <div class="pw-wrap">
+          <input type="password" id="cfg_apikey" placeholder="Enganxa aquí la teva Gemini API Key...">
+          <button class="pw-toggle" onclick="toggleApiKeyVisibility()">👁</button>
+        </div>
+      </div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="saveApiConfig()">Desar clau</button></div>
+      <div id="cfgStatus" style="display:none;margin-top:10px;font-size:11px"></div>
+    </div>
+
+    <div class="config-block">
+      <div class="form-section-title">El meu NIF</div>
+      <p class="help-text">Ajuda a validar que els documents corresponen al teu perfil fiscal (opcional).</p>
+      <div class="form-group"><label>NIF</label><input id="cfg_nif" placeholder="Ex: 12345678X" oninput="this.value=this.value.toUpperCase()"></div>
+      <div class="form-actions"><button class="btn btn-primary" onclick="saveNif()">Desar</button></div>
+    </div>
+
+    <div class="config-block">
+      <div class="form-section-title">Còpia de seguretat</div>
+      <p class="help-text">Tot l'arxiu (documents, PDFs originals i configuració) viu només al navegador on l'has fet servir. Exporta una còpia de seguretat de tant en tant, sobretot abans de canviar de navegador, netejar dades o passar-ho a un altre ordinador.</p>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="exportBackup()">⇩ Exportar còpia de seguretat</button>
+        <button class="btn btn-outline" onclick="document.getElementById('importFileInput').click()">⇧ Importar còpia de seguretat</button>
+        <input type="file" id="importFileInput" accept="application/json" style="display:none" onchange="handleImportFile(event)">
+      </div>
+      <div id="backupStatus" style="display:none;margin-top:10px;font-size:11px"></div>
+    </div>
+
+    <div class="config-block">
+      <div class="form-section-title">Zona de perill</div>
+      <p class="help-text">Elimina tots els documents desats a aquest navegador. Aquesta acció no es pot desfer.</p>
+      <div class="form-actions"><button class="btn btn-danger" onclick="confirmResetAll()">Esborrar tot l'arxiu</button></div>
+    </div>
+  </div>
+
+</main>
+
+<!-- ===================== DETAIL / EDIT MODAL ===================== -->
+<div class="modal-overlay" id="detailOverlay">
+  <div class="modal doc-modal">
+    <div class="modal-header">
+      <div class="modal-title" id="detailTitle">Document</div>
+      <button class="modal-close" onclick="closeDetail()">✕</button>
+    </div>
+    <div class="doc-body">
+      <div>
+        <div class="doc-col-title">Document original</div>
+        <div id="detailPdfWrap"></div>
+        <div class="doc-actions">
+          <button class="btn-outline btn" onclick="downloadCurrentDoc()">⇩ Descarregar</button>
+          <button class="btn-danger btn" onclick="deleteCurrentDoc()">🗑 Eliminar</button>
+        </div>
+      </div>
+      <div>
+        <div class="doc-col-title">Dades extretes (editables)</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Organisme</label>
+            <select id="d_organismo">
+              <option value="AEAT">Agència Tributària (AEAT)</option>
+              <option value="SEG_SOCIAL">Seguretat Social</option>
+              <option value="OTRO">Altres</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Exercici</label><input id="d_ejercicio" placeholder="2024"></div>
+          <div class="form-group"><label>Model / Tipus</label><input id="d_modelo" placeholder="Ex: 303, RLC..."></div>
+          <div class="form-group">
+            <label>Període</label>
+            <select id="d_periodo">
+              <option value="">—</option>
+              <option value="1T">1r Trimestre</option>
+              <option value="2T">2n Trimestre</option>
+              <option value="3T">3r Trimestre</option>
+              <option value="4T">4t Trimestre</option>
+              <option value="01">Gener</option><option value="02">Febrer</option><option value="03">Març</option>
+              <option value="04">Abril</option><option value="05">Maig</option><option value="06">Juny</option>
+              <option value="07">Juliol</option><option value="08">Agost</option><option value="09">Setembre</option>
+              <option value="10">Octubre</option><option value="11">Novembre</option><option value="12">Desembre</option>
+              <option value="ANUAL">Anual</option>
+            </select>
+          </div>
+          <div class="form-group form-full"><label>Descripció (si el model no és estàndard)</label><input id="d_descripcion"></div>
+          <div class="form-group">
+            <label>Resultat</label>
+            <select id="d_resultado">
+              <option value="">—</option>
+              <option value="A_INGRESAR">A ingressar</option>
+              <option value="A_DEVOLVER">A retornar</option>
+              <option value="A_DEDUCIR">A deduir</option>
+              <option value="NEGATIVO">Negatiu</option>
+              <option value="SIN_ACTIVIDAD">Sense activitat</option>
+              <option value="DOMICILIADO">Domiciliat</option>
+              <option value="INFORMATIVO">Informatiu</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Import (€)</label><input id="d_importe" type="number" step="0.01"></div>
+          <div class="form-group"><label>Data presentació</label><input id="d_fecha" type="date"></div>
+          <div class="form-group"><label>Núm. justificant</label><input id="d_numjust"></div>
+          <div class="form-group"><label>NIF titular</label><input id="d_nif"></div>
+          <div class="form-group"><label>Titular</label><input id="d_titular"></div>
+        </div>
+        <div class="form-actions">
+          <span style="font-size:10px;color:var(--dim);align-self:center;flex:1" id="detailFilename"></span>
+          <button class="btn btn-primary" onclick="saveDetailEdits()">✓ Desar canvis</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== CONFIRM MODAL ===================== -->
+<div class="modal-overlay" id="confirmOverlay">
+  <div class="modal modal-warn" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title warn-title" id="confirmTitle">Confirmar</div><button class="modal-close" onclick="closeConfirm()">✕</button></div>
+    <div class="modal-body" id="confirmBody"></div>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeConfirm()">Cancel·lar</button>
+      <button class="btn btn-danger" id="confirmActionBtn">Confirmar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* =========================================================
+   HISENDA // ARXIU FISCAL — motor de l'app
+   ========================================================= */
+
+const DB_NAME='hisenda_db', DB_VER=1;
+let db=null;
+let _cachedApiKey=null, _cachedNif=null;
+let _currentDetailId=null;
+let _currentYear=null;
+let _sortCol='fecha', _sortDir=-1;
+
+/* ===================== IndexedDB ===================== */
+function initDB(){
+  return new Promise((res,rej)=>{
+    const req=indexedDB.open(DB_NAME,DB_VER);
+    req.onupgradeneeded=e=>{
+      const d=e.target.result;
+      if(!d.objectStoreNames.contains('documents')) d.createObjectStore('documents',{keyPath:'id',autoIncrement:true});
+      if(!d.objectStoreNames.contains('settings')) d.createObjectStore('settings',{keyPath:'key'});
+    };
+    req.onsuccess=e=>{db=e.target.result;res(db)};
+    req.onerror=rej;
+  });
+}
+function dbAll(s){return new Promise((res,rej)=>{const tx=db.transaction(s,'readonly');const r=tx.objectStore(s).getAll();r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
+function dbAdd(s,d){return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');const r=tx.objectStore(s).add(d);r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
+function dbPut(s,d){return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');const r=tx.objectStore(s).put(d);r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
+function dbDel(s,id){return new Promise((res,rej)=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).delete(id);tx.oncomplete=res;tx.onerror=rej})}
+function dbGet(s,id){return new Promise((res,rej)=>{const tx=db.transaction(s,'readonly');const r=tx.objectStore(s).get(id);r.onsuccess=e=>res(e.target.result);r.onerror=rej})}
+function dbClear(s){return new Promise(res=>{const tx=db.transaction(s,'readwrite');tx.objectStore(s).clear();tx.oncomplete=res})}
+
+async function getSetting(key){try{const v=await dbGet('settings',key);return v?.value}catch{return null}}
+async function setSetting(key,value){return dbPut('settings',{key,value})}
+async function getApiKey(){if(_cachedApiKey)return _cachedApiKey;_cachedApiKey=await getSetting('gemini_api_key');return _cachedApiKey}
+async function saveApiKeyToDb(k){_cachedApiKey=k;await setSetting('gemini_api_key',k)}
+async function getMyNif(){if(_cachedNif!==null)return _cachedNif;const v=await getSetting('my_nif');_cachedNif=(v||'').trim().toUpperCase();return _cachedNif}
+async function saveMyNif(n){_cachedNif=n.trim().toUpperCase();await setSetting('my_nif',_cachedNif)}
+
+/* ===================== Diccionari fiscal ===================== */
+const MODEL_NAMES={
+  '100':"Renda — Declaració anual IRPF",
+  '102':"Renda — 2n termini fraccionat",
+  '130':"Pagament fraccionat IRPF (Estimació Directa)",
+  '131':"Pagament fraccionat IRPF (Mòduls)",
+  '303':"IVA — Autoliquidació",
+  '308':"IVA — Sol·licitud de compensació/devolució",
+  '309':"IVA — Declaració no periòdica",
+  '390':"IVA — Resum anual",
+  '111':"Retencions IRPF (treball / professionals)",
+  '115':"Retencions de lloguers",
+  '123':"Retencions capital mobiliari",
+  '180':"Resum anual — Retencions de lloguers",
+  '190':"Resum anual — Retencions IRPF",
+  '193':"Resum anual — Retencions capital mobiliari",
+  '347':"Declaració d'operacions amb terceres persones",
+  '349':"Declaració d'operacions intracomunitàries",
+  '036':"Declaració censal (alta / modificació / baixa)",
+  '037':"Declaració censal simplificada",
+  '840':"IAE — Declaració",
+  '845':"IAE — Comunicació",
+};
+const SS_NAMES={
+  'RLC':"Recibo de Liquidació de Cotitzacions (RLC)",
+  'RNT':"Relació Nominal de Treballadors (RNT)",
+  'VIDA_LABORAL':"Informe de Vida Laboral",
+  'BASES_COTIZACION':"Informe de Bases i Quotes",
+  'ALTA_AUTONOMOS':"Alta al Règim d'Autònoms (RETA)",
+  'BAIXA_AUTONOMOS':"Baixa del Règim d'Autònoms (RETA)",
+  'CERTIFICAT_ESTAR_AL_CORRENT':"Certificat d'estar al corrent",
+  'OTRO':"Altres documents de Seguretat Social",
+};
+const RESULT_LABELS={
+  'A_INGRESAR':{t:'A ingressar',c:'b-ingressar'},
+  'A_DEVOLVER':{t:'A retornar',c:'b-devolver'},
+  'A_DEDUCIR':{t:'A deduir',c:'b-deduir'},
+  'NEGATIVO':{t:'Negatiu',c:'b-negatiu'},
+  'SIN_ACTIVIDAD':{t:'Sense activitat',c:'b-negatiu'},
+  'DOMICILIADO':{t:'Domiciliat',c:'b-domiciliat'},
+  'INFORMATIVO':{t:'Informatiu',c:'b-negatiu'},
+};
+
+function modeloLabel(doc){
+  if(doc.organismo==='SEG_SOCIAL') return SS_NAMES[doc.modelo]||doc.descripcion||'Seguretat Social';
+  if(MODEL_NAMES[doc.modelo]) return 'Model '+doc.modelo+' — '+MODEL_NAMES[doc.modelo];
+  return (doc.modelo?('Model '+doc.modelo):'Document')+(doc.descripcion?(' — '+doc.descripcion):'');
+}
+function categoriaFor(doc){
+  if(doc.organismo==='SEG_SOCIAL') return 'Seguretat Social';
+  if(doc.organismo==='OTRO') return 'Altres';
+  const m=doc.modelo;
+  if(['100','102'].includes(m)) return 'IRPF · Renda';
+  if(['130','131'].includes(m)) return 'IRPF · Pagament fraccionat';
+  if(['303','308','309'].includes(m)) return 'IVA';
+  if(m==='390') return 'IVA · Resum anual';
+  if(['111','115','123'].includes(m)) return 'Retencions';
+  if(['180','190','193','347','349'].includes(m)) return 'Informatives';
+  if(['036','037'].includes(m)) return 'Cens / Activitat';
+  if(['840','845'].includes(m)) return 'IAE';
+  return 'Altres Hisenda';
+}
+function periodoLabel(p){
+  if(!p) return '—';
+  if(p==='ANUAL') return 'Anual';
+  if(/^[1-4]T$/.test(p)) return p[0]+({1:'r',2:'n',3:'r',4:'t'}[p[0]])+' Trim.';
+  const months=['','Gener','Febrer','Març','Abril','Maig','Juny','Juliol','Agost','Setembre','Octubre','Novembre','Desembre'];
+  const n=parseInt(p,10);
+  if(n>=1&&n<=12) return months[n];
+  return p;
+}
+function periodoSortKey(p){
+  if(!p) return 99;
+  if(p==='ANUAL') return 0;
+  if(/^[1-4]T$/.test(p)) return parseInt(p[0],10);
+  const n=parseInt(p,10);
+  if(!isNaN(n)) return n;
+  return 50;
+}
+function fmtMoney(n){
+  if(n===null||n===undefined||n==='') return '—';
+  return Number(n).toLocaleString('es-ES',{minimumFractionDigits:2,maximumFractionDigits:2})+' €';
+}
+function fmtDate(d){
+  if(!d) return '—';
+  const parts=String(d).split('-');
+  if(parts.length===3) return parts[2]+'/'+parts[1]+'/'+parts[0];
+  return d;
+}
+function needsReview(doc){
+  return !doc.modelo || !doc.ejercicio || (doc.organismo!=='OTRO' && !doc.organismo);
+}
+
+/* ===================== Utilitats ===================== */
+function delay(ms){return new Promise(r=>setTimeout(r,ms))}
+function fileToBase64(f){return new Promise((res,rej)=>{const r=new FileReader();r.onload=e=>res(e.target.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(f)})}
+function throwGeminiError(resp,data,label){
+  const ge=data?.error||{};
+  let retryAfter=null;
+  const retryInfo=(ge.details||[]).find(d=>String(d['@type']||'').includes('RetryInfo'));
+  if(retryInfo?.retryDelay){const m=String(retryInfo.retryDelay).match(/([\d.]+)s/);if(m)retryAfter=Math.ceil(parseFloat(m[1]))}
+  if(retryAfter===null){const m=String(ge.message||'').match(/retry in ([\d.]+)s/i);if(m)retryAfter=Math.ceil(parseFloat(m[1]))}
+  const err=new Error(label+' ('+resp.status+'): '+(ge.message||JSON.stringify(data)));
+  err.status=resp.status;err.retryAfter=retryAfter;
+  console.error('Gemini error detail',{status:resp.status,geminiStatus:ge.status,retryAfter,data});
+  throw err;
+}
+function toast(msg,type='ok'){
+  const el=document.createElement('div');
+  el.className='toast';
+  el.textContent=msg;
+  document.body.appendChild(el);
+  requestAnimationFrame(()=>el.classList.add('show',type));
+  setTimeout(()=>{el.classList.remove('show');setTimeout(()=>el.remove(),300)},3800);
+}
+function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('show')}
+function closeSidebar(){document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('show')}
+
+/* ===================== Navegació ===================== */
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.remove('active'));
+  const item=document.querySelector('.nav-item[data-page="'+id+'"]');
+  if(item) item.classList.add('active');
+  closeSidebar();
+  if(id==='dashboard') renderDashboard();
+  if(id==='alldocs') renderAllDocs(true);
+  if(id==='pending') renderPending();
+  if(id==='config') loadConfigPage();
+}
+function openYear(y){
+  _currentYear=y;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-year').classList.add('active');
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.remove('active'));
+  renderYear(y);
+  closeSidebar();
+}
+
+/* ===================== Render: Sidebar anys ===================== */
+async function renderYearNav(){
+  const docs=await dbAll('documents');
+  const years=[...new Set(docs.map(d=>d.ejercicio).filter(Boolean))].sort((a,b)=>b-a);
+  const wrap=document.getElementById('yearNavList');
+  wrap.innerHTML=years.map(y=>`<div class="nav-item" onclick="openYear(${y})"><span class="nav-icon">▸</span> ${y} <span class="nav-count">${docs.filter(d=>d.ejercicio===y).length}</span></div>`).join('')
+    || '<div style="padding:8px 24px;color:var(--dim);font-size:11px">Encara no hi ha documents</div>';
+  const pend=docs.filter(needsReview).length;
+  const badge=document.getElementById('pendingBadge');
+  badge.textContent=pend; badge.classList.toggle('zero',pend===0);
+}
+
+/* ===================== Render: Dashboard ===================== */
+async function renderDashboard(){
+  const docs=await dbAll('documents');
+  const years=[...new Set(docs.map(d=>d.ejercicio).filter(Boolean))].sort((a,b)=>b-a);
+  const totalIngresado=docs.filter(d=>['A_INGRESAR','DOMICILIADO'].includes(d.resultado)).reduce((s,d)=>s+(Number(d.importe)||0),0);
+  const totalDevuelto=docs.filter(d=>d.resultado==='A_DEVOLVER').reduce((s,d)=>s+(Number(d.importe)||0),0);
+  const pend=docs.filter(needsReview).length;
+
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat-card"><div class="stat-num">${docs.length}</div><div class="stat-label">Documents totals</div></div>
+    <div class="stat-card"><div class="stat-num">${years.length}</div><div class="stat-label">Exercicis</div></div>
+    <div class="stat-card"><div class="stat-num" style="color:${pend?'var(--warn)':'var(--ok)'}">${pend}</div><div class="stat-label">Per revisar</div></div>
+    <div class="stat-card"><div class="stat-num money">${fmtMoney(totalIngresado)}</div><div class="stat-label">Total ingressat/domiciliat</div></div>
+    <div class="stat-card"><div class="stat-num money" style="color:var(--ok)">${fmtMoney(totalDevuelto)}</div><div class="stat-label">Total a retornar</div></div>
+  `;
+
+  const grid=document.getElementById('dashYearGrid');
+  if(!years.length){
+    grid.innerHTML=`<div class="empty-state"><div class="empty-icon">◈</div><div class="empty-text">No hi ha cap document encara</div><div class="form-actions" style="justify-content:center;margin-top:18px"><button class="btn btn-primary" onclick="showPage('upload')">Pujar el primer document</button></div></div>`;
+    return;
+  }
+  grid.innerHTML=`<div class="cat-title">Exercicis</div><div class="year-grid">`+years.map(y=>{
+    const yd=docs.filter(d=>d.ejercicio===y);
+    const irpf=yd.filter(d=>categoriaFor(d).startsWith('IRPF')).length;
+    const iva=yd.filter(d=>categoriaFor(d).startsWith('IVA')).length;
+    const ss=yd.filter(d=>d.organismo==='SEG_SOCIAL').length;
+    const rev=yd.filter(needsReview).length;
+    return `<div class="year-card" onclick="openYear(${y})">
+      <div class="year-card-num">${y}</div>
+      <div class="year-card-meta">
+        <div class="year-card-row"><span>IRPF</span><span class="n">${irpf}</span></div>
+        <div class="year-card-row"><span>IVA</span><span class="n">${iva}</span></div>
+        <div class="year-card-row"><span>Seg. Social</span><span class="n">${ss}</span></div>
+        <div class="year-card-row"><span>Total</span><span class="n">${yd.length}</span></div>
+        ${rev?`<div class="year-card-row warn"><span>Per revisar</span><span class="n">${rev}</span></div>`:''}
+      </div>
+    </div>`;
+  }).join('')+`</div>`;
+}
+
+/* ===================== Render: Year detail ===================== */
+async function renderYear(y){
+  const docs=(await dbAll('documents')).filter(d=>d.ejercicio===y);
+  document.getElementById('yearTitle').textContent='Exercici '+y;
+  document.getElementById('yearCount').textContent=docs.length+' document'+(docs.length!==1?'s':'');
+  const cats=[...new Set(docs.map(categoriaFor))].sort();
+  const wrap=document.getElementById('yearContent');
+  if(!docs.length){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">◈</div><div class="empty-text">Cap document per aquest exercici</div></div>';return}
+  wrap.innerHTML=cats.map(cat=>{
+    const rows=docs.filter(d=>categoriaFor(d)===cat).sort((a,b)=>periodoSortKey(a.periodo)-periodoSortKey(b.periodo));
+    return `<div class="form-section year-section">
+      <div class="form-section-title">${cat} <span class="section-cnt">(${rows.length})</span></div>
+      ${docTable(rows)}
+    </div>`;
+  }).join('');
+}
+
+/* ===================== Render: taula genèrica ===================== */
+function docTable(rows){
+  if(!rows.length) return '<div class="empty-state"><div class="empty-text">Res per mostrar</div></div>';
+  return `<div class="table-wrap"><table class="inv-table"><thead><tr>
+    <th>Model / Tipus</th><th>Període</th><th>Resultat</th><th style="text-align:right">Import</th><th>Data present.</th><th>Titular</th>
+  </tr></thead><tbody>
+  ${rows.map(d=>{
+    const rl=RESULT_LABELS[d.resultado];
+    const review=needsReview(d);
+    return `<tr class="inv-row" onclick="openDetail(${d.id})">
+      <td class="td-prov">${modeloLabel(d)}${review?' <span class="badge b-review">revisar</span>':''}</td>
+      <td class="td-num">${periodoLabel(d.periodo)}</td>
+      <td>${rl?`<span class="badge ${rl.c}">${rl.t}</span>`:'—'}</td>
+      <td class="td-amount">${fmtMoney(d.importe)}</td>
+      <td class="td-num">${fmtDate(d.fechaPresentacion)}</td>
+      <td>${d.titular||'—'}</td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
+}
+
+/* ===================== Render: All docs ===================== */
+async function renderAllDocs(rebuildFilters){
+  const docs=await dbAll('documents');
+  if(rebuildFilters){
+    const years=[...new Set(docs.map(d=>d.ejercicio).filter(Boolean))].sort((a,b)=>b-a);
+    const cats=[...new Set(docs.map(categoriaFor))].sort();
+    document.getElementById('fltYear').innerHTML='<option value="">Tots els anys</option>'+years.map(y=>`<option value="${y}">${y}</option>`).join('');
+    document.getElementById('fltCat').innerHTML='<option value="">Totes les categories</option>'+cats.map(c=>`<option value="${c}">${c}</option>`).join('');
+  }
+  const search=document.getElementById('fltSearch').value.trim().toLowerCase();
+  const fy=document.getElementById('fltYear').value;
+  const fc=document.getElementById('fltCat').value;
+  const fr=document.getElementById('fltResult').value;
+  let rows=docs.filter(d=>{
+    if(fy && String(d.ejercicio)!==fy) return false;
+    if(fc && categoriaFor(d)!==fc) return false;
+    if(fr && d.resultado!==fr) return false;
+    if(search){
+      const hay=[d.nif,d.titular,d.numJustificante,d.modelo,d.descripcion].join(' ').toLowerCase();
+      if(!hay.includes(search)) return false;
+    }
+    return true;
+  });
+  rows.sort((a,b)=>{
+    let av,bv;
+    if(_sortCol==='fecha'){av=a.fechaPresentacion||'';bv=b.fechaPresentacion||''}
+    else if(_sortCol==='importe'){av=Number(a.importe)||0;bv=Number(b.importe)||0}
+    else if(_sortCol==='ejercicio'){av=a.ejercicio||0;bv=b.ejercicio||0}
+    else {av=modeloLabel(a);bv=modeloLabel(b)}
+    if(av<bv) return -1*_sortDir; if(av>bv) return 1*_sortDir; return 0;
+  });
+  document.getElementById('allDocsCount').textContent=rows.length+' de '+docs.length;
+  document.getElementById('allDocsSub').textContent='Cerca, filtra i clica per veure/editar qualsevol document';
+  if(!rows.length){
+    document.getElementById('allDocsTableWrap').innerHTML='<div class="empty-state"><div class="empty-icon">☰</div><div class="empty-text">Cap document coincideix amb els filtres</div></div>';
+    return;
+  }
+  document.getElementById('allDocsTableWrap').innerHTML=`<div class="table-wrap"><table class="inv-table"><thead><tr>
+    <th class="th-sort" onclick="setSortCol('modelo')">Model / Tipus</th>
+    <th class="th-sort" onclick="setSortCol('ejercicio')">Exercici</th>
+    <th>Període</th><th>Resultat</th>
+    <th class="th-sort" onclick="setSortCol('importe')" style="text-align:right">Import</th>
+    <th class="th-sort" onclick="setSortCol('fecha')">Data present.</th>
+    <th>NIF</th><th>Titular</th>
+  </tr></thead><tbody>
+  ${rows.map(d=>{
+    const rl=RESULT_LABELS[d.resultado];
+    const review=needsReview(d);
+    return `<tr class="inv-row" onclick="openDetail(${d.id})">
+      <td class="td-prov">${modeloLabel(d)}${review?' <span class="badge b-review">revisar</span>':''}</td>
+      <td class="td-num">${d.ejercicio||'—'}</td>
+      <td class="td-num">${periodoLabel(d.periodo)}</td>
+      <td>${rl?`<span class="badge ${rl.c}">${rl.t}</span>`:'—'}</td>
+      <td class="td-amount">${fmtMoney(d.importe)}</td>
+      <td class="td-num">${fmtDate(d.fechaPresentacion)}</td>
+      <td class="td-num">${d.nif||'—'}</td>
+      <td>${d.titular||'—'}</td>
+    </tr>`;
+  }).join('')}
+  </tbody></table></div>`;
+}
+function setSortCol(col){if(_sortCol===col){_sortDir*=-1}else{_sortCol=col;_sortDir=col==='importe'?-1:1}renderAllDocs()}
+
+/* ===================== Render: Pending ===================== */
+async function renderPending(){
+  const docs=(await dbAll('documents')).filter(needsReview);
+  document.getElementById('pendingCount').textContent=docs.length+' document'+(docs.length!==1?'s':'');
+  const wrap=document.getElementById('pendingList');
+  if(!docs.length){wrap.innerHTML='<div class="empty-state"><div class="empty-icon">✓</div><div class="empty-text">Tot classificat correctament</div></div>';return}
+  wrap.innerHTML=docTable(docs);
+}
+
+/* ===================== Upload zone / drag&drop ===================== */
+function isPdfOrImage(f){
+  if(f.type==='application/pdf'||f.type.startsWith('image/'))return true;
+  // Fallback per mòbils: alguns navegadors (Android/iOS) retornen type buit
+  // en agafar un PDF/foto des de Drive, Fitxers o la càmera
+  if(f.type==='')return /\.(pdf|jpe?g|png|webp)$/i.test(f.name);
+  return false;
+}
+function isImageFile(f){
+  if(f.type.startsWith('image/'))return true;
+  if(f.type==='')return /\.(jpe?g|png|webp)$/i.test(f.name);
+  return false;
+}
+
+const uploadZone=document.getElementById('uploadZone');
+uploadZone.addEventListener('dragover',e=>{e.preventDefault();uploadZone.classList.add('drag')});
+uploadZone.addEventListener('dragleave',()=>uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop',e=>{
+  e.preventDefault();uploadZone.classList.remove('drag');
+  const files=[...e.dataTransfer.files].filter(isPdfOrImage);
+  if(files.length) processBatch(files); else toast('Només PDFs i imatges','err');
+});
+function handleUpload(e){
+  const all=[...e.target.files];
+  const files=all.filter(isPdfOrImage);
+  if(files.length) processBatch(files);
+  else if(all.length) toast('Cap arxiu vàlid (només PDFs i imatges)','err');
+}
+
+/* ===================== Cua de processament ===================== */
+let _queue=[], _batchRunning=false, _batchStopped=false;
+
+function buildQueue(files){return files.map(f=>({file:f,name:f.name,state:'pending',detail:'',modelo:''}))}
+function delayForFile(file){const kb=file.size/1024;return kb<80?2200:kb<200?3200:4200}
+function stopBatch(){_batchStopped=true}
+
+function renderQueue(){
+  const panel=document.getElementById('queuePanel');
+  panel.style.display='block';
+  const done=_queue.filter(i=>['ok','error','dup','stopped'].includes(i.state)).length;
+  document.getElementById('queueFill').style.width=(done/_queue.length*100)+'%';
+  document.getElementById('queueSummary').textContent=done+' / '+_queue.length;
+  const icons={pending:'○',processing:'◐',ok:'●',error:'✕',dup:'⧉',waiting:'⏱',retrying:'↻',stopped:'■'};
+  document.getElementById('queueList').innerHTML=_queue.map(it=>`
+    <div class="queue-item qi-${it.state}">
+      <div class="qi-icon">${icons[it.state]||'○'}</div>
+      <div class="qi-body">
+        <div class="qi-name">${it.name}${it.modelo?' — '+it.modelo:''}</div>
+        <div class="qi-detail">${it.detail||''}</div>
+      </div>
+    </div>`).join('');
+}
+
+async function processBatch(files){
+  const apiKey=await getApiKey();
+  if(!apiKey){toast('Cal configurar la Gemini API Key a Configuració','err');showPage('config');return}
+  if(_batchRunning){toast('Ja hi ha una cua en curs','err');return}
+  _queue=buildQueue(files);
+  _batchRunning=true;_batchStopped=false;
+  let done=0,errors=0,dups=0;
+  renderQueue();
+
+  for(let i=0;i<_queue.length;i++){
+    if(_batchStopped){
+      for(let j=i;j<_queue.length;j++) if(_queue[j].state==='pending'){_queue[j].state='stopped';_queue[j].detail="Aturat per l'usuari"}
+      renderQueue();break;
+    }
+    const it=_queue[i];
+    it.state='processing';it.detail='Llegint document...';
+    renderQueue();
+
+    const tryExtract=async()=>{
+      const extracted=await extractDocData(it.file,apiKey);
+      const dup=await checkDuplicate(extracted);
+      if(dup){
+        it.state='dup';it.detail='Possible duplicat existent';it.modelo=modeloLabel(extracted);dups++;
+        return;
+      }
+      const fileB64=await fileToBase64(it.file);
+      const record={
+        ...extracted,
+        filename:it.file.name,
+        mime:it.file.type||(isImageFile(it.file)?'image/jpeg':'application/pdf'),
+        fileB64,
+        createdAt:new Date().toISOString(),
+      };
+      await dbAdd('documents',record);
+      it.state='ok';it.modelo=modeloLabel(extracted);
+      it.detail=(extracted.ejercicio?('Exercici '+extracted.ejercicio):'')+(extracted.periodo?(' · '+periodoLabel(extracted.periodo)):'');
+      done++;
+    };
+
+    try{ await tryExtract(); }
+    catch(err){
+      if(err.status===429 || String(err.message).includes('429')){
+        let secs=err.retryAfter&&err.retryAfter>0?err.retryAfter+5:65;
+        it.state='waiting';it.detail=`Límit de peticions — reintentant en ${secs}s`;
+        const tick=setInterval(()=>{secs--;it.detail=`Límit de peticions — reintentant en ${secs}s`;renderQueue();if(secs<=0)clearInterval(tick)},1000);
+        await delay(secs*1000);clearInterval(tick);
+        it.state='retrying';it.detail='';renderQueue();
+        try{ await tryExtract(); }
+        catch(e2){ it.state='error';it.detail=e2.message.slice(0,90);errors++; }
+      } else {
+        it.state='error';it.detail=err.message.slice(0,90);errors++;
+      }
+    }
+    renderQueue();
+    if(i<_queue.length-1 && !_batchStopped){
+      const w=delayForFile(it.file);
+      _queue[i+1].detail='Esperant '+Math.round(w/1000)+'s...';renderQueue();
+      await delay(w);_queue[i+1].detail='';renderQueue();
+    }
+  }
+  _batchRunning=false;
+  document.getElementById('fileInput').value='';
+  toast(`✓ ${done} document${done!==1?'s':''} desat${done!==1?'s':''}`+(dups?` · ${dups} duplicat${dups!==1?'s':''}`:'')+(errors?` · ${errors} error${errors!==1?'s':''}`:''),errors?'err':'ok');
+  renderYearNav();
+  renderDashboard();
+  if(document.getElementById('page-alldocs').classList.contains('active')) renderAllDocs(true);
+  if(document.getElementById('page-pending').classList.contains('active')) renderPending();
+}
+
+async function checkDuplicate(ext){
+  if(!ext.modelo || !ext.ejercicio) return null;
+  const docs=await dbAll('documents');
+  return docs.find(d=>d.organismo===ext.organismo && d.modelo===ext.modelo && d.ejercicio===ext.ejercicio && (d.periodo||'')===(ext.periodo||'') && (d.nif||'')===(ext.nif||'')) || null;
+}
+
+/* ===================== Extracció amb Gemini ===================== */
+const EXTRACT_SYSTEM_PROMPT=`Eres un extractor experto de documentos oficiales españoles de la Agencia Tributaria (AEAT) y de la Seguridad Social. Analiza el documento adjunto y devuelve EXCLUSIVAMENTE un JSON con este esquema exacto, sin texto adicional ni backticks:
+{"organismo":"AEAT","modelo":"","descripcion":"","ejercicio":0,"periodo":"","resultado":"","importe":0,"fechaPresentacion":"","nif":"","titular":"","numJustificante":""}
+
+Reglas:
+- "organismo": "AEAT" si es un modelo de Hacienda/Agencia Tributaria (100,130,131,303,390,111,349,036...). "SEG_SOCIAL" si es un documento de la Seguridad Social o del régimen de autónomos (RETA): recibo de liquidación de cotizaciones, informe de vida laboral, alta/baja de autónomos, informe de bases de cotización. "OTRO" si no encaja en ninguna de las anteriores.
+- "modelo": si organismo="AEAT", el número de modelo tal cual aparece impreso (ej "100","303","131","390","111","349"). Si organismo="SEG_SOCIAL", usa uno de estos códigos: "RLC","RNT","VIDA_LABORAL","BASES_COTIZACION","ALTA_AUTONOMOS","BAIXA_AUTONOMOS","CERTIFICAT_ESTAR_AL_CORRENT","OTRO". Si organismo="OTRO", deja modelo vacío.
+- "descripcion": breve descripción de máximo 6 palabras, SOLO rellenar si el modelo/tipo es incierto o "OTRO".
+- "ejercicio": año fiscal o ejercicio al que corresponde el documento (numero de 4 cifras, ej 2023). Búscalo en "Ejercicio", "Devengo" o en la fecha de la actividad, NO la fecha de presentación si son distintas.
+- "periodo": "1T","2T","3T","4T" si el documento es trimestral, "01".."12" (dos dígitos) si es mensual, "ANUAL" si es anual, o "" si no aplica o es un documento informativo sin periodo (ej. informe de vida laboral).
+- "resultado": elige uno de "A_INGRESAR","A_DEVOLVER","A_DEDUCIR","NEGATIVO","SIN_ACTIVIDAD","DOMICILIADO","INFORMATIVO" según el texto del documento. Ejemplos: "NEGATIVA/SIN ACTIVIDAD/RESULTADO CERO" -> SIN_ACTIVIDAD. "A DEDUCIR" o "autoliquidación con resultado a deducir" -> A_DEDUCIR. "DOMICILIACIÓN DEL IMPORTE A INGRESAR" -> DOMICILIADO. Resultado positivo a pagar sin domiciliar -> A_INGRESAR. Si hay una devolución a favor del contribuyente -> A_DEVOLVER. Documentos meramente informativos (vida laboral, certificados) -> INFORMATIVO.
+- "importe": el importe económico principal asociado al resultado, en euros, SIEMPRE positivo (sin signo), como número decimal (usa punto decimal). Si no hay importe relevante (sin actividad, informativo) usa 0.
+- "fechaPresentacion": fecha de presentación o de emisión del documento en formato YYYY-MM-DD si aparece impresa.
+- "nif": NIF/NIE/CIF del titular o declarante principal, en mayúsculas, sin espacios ni guiones.
+- "titular": nombre completo del declarante o titular del documento.
+- "numJustificante": número de justificante de la presentación si aparece.
+Si algún campo no aparece en el documento usa "" para strings y 0 para números. No inventes datos. Responde ÚNICAMENTE el objeto JSON.`;
+
+function parseExtractedJson(rawText){
+  const clean=rawText.replace(/```json?|```/g,'').trim();
+  const json=JSON.parse(clean);
+  return {
+    organismo:(json.organismo||'').toUpperCase()||null,
+    modelo:(json.modelo||'').toString().trim()||null,
+    descripcion:json.descripcion||'',
+    ejercicio:json.ejercicio?parseInt(json.ejercicio,10):null,
+    periodo:(json.periodo||'').toString().toUpperCase()||'',
+    resultado:(json.resultado||'').toUpperCase()||'',
+    importe:json.importe!=null?Math.abs(+json.importe)||0:0,
+    fechaPresentacion:json.fechaPresentacion||'',
+    nif:(json.nif||'').replace(/[\s.\-]/g,'').toUpperCase(),
+    titular:json.titular||'',
+    numJustificante:json.numJustificante||'',
+  };
+}
+
+async function extractDocData(file,apiKey){
+  const b64=await fileToBase64(file);
+  const mime=isImageFile(file)?(file.type||'image/jpeg'):'application/pdf';
+  const resp=await fetch('https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent',{
+    method:'POST',
+    headers:{'Content-Type':'application/json','x-goog-api-key':apiKey},
+    body:JSON.stringify({
+      contents:[{parts:[{inline_data:{mime_type:mime,data:b64}},{text:'Extrae los datos de este documento fiscal/administrativo.'}]}],
+      systemInstruction:{parts:[{text:EXTRACT_SYSTEM_PROMPT}]},
+      generationConfig:{temperature:0,maxOutputTokens:400,responseMimeType:'application/json',thinkingConfig:{thinkingLevel:'low'}}
+    })
+  });
+  const data=await resp.json();
+  if(!resp.ok)throwGeminiError(resp,data,'API');
+  const rawText=data.candidates?.[0]?.content?.parts?.[0]?.text||'';
+  return parseExtractedJson(rawText);
+}
+
+/* ===================== Detail modal ===================== */
+async function openDetail(id){
+  const doc=await dbGet('documents',id);
+  if(!doc) return;
+  _currentDetailId=id;
+  document.getElementById('detailTitle').textContent=modeloLabel(doc);
+  document.getElementById('detailFilename').textContent=doc.filename||'';
+  document.getElementById('d_organismo').value=doc.organismo||'AEAT';
+  document.getElementById('d_modelo').value=doc.modelo||'';
+  document.getElementById('d_ejercicio').value=doc.ejercicio||'';
+  document.getElementById('d_descripcion').value=doc.descripcion||'';
+  document.getElementById('d_periodo').value=doc.periodo||'';
+  document.getElementById('d_resultado').value=doc.resultado||'';
+  document.getElementById('d_importe').value=doc.importe||'';
+  document.getElementById('d_fecha').value=doc.fechaPresentacion||'';
+  document.getElementById('d_nif').value=doc.nif||'';
+  document.getElementById('d_numjust').value=doc.numJustificante||'';
+  document.getElementById('d_titular').value=doc.titular||'';
+
+  const pdfWrap=document.getElementById('detailPdfWrap');
+  if(doc.mime && doc.mime.startsWith('image/')){
+    pdfWrap.innerHTML=`<img src="data:${doc.mime};base64,${doc.fileB64}" style="width:100%;border:1px solid var(--border)">`;
+  } else {
+    pdfWrap.innerHTML=`<iframe class="pdf-frame" src="data:application/pdf;base64,${doc.fileB64}"></iframe>`;
+  }
+  document.getElementById('detailOverlay').classList.add('show');
+}
+function closeDetail(){document.getElementById('detailOverlay').classList.remove('show');_currentDetailId=null}
+
+async function saveDetailEdits(){
+  if(!_currentDetailId) return;
+  const doc=await dbGet('documents',_currentDetailId);
+  if(!doc) return;
+  doc.organismo=document.getElementById('d_organismo').value;
+  doc.modelo=document.getElementById('d_modelo').value.trim();
+  doc.ejercicio=parseInt(document.getElementById('d_ejercicio').value,10)||null;
+  doc.descripcion=document.getElementById('d_descripcion').value.trim();
+  doc.periodo=document.getElementById('d_periodo').value;
+  doc.resultado=document.getElementById('d_resultado').value;
+  doc.importe=parseFloat(document.getElementById('d_importe').value)||0;
+  doc.fechaPresentacion=document.getElementById('d_fecha').value;
+  doc.nif=document.getElementById('d_nif').value.trim().toUpperCase();
+  doc.numJustificante=document.getElementById('d_numjust').value.trim();
+  doc.titular=document.getElementById('d_titular').value.trim();
+  await dbPut('documents',doc);
+  toast('✓ Canvis desats');
+  closeDetail();
+  renderYearNav();renderDashboard();
+  if(document.getElementById('page-alldocs').classList.contains('active')) renderAllDocs(true);
+  if(document.getElementById('page-pending').classList.contains('active')) renderPending();
+  if(document.getElementById('page-year').classList.contains('active') && _currentYear) renderYear(_currentYear);
+}
+
+function downloadCurrentDoc(){
+  dbGet('documents',_currentDetailId).then(doc=>{
+    if(!doc) return;
+    const a=document.createElement('a');
+    a.href='data:'+doc.mime+';base64,'+doc.fileB64;
+    a.download=doc.filename||'document';
+    a.click();
+  });
+}
+function deleteCurrentDoc(){
+  if(!_currentDetailId) return;
+  openConfirm('Eliminar document','Segur que vols eliminar aquest document? Aquesta acció no es pot desfer.',async()=>{
+    await dbDel('documents',_currentDetailId);
+    closeConfirm();closeDetail();
+    toast('Document eliminat');
+    renderYearNav();renderDashboard();
+    if(document.getElementById('page-alldocs').classList.contains('active')) renderAllDocs(true);
+    if(document.getElementById('page-pending').classList.contains('active')) renderPending();
+    if(document.getElementById('page-year').classList.contains('active') && _currentYear) renderYear(_currentYear);
+  });
+}
+
+/* ===================== Confirm modal genèric ===================== */
+function openConfirm(title,body,onConfirm,btnLabel,isHTML,btnClass){
+  document.getElementById('confirmTitle').textContent=title;
+  const bodyEl=document.getElementById('confirmBody');
+  if(isHTML) bodyEl.innerHTML=body; else bodyEl.textContent=body;
+  const btn=document.getElementById('confirmActionBtn');
+  btn.textContent=btnLabel||'Confirmar';
+  btn.className='btn '+(btnClass||'btn-danger');
+  const newBtn=btn.cloneNode(true);
+  btn.parentNode.replaceChild(newBtn,btn);
+  newBtn.addEventListener('click',onConfirm);
+  document.getElementById('confirmOverlay').classList.add('show');
+}
+function closeConfirm(){document.getElementById('confirmOverlay').classList.remove('show')}
+
+function confirmResetAll(){
+  openConfirm("Esborrar tot l'arxiu","S'eliminaran TOTS els documents desats en aquest navegador. Aquesta acció no es pot desfer.",async()=>{
+    await dbClear('documents');
+    closeConfirm();
+    toast("Arxiu esborrat");
+    renderYearNav();renderDashboard();
+  });
+}
+
+/* ===================== Còpia de seguretat (export/import) ===================== */
+function docFingerprint(d){
+  return [d.organismo||'',d.modelo||'',d.ejercicio||'',d.periodo||'',d.nif||'',d.filename||''].join('|');
+}
+async function exportBackup(){
+  const documents=await dbAll('documents');
+  const settings=await dbAll('settings');
+  const payload={app:'hisenda',version:1,exportedAt:new Date().toISOString(),documents,settings};
+  const blob=new Blob([JSON.stringify(payload)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  const stamp=new Date().toISOString().slice(0,10);
+  a.href=url;a.download='hisenda_backup_'+stamp+'.json';
+  a.click();
+  URL.revokeObjectURL(url);
+  const el=document.getElementById('backupStatus');
+  el.style.display='block';el.style.color='var(--ok)';
+  el.textContent='✓ Exportats '+documents.length+' document'+(documents.length!==1?'s':'')+' correctament';
+  setTimeout(()=>el.style.display='none',4000);
+}
+
+let _pendingImport=null;
+function handleImportFile(e){
+  const file=e.target.files[0];
+  if(!file) return;
+  const reader=new FileReader();
+  reader.onload=async ev=>{
+    let payload;
+    try{ payload=JSON.parse(ev.target.result); }
+    catch{ toast('El fitxer no és un JSON vàlid','err'); e.target.value=''; return; }
+    if(!payload || !Array.isArray(payload.documents)){ toast('Aquest fitxer no sembla una còpia de seguretat de HISENDA','err'); e.target.value=''; return; }
+
+    const existing=await dbAll('documents');
+    const existingKeys=new Set(existing.map(docFingerprint));
+    const toImport=payload.documents.filter(d=>!existingKeys.has(docFingerprint(d)));
+    const dupCount=payload.documents.length-toImport.length;
+    _pendingImport={docs:toImport,settings:payload.settings||[]};
+
+    const bodyHtml=`
+      <p style="margin-bottom:10px">El fitxer conté <strong>${payload.documents.length}</strong> document${payload.documents.length!==1?'s':''}.</p>
+      <p style="margin-bottom:10px"><strong style="color:var(--ok)">${toImport.length}</strong> document${toImport.length!==1?'s':''} nou${toImport.length!==1?'s':''} s'afegiran a l'arxiu.</p>
+      ${dupCount?`<p style="color:var(--dim)">${dupCount} ja existeixen i s'ometran (no se sobreescriuran).</p>`:''}
+      <p style="margin-top:10px;font-size:11px;color:var(--dim)">La configuració (API Key / NIF) només s'importarà si encara no tens res desat.</p>
+    `;
+    openConfirm('Importar còpia de seguretat',bodyHtml,applyImport,'Importar',true,'btn-primary');
+    e.target.value='';
+  };
+  reader.readAsText(file);
+}
+
+async function applyImport(){
+  if(!_pendingImport) return;
+  for(const d of _pendingImport.docs){
+    const clone={...d}; delete clone.id;
+    await dbAdd('documents',clone);
+  }
+  for(const s of _pendingImport.settings){
+    const current=await getSetting(s.key);
+    if(current===null || current===undefined || current==='') await setSetting(s.key,s.value);
+  }
+  _cachedApiKey=null;_cachedNif=null;
+  const count=_pendingImport.docs.length;
+  _pendingImport=null;
+  closeConfirm();
+  toast('✓ Importats '+count+' document'+(count!==1?'s':''));
+  renderYearNav();renderDashboard();
+  if(document.getElementById('page-alldocs').classList.contains('active')) renderAllDocs(true);
+  if(document.getElementById('page-pending').classList.contains('active')) renderPending();
+  if(document.getElementById('page-config').classList.contains('active')) loadConfigPage();
+}
+
+/* ===================== Config page ===================== */
+async function loadConfigPage(){
+  const k=await getApiKey();
+  document.getElementById('cfg_apikey').value=k||'';
+  const nif=await getMyNif();
+  document.getElementById('cfg_nif').value=nif||'';
+}
+async function saveApiConfig(){
+  const k=document.getElementById('cfg_apikey').value.trim();
+  await saveApiKeyToDb(k);
+  const el=document.getElementById('cfgStatus');
+  el.style.display='block';el.style.color='var(--ok)';el.textContent='✓ Clau desada correctament';
+  setTimeout(()=>el.style.display='none',3000);
+}
+function toggleApiKeyVisibility(){const inp=document.getElementById('cfg_apikey');inp.type=inp.type==='password'?'text':'password'}
+async function saveNif(){
+  await saveMyNif(document.getElementById('cfg_nif').value);
+  toast('✓ NIF desat');
+}
+
+/* ===================== Init ===================== */
+(async function init(){
+  await initDB();
+  await renderYearNav();
+  await renderDashboard();
+})();
+</script>
+</body>
+</html>
