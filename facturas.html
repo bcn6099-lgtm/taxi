@@ -70,7 +70,29 @@
 .qi-waiting .qi-icon{color:var(--warn)}
 .qi-retrying .qi-icon{color:var(--info)}
 .qi-stopped .qi-icon{color:var(--dim)}
-.queue-eta{font-size:10px;color:var(--muted);padding:6px 16px;border-top:1px solid var(--border)}
+
+/* Pastilla acabada (desada/duplicat/error/aturat): més vistosa, amb chip de color */
+.queue-item-done{padding:12px 14px;margin-bottom:6px}
+.queue-item-done .qi-icon{font-size:19px;min-width:22px}
+.queue-item-done .qi-name{font-size:15px;font-weight:700}
+.queue-item-done .qi-detail{font-size:11px}
+.queue-item-done .qi-file{font-size:10px;color:var(--muted);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-weight:400}
+.queue-item-done .qi-label{font-size:9px;font-weight:700;letter-spacing:1.2px;padding:4px 9px;border-radius:20px;align-self:center}
+.qi-ok.queue-item-done .qi-label{background:rgba(46,125,50,.14);color:var(--ok)}
+.qi-dup.queue-item-done .qi-label{background:rgba(230,81,0,.14);color:var(--warn)}
+.qi-error.queue-item-done .qi-label{background:rgba(198,40,40,.14);color:var(--err)}
+.qi-stopped.queue-item-done .qi-label{background:rgba(0,0,0,.06);color:var(--dim)}
+
+/* Pastilla activa (processant/reintentant/esperant): destacada, gran i vistosa */
+.queue-item-active{padding:18px 20px;margin-bottom:10px;box-shadow:0 6px 20px rgba(21,101,192,.14);border-width:2px}
+.queue-item-active .qi-icon{font-size:26px;min-width:30px}
+.queue-item-active .qi-name{font-size:17px;font-weight:700;white-space:normal}
+.queue-item-active .qi-detail{font-size:13px;margin-top:6px}
+.queue-item-active .qi-label{font-size:11px;font-weight:700;letter-spacing:2px}
+
+.queue-eta{padding:14px 18px;border-top:1px solid var(--border);background:var(--bg3)}
+.queue-eta-main{font-size:16px;font-weight:700;color:var(--accent);font-family:'DM Mono',monospace}
+.queue-eta-sub{font-size:11px;color:var(--muted);margin-top:4px;letter-spacing:.3px}
 @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
 
 /* Table overrides */
@@ -124,6 +146,9 @@ table.inv-table{width:100%;border-collapse:collapse}
 .detail-value{font-weight:500;color:var(--text)}
 .detail-value.num{font-family:'DM Mono',monospace;color:var(--accent)}
 .detail-row.accent .detail-value{font-size:18px;color:var(--accent);font-weight:700;font-family:'DM Mono',monospace}
+.detail-select{background:transparent;border:none;border-bottom:1px dashed var(--border);color:var(--text);font-weight:500;font-size:13px;font-family:'DM Sans',sans-serif;text-align:right;text-align-last:right;cursor:pointer;outline:none;max-width:220px;padding:2px 0}
+.detail-select:focus{border-bottom-color:var(--accent)}
+.detail-select:hover{border-bottom-color:var(--accent)}
 
 /* Dup modal */
 .modal-warn{border-top-color:var(--warn)!important}
@@ -779,11 +804,14 @@ async function openDetail(id){
   const r=await dbGet('invoices',id);
   if(!r)return;
   _currentDetailId=id;
+  const provs=(await dbAll('providers')).sort((a,b)=>a.name.localeCompare(b.name));
+  const provOptions='<option value="">— Pendent assignació —</option>'+provs.map(p=>
+    `<option value="${p.id}"${p.name===r.provider?' selected':''}>${p.name}${p.cif?' ('+p.cif+')':''}</option>`).join('');
   document.getElementById('modalBody').innerHTML=`
     <div class="detail-row"><span class="detail-label">Núm. Factura</span><span class="detail-value">${r.invoiceNum||'—'}</span></div>
     <div class="detail-row"><span class="detail-label">Data</span><span class="detail-value">${r.date?r.date.split('-').reverse().join('/'):'—'}</span></div>
-    <div class="detail-row"><span class="detail-label">Proveïdor</span><span class="detail-value">${r.provider||'<span style="color:var(--warn)">Pendent assignació</span>'}</span></div>
-    <div class="detail-row"><span class="detail-label">CIF</span><span class="detail-value">${r.cif||'—'}</span></div>
+    <div class="detail-row"><span class="detail-label">Proveïdor</span><select class="detail-select" id="modalProviderSel" onchange="onModalProviderChange()">${provOptions}</select></div>
+    <div class="detail-row"><span class="detail-label">CIF</span><span class="detail-value" id="modalCifVal">${r.cif||'—'}</span></div>
     <div class="detail-row"><span class="detail-label">Base Imponible</span><span class="detail-value num">${fmt(r.base)} €</span></div>
     <div class="detail-row"><span class="detail-label">IVA</span><span class="detail-value num">${fmt(r.iva)} €</span></div>
     <div class="detail-row accent"><span class="detail-label">TOTAL FACTURA</span><span class="detail-value num">${fmt(r.total)} €</span></div>
@@ -800,6 +828,25 @@ async function openDetail(id){
   }
   document.getElementById('modalDeleteBtn').onclick=()=>deleteInvoice(id);
   document.getElementById('modalOverlay').classList.add('show');
+}
+async function onModalProviderChange(){
+  if(!_currentDetailId)return;
+  const sel=document.getElementById('modalProviderSel');
+  const provId=+sel.value;
+  const r=await dbGet('invoices',_currentDetailId);
+  if(!r)return;
+  if(!provId){
+    await dbPut('invoices',{...r,provider:'',cif:''});
+    document.getElementById('modalCifVal').textContent='—';
+    toast('Proveïdor desassignat');
+  } else {
+    const prov=await dbGet('providers',provId);
+    if(!prov)return;
+    await dbPut('invoices',{...r,provider:prov.name,cif:prov.cif||r.cif||''});
+    document.getElementById('modalCifVal').textContent=prov.cif||r.cif||'—';
+    toast(`Proveïdor canviat a ${prov.name}`,'ok');
+  }
+  renderInvoices();
 }
 function closeDetail(){document.getElementById('modalOverlay').classList.remove('show');_currentDetailId=null}
 function downloadCurrentInvoiceDoc(){
@@ -862,45 +909,72 @@ function buildQueue(files){
   return Array.from(files).map(f=>({name:f.name,file:f,state:'pending',detail:'',provider:'',cif:'',total:''}));
 }
 function delayForFile(file){return 1500}
+function fmtDuration(s){
+  if(s<60)return s+'s';
+  const m=Math.floor(s/60),rs=s%60;
+  return rs?`${m}m ${rs}s`:`${m}m`;
+}
 
 function renderQueue(items,panelId,stopFn){
   const panel=document.getElementById(panelId);
   if(!items.length){panel.style.display='none';return}
   panel.style.display='block';
   const total=items.length;
-  const finished=items.filter(i=>['ok','dup','error','stopped'].includes(i.state)).length;
+  const activeStates=['processing','waiting','retrying'];
+  const finishedStates=['ok','dup','error','stopped'];
+  const finished=items.filter(i=>finishedStates.includes(i.state)).length;
   const pct=total?Math.round((finished/total)*100):0;
   const ok=items.filter(i=>i.state==='ok').length;
   const errs=items.filter(i=>i.state==='error').length;
   const dups=items.filter(i=>i.state==='dup').length;
-  const pending=items.filter(i=>['pending','processing','retrying','waiting'].includes(i.state)).length;
-  let etaHtml='';
-  if(pending>0){const s=pending*5;etaHtml=`Temps estimat: ~${s<60?s+'s':Math.ceil(s/60)+'min'}`}
-  else if(finished===total){etaHtml='Processament completat ✓'}
+  const pendingCount=items.filter(i=>i.state==='pending'||activeStates.includes(i.state)).length;
+
+  // Ordre visual: l'actiu sempre a dalt; en acabar, baixa una fila i empeny els pendents avall
+  const activeItems=items.filter(i=>activeStates.includes(i.state));
+  const finishedItems=items.filter(i=>finishedStates.includes(i.state)).slice().reverse();
+  const pendingItems=items.filter(i=>i.state==='pending');
+  const displayItems=[...activeItems,...finishedItems,...pendingItems];
+
+  let etaMain='',etaSub='';
+  if(pendingCount>0){
+    const s=pendingCount*5;
+    etaMain=`⏱ ~${fmtDuration(s)} restants`;
+    etaSub=`${pendingCount} pendent${pendingCount!==1?'s':''} de ${total} · ${finished} completat${finished!==1?'s':''}`;
+  } else if(finished===total){
+    etaMain='✓ Processament completat';
+    etaSub=`${total} document${total!==1?'s':''} · ${ok} desat${ok!==1?'s':''}${dups?' · '+dups+' duplicat'+(dups!==1?'s':''):''}${errs?' · '+errs+' error'+(errs!==1?'s':''):''}`;
+  }
 
   panel.innerHTML=`
     <div class="queue-panel">
       <div class="queue-panel-header">
         <span class="queue-panel-title">CUA DE PROCESSAMENT</span>
         <span class="queue-summary">${finished}/${total} · ✓${ok}${dups?' ⊘'+dups:''} ${errs?'✕'+errs:''}</span>
-        ${pending>0?`<button class="queue-stop-btn" onclick="(${stopFn.toString()})()">⏹ ATURAR</button>`:''}
+        ${pendingCount>0?`<button class="queue-stop-btn" onclick="(${stopFn.toString()})()">⏹ ATURAR</button>`:''}
       </div>
       <div class="queue-global-bar"><div class="queue-global-fill" style="width:${pct}%"></div></div>
       <div class="queue-list">
-        ${items.map(it=>{
+        ${displayItems.map(it=>{
           const icons={pending:'◌',processing:'◎',ok:'✓',dup:'⊘',error:'✕',retrying:'⟳',waiting:'⏳',stopped:'—'};
           const labels={pending:'Pendent',processing:'Processant…',ok:'Desada',dup:'Duplicat',error:'Error',retrying:'Reintentant…',waiting:'Esperant…',stopped:'Aturat'};
-          const nameShort=it.name.length>44?it.name.slice(0,41)+'…':it.name;
+          const isActive=activeStates.includes(it.state);
+          const isDone=finishedStates.includes(it.state);
+          const nameShort=isActive||it.name.length<=44?it.name:it.name.slice(0,41)+'…';
           const provInfo=it.provider?`<div class="qi-detail" style="color:var(--text2)">${it.provider}${it.total?' · '+it.total+' €':''}</div>`:'';
           const detailInfo=it.detail?`<div class="qi-detail">${it.detail}</div>`:'';
-          return `<div class="queue-item qi-${it.state}">
+          // En les pastilles ja acabades amb proveïdor detectat, es prioritza visualment
+          // el proveïdor + import (gran) per sobre del nom de fitxer (petit, secundari)
+          const bodyHtml=(isDone&&it.provider)
+            ?`<div class="qi-name">${it.provider}${it.total?' · '+it.total+' €':''}</div><div class="qi-file">${nameShort}</div>${detailInfo}`
+            :`<div class="qi-name">${nameShort}</div>${provInfo}${detailInfo}`;
+          return `<div class="queue-item ${isActive?'queue-item-active ':isDone?'queue-item-done ':''}qi-${it.state}">
             <span class="qi-icon">${icons[it.state]||'◌'}</span>
-            <div class="qi-body"><div class="qi-name">${nameShort}</div>${provInfo}${detailInfo}</div>
+            <div class="qi-body">${bodyHtml}</div>
             <span class="qi-label">${labels[it.state]||''}</span>
           </div>`;
         }).join('')}
       </div>
-      ${etaHtml?`<div class="queue-eta">${etaHtml}</div>`:''}
+      ${etaMain?`<div class="queue-eta"><div class="queue-eta-main">${etaMain}</div><div class="queue-eta-sub">${etaSub}</div></div>`:''}
     </div>`;
 }
 
