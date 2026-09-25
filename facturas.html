@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>FACTURESSSS</title>
+<title>FACTURES</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <link rel="stylesheet" href="style-1.css">
 <style>
@@ -528,6 +528,16 @@ table.inv-table{width:100%;border-collapse:collapse}
     <div class="form-actions"><button class="btn btn-primary" onclick="saveDni()">DESAR DNI</button></div>
     <div id="cfg_dni_status" style="margin-top:14px;font-size:12px;display:none"></div>
   </div>
+  <div class="form-section" style="margin-top:16px" id="folderSection">
+    <div class="form-section-title">Carpeta local de factures</div>
+    <p class="help-text">Si el navegador ho suporta (Chrome/Edge d'escriptori), pots desar els PDFs/imatges com a arxius reals en una carpeta del teu ordinador, en lloc de dins la base de dades del navegador. Més robust per a factures grans i accessible des de l'explorador d'arxius.</p>
+    <div id="folderStatus" style="font-size:12px;color:var(--muted);margin-bottom:10px">Comprovant…</div>
+    <div class="form-actions">
+      <button class="btn btn-primary" id="folderPickBtn" onclick="pickInvoiceFolder()">TRIAR CARPETA</button>
+      <button class="btn btn-outline" id="folderMigrateBtn" onclick="migrateToFolder()" style="display:none">MIGRAR FACTURES EXISTENTS A LA CARPETA</button>
+    </div>
+    <div id="folderMigrateStatus" style="margin-top:10px;font-size:12px;display:none"></div>
+  </div>
   <div class="form-section" style="margin-top:16px;border-color:rgba(224,92,92,.2)">
     <div class="form-section-title" style="color:var(--err)">Zona de perill</div>
     <p class="help-text">Esborra totes les factures i proveïdors. Fes un backup (Exportar JSON) abans.</p>
@@ -542,6 +552,18 @@ table.inv-table{width:100%;border-collapse:collapse}
 // ===== GLOBALS =====
 let _cachedApiKey=null,_cachedDni=null,_cachedModel=null,db,_providerCache=null;
 let _currentDetailId=null;
+let _currentDocUrl=null; // Blob URL del document obert al modal, per revocar-lo en tancar
+function base64ToBlob(base64,mime){
+  const byteChars=atob(base64);
+  const byteArrays=[];
+  for(let offset=0;offset<byteChars.length;offset+=4096){
+    const slice=byteChars.slice(offset,offset+4096);
+    const bytes=new Array(slice.length);
+    for(let i=0;i<slice.length;i++)bytes[i]=slice.charCodeAt(i);
+    byteArrays.push(new Uint8Array(bytes));
+  }
+  return new Blob(byteArrays,{type:mime});
+}
 let _batchRunning=false,_batchStopped=false;
 let _selectedIds=new Set();
 let _pendingSelectedIds=new Set();
@@ -570,6 +592,108 @@ async function dbGet(s,id){return new Promise((res,rej)=>{const tx=db.transactio
 // ===== SETTINGS =====
 async function getSetting(key){try{const tx=db.transaction('settings','readonly');const r=tx.objectStore('settings').get(key);return await new Promise((res,rej)=>{r.onsuccess=e=>res(e.target.result?.value);r.onerror=rej})}catch{return null}}
 async function setSetting(key,value){const tx=db.transaction('settings','readwrite');tx.objectStore('settings').put({key,value});return new Promise((res,rej)=>{tx.oncomplete=res;tx.onerror=rej})}
+
+// ===== CARPETA LOCAL (File System Access API) =====
+// Guardem el directoryHandle a IndexedDB (settings). Els fitxers de cada factura
+// es desen com a arxius reals; a 'invoices' només guardem el nom d'arxiu (fileName)
+// en lloc del base64. Les factures antigues (fileB64) es poden migrar amb migrateToFolder().
+let _invoiceDirHandle=null;
+const FS_SUPPORTED=typeof window.showDirectoryPicker==='function';
+
+function sanitizeFileName(name){
+  return (name||'document').replace(/[\/\\?%*:|"<>]/g,'-').slice(0,180);
+}
+function uniqueFileNameFor(inv){
+  const base=sanitizeFileName(inv.filename||(inv.invoiceNum?inv.invoiceNum:'factura'));
+  const ext=/\.[a-z0-9]{2,4}$/i.test(base)?'':(inv.mime&&inv.mime.startsWith('image/')?'.jpg':'.pdf');
+  const stamp=Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+  return stamp+'_'+base+ext;
+}
+async function ensureDirPermission(handle){
+  if(!handle)return false;
+  const opts={mode:'readwrite'};
+  if((await handle.queryPermission(opts))==='granted')return true;
+  if((await handle.requestPermission(opts))==='granted')return true;
+  return false;
+}
+async function loadInvoiceDirHandle(){
+  try{
+    const h=await getSetting('invoiceDirHandle');
+    if(h){_invoiceDirHandle=h}
+  }catch{_invoiceDirHandle=null}
+}
+async function pickInvoiceFolder(){
+  if(!FS_SUPPORTED){toast('El navegador no suporta aquesta funció (usa Chrome/Edge d\'escriptori)','err');return}
+  try{
+    const handle=await window.showDirectoryPicker({mode:'readwrite'});
+    _invoiceDirHandle=handle;
+    await setSetting('invoiceDirHandle',handle);
+    toast('Carpeta vinculada: '+handle.name,'ok');
+    refreshFolderStatus();
+  }catch(err){
+    if(err.name!=='AbortError')toast('No s\'ha pogut vincular la carpeta','err');
+  }
+}
+async function refreshFolderStatus(){
+  const st=document.getElementById('folderStatus');
+  const migrateBtn=document.getElementById('folderMigrateBtn');
+  if(!FS_SUPPORTED){
+    st.textContent='No suportat en aquest navegador — es continuarà desant dins la base de dades del navegador.';
+    document.getElementById('folderPickBtn').disabled=true;
+    return;
+  }
+  if(!_invoiceDirHandle){
+    st.textContent='Cap carpeta vinculada — les factures es desen dins la base de dades del navegador (IndexedDB).';
+    migrateBtn.style.display='none';
+    return;
+  }
+  const granted=await ensureDirPermission(_invoiceDirHandle);
+  if(!granted){
+    st.textContent='Carpeta vinculada («'+_invoiceDirHandle.name+'») però sense permís concedit. Torna a triar-la.';
+    migrateBtn.style.display='none';
+    return;
+  }
+  st.textContent='Carpeta activa: «'+_invoiceDirHandle.name+'». Les noves factures es desaran com a arxius reals.';
+  const legacy=(await dbAll('invoices')).filter(r=>r.fileB64&&!r.fileName);
+  migrateBtn.style.display=legacy.length?'inline-block':'none';
+  if(legacy.length)migrateBtn.textContent=`MIGRAR ${legacy.length} FACTURA${legacy.length!==1?'S':''} EXISTENT${legacy.length!==1?'S':''} A LA CARPETA`;
+}
+async function writeInvoiceFile(blob,fileName){
+  const fh=await _invoiceDirHandle.getFileHandle(fileName,{create:true});
+  const ws=await fh.createWritable();
+  await ws.write(blob);
+  await ws.close();
+}
+async function readInvoiceFile(fileName){
+  const fh=await _invoiceDirHandle.getFileHandle(fileName);
+  return await fh.getFile();
+}
+async function deleteInvoiceFile(fileName){
+  try{await _invoiceDirHandle.removeEntry(fileName)}catch{}
+}
+async function migrateToFolder(){
+  if(!_invoiceDirHandle||!(await ensureDirPermission(_invoiceDirHandle))){toast('Vincula primer una carpeta','err');return}
+  const legacy=(await dbAll('invoices')).filter(r=>r.fileB64&&!r.fileName);
+  if(!legacy.length){toast('No hi ha factures per migrar');return}
+  const statusEl=document.getElementById('folderMigrateStatus');
+  statusEl.style.display='block';
+  let ok=0,fail=0;
+  for(const r of legacy){
+    try{
+      const blob=base64ToBlob(r.fileB64,r.mime||'application/pdf');
+      const fileName=uniqueFileNameFor(r);
+      await writeInvoiceFile(blob,fileName);
+      const {fileB64,...rest}=r;
+      await dbPut('invoices',{...rest,fileName});
+      ok++;
+    }catch(err){fail++}
+    statusEl.textContent=`Migrant… ${ok+fail}/${legacy.length}`;
+  }
+  statusEl.textContent=`✓ ${ok} factura${ok!==1?'s':''} migrada${ok!==1?'s':''}${fail?' · '+fail+' amb error':''}`;
+  toast('Migració completada','ok');
+  refreshFolderStatus();
+  renderInvoices();
+}
 async function getApiKey(){if(_cachedApiKey)return _cachedApiKey;_cachedApiKey=await getSetting('gemini_api_key');return _cachedApiKey}
 async function saveApiKey(k){_cachedApiKey=k;await setSetting('gemini_api_key',k)}
 async function getModel(){if(_cachedModel)return _cachedModel;_cachedModel=await getSetting('gemini_model')||'gemini-3.5-flash-lite';return _cachedModel}
@@ -817,12 +941,23 @@ async function openDetail(id){
     <div class="detail-row accent"><span class="detail-label">TOTAL FACTURA</span><span class="detail-value num">${fmt(r.total)} €</span></div>
   `;
   const docWrap=document.getElementById('modalDocWrap');
-  if(r.fileB64){
-    if(r.mime&&r.mime.startsWith('image/')){
-      docWrap.innerHTML=`<img src="data:${r.mime};base64,${r.fileB64}" style="width:100%;border:1px solid var(--border)">`;
+  if(_currentDocUrl){URL.revokeObjectURL(_currentDocUrl);_currentDocUrl=null}
+  const mime=r.mime||'application/pdf';
+  let blob=null;
+  if(r.fileName&&_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
+    try{blob=await readInvoiceFile(r.fileName)}catch{blob=null}
+  } else if(r.fileB64){
+    blob=base64ToBlob(r.fileB64,mime);
+  }
+  if(blob){
+    _currentDocUrl=URL.createObjectURL(blob);
+    if(mime.startsWith('image/')){
+      docWrap.innerHTML=`<img src="${_currentDocUrl}" style="width:100%;border:1px solid var(--border)">`;
     } else {
-      docWrap.innerHTML=`<iframe class="pdf-frame" src="data:application/pdf;base64,${r.fileB64}"></iframe>`;
+      docWrap.innerHTML=`<iframe class="pdf-frame" src="${_currentDocUrl}"></iframe>`;
     }
+  } else if(r.fileName){
+    docWrap.innerHTML=`<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">◈</div><div class="empty-text" style="font-size:11px">No es pot llegir l'arxiu «${r.fileName}». Comprova que la carpeta vinculada és la correcta (⚙ Configuració).</div></div>`;
   } else {
     docWrap.innerHTML=`<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">◈</div><div class="empty-text" style="font-size:11px">Document no disponible</div></div>`;
   }
@@ -848,20 +983,36 @@ async function onModalProviderChange(){
   }
   renderInvoices();
 }
-function closeDetail(){document.getElementById('modalOverlay').classList.remove('show');_currentDetailId=null}
-function downloadCurrentInvoiceDoc(){
+function closeDetail(){
+  document.getElementById('modalOverlay').classList.remove('show');
+  _currentDetailId=null;
+  if(_currentDocUrl){URL.revokeObjectURL(_currentDocUrl);_currentDocUrl=null}
+}
+async function downloadCurrentInvoiceDoc(){
   if(!_currentDetailId)return;
-  dbGet('invoices',_currentDetailId).then(r=>{
-    if(!r||!r.fileB64){toast('Document no disponible','err');return}
-    const a=document.createElement('a');
-    a.href='data:'+(r.mime||'application/pdf')+';base64,'+r.fileB64;
-    a.download=r.filename||(r.invoiceNum?r.invoiceNum:'factura');
-    a.click();
-  });
+  const r=await dbGet('invoices',_currentDetailId);
+  if(!r){toast('Document no disponible','err');return}
+  let blob=null;
+  if(r.fileName&&_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
+    try{blob=await readInvoiceFile(r.fileName)}catch{blob=null}
+  } else if(r.fileB64){
+    blob=base64ToBlob(r.fileB64,r.mime||'application/pdf');
+  }
+  if(!blob){toast('Document no disponible','err');return}
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download=r.filename||(r.invoiceNum?r.invoiceNum:'factura');
+  a.click();
+  setTimeout(()=>URL.revokeObjectURL(url),1000);
 }
 async function deleteInvoice(id){
   if(!confirm('Eliminar aquesta factura?'))return;
+  const r=await dbGet('invoices',id);
   await dbDel('invoices',id);
+  if(r&&r.fileName&&_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
+    await deleteInvoiceFile(r.fileName);
+  }
   closeDetail();renderInvoices();
   toast('Factura eliminada');
 }
@@ -1156,7 +1307,13 @@ async function processInvBatch(files){
       else{
         inv.filename=it.file.name;
         inv.mime=it.file.type||(isImageFile(it.file)?'image/jpeg':'application/pdf');
-        inv.fileB64=await fileToBase64(it.file);
+        if(_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
+          const fileName=uniqueFileNameFor(inv);
+          await writeInvoiceFile(it.file,fileName);
+          inv.fileName=fileName;
+        } else {
+          inv.fileB64=await fileToBase64(it.file);
+        }
         await dbAdd('invoices',inv);
         it.state='ok';it.provider=inv.provider||'';it.total=inv.total?Number(inv.total).toFixed(2):'';done++;
       }
@@ -1380,6 +1537,7 @@ async function loadApiConfigPage(){
   if(dniInp)dniInp.value=dni;
   const dniSt=document.getElementById('cfg_dni_status');
   if(dniSt&&dni){dniSt.textContent='✓ DNI: '+dni;dniSt.style.color='var(--ok)';dniSt.style.display='block'}
+  refreshFolderStatus();
 }
 async function saveApiConfig(){
   const key=document.getElementById('cfg_apikey').value.trim();
@@ -1499,6 +1657,7 @@ const SEED_PROV=[
 async function init(){
   await initDB();
   _cachedApiKey=await getApiKey();
+  await loadInvoiceDirHandle();
   const seeded=await getSetting('seeded');
   if(!seeded){
     const ex=await dbAll('invoices');
