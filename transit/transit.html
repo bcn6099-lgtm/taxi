@@ -677,6 +677,68 @@
 
     /* Mapbox controls */
     .mapboxgl-ctrl-group { display: none !important; }
+
+    /* ══════════════════════════════════════════════════════
+       PANTALLA CENTRAL TOYOTA COROLLA — 800×480, apaisada
+       Poca altura disponible: se comprime todo el HUD vertical
+       (top-hud, search, hint, street-pill, recenter, panel)
+       manteniendo objetivos táctiles usables (~36-38px).
+       ══════════════════════════════════════════════════════ */
+    @media (max-height: 500px) and (min-width: 700px) {
+
+      /* HUD superior */
+      .top-hud { padding: 8px 10px 0; }
+      .compass { width: 38px; height: 38px; }
+      .compass-label { font-size: 7px; top: -13px; }
+      .hamburger { width: 36px; height: 36px; border-radius: 7px; font-size: 16px; }
+
+      /* Buscador */
+      .search-wrap { top: 8px; left: 60px; right: 60px; transform: none; width: auto; max-width: none; }
+      .search-box { height: 34px; padding: 0 10px; gap: 6px; }
+      .search-icon { font-size: 13px; }
+      #search-input { font-size: 13px; }
+      .search-counter { font-size: 10px; }
+      .search-results { margin-top: 4px; max-height: 260px; overflow-y: auto; }
+      .search-result-item { padding: 9px 12px; gap: 9px; }
+      .result-icon { font-size: 16px; }
+      .result-main { font-size: 14px !important; }
+      .result-sub  { font-size: 11px !important; margin-top: 2px; }
+      .search-status { padding: 9px 12px; font-size: 11px; }
+
+      /* Pista / hint */
+      .hint { top: 46px; font-size: 9px; padding: 3px 10px; }
+
+      /* Píldora de calle */
+      .street-pill { bottom: 92px; padding: 4px 10px; }
+      .street-pill-text { font-size: 11px; }
+      .street-pill-dot { width: 6px; height: 6px; }
+
+      /* Botón recentrar */
+      .recenter-btn { bottom: 82px; right: 10px; width: 34px; height: 34px; font-size: 15px; }
+
+      /* Panel inferior de rutas */
+      .panel { padding: 8px 10px 10px; }
+      .panel-label { font-size: 8px; margin-bottom: 6px; }
+      .routes-grid { gap: 6px; }
+      .route-card { padding: 7px 9px; }
+      .route-tag { font-size: 8px; margin-bottom: 3px; }
+      .route-time { font-size: 20px; }
+      .route-time .unit { font-size: 11px; }
+      .route-dist { font-size: 11px; margin-top: 2px; }
+      .route-badge { top: 6px; right: 7px; font-size: 8px; padding: 1px 5px; }
+      .cancel-route-btn { padding: 7px; font-size: 10px; }
+      .no-routes { padding: 6px; font-size: 11px; }
+
+      /* Panel de configuración — más estrecho y compacto, cabe entero sin apenas scroll */
+      .settings-panel { width: 280px; max-width: 50vw; }
+      .s-header { padding: 10px 14px 8px; }
+      .s-section { padding: 10px 14px; }
+      .s-section-title { margin-bottom: 8px; }
+      .s-input { padding: 8px 10px; margin-bottom: 8px; }
+      .token-btn, .style-btn { padding: 7px 6px; font-size: 11px; }
+      .s-toggle-row { padding: 6px 0; }
+      .s-save-btn { padding: 10px; font-size: 13px; }
+    }
   </style>
 </head>
 <body>
