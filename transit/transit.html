@@ -71,6 +71,12 @@
       justify-content: center;
       position: relative;
       box-shadow: 0 0 20px rgba(255,195,0,0.12), inset 0 0 10px rgba(0,0,0,0.5);
+      cursor: pointer;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .compass.north-locked {
+      border-color: rgba(255,255,255,0.35);
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
     }
 
     .compass svg {
@@ -426,6 +432,8 @@
       background: rgba(255,255,255,0.04);
       position: relative;
       overflow: hidden;
+      width: 82%;
+      justify-self: center;
     }
 
     .route-card.gold { }
@@ -482,7 +490,10 @@
 
     .cancel-route-btn {
       grid-column: span 2;
-      padding: 10px;
+      justify-self: center;
+      width: 210px;
+      max-width: 92%;
+      padding: 14px 10px;
       background: transparent;
       border: 1px solid rgba(255,60,60,0.3);
       border-radius: 10px;
@@ -494,6 +505,7 @@
       text-transform: uppercase;
       cursor: pointer;
       text-align: center;
+      white-space: nowrap;
       transition: all 0.2s;
     }
     .cancel-route-btn:active { background: rgba(255,60,60,0.1); }
@@ -522,6 +534,130 @@
       font-size: 18px;
       z-index: 10;
     }
+
+    /* ── ZOOM SLIDER (pantalla no multitàctil) ── */
+    .zoom-ctrl {
+      position: absolute;
+      left: 10px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      z-index: 10;
+    }
+    .zoom-btn {
+      width: 40px; height: 40px;
+      border-radius: 9px;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      color: var(--gold);
+      font-size: 22px;
+      font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+      touch-action: manipulation;
+    }
+    .zoom-btn:active { background: rgba(255,195,0,0.15); }
+    .zoom-slider-wrap {
+      width: 40px;
+      height: 170px;
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      padding: 6px 0;
+    }
+    #zoom-slider {
+      width: 150px;
+      height: 32px;
+      margin: 0;
+      transform: rotate(-90deg);
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      touch-action: none;
+    }
+    #zoom-slider::-webkit-slider-runnable-track {
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.12);
+    }
+    #zoom-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 30px; height: 30px;
+      margin-top: -12.5px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid #000;
+    }
+    #zoom-slider::-moz-range-track {
+      height: 5px;
+      border-radius: 3px;
+      background: rgba(255,255,255,0.12);
+    }
+    #zoom-slider::-moz-range-thumb {
+      width: 26px; height: 26px;
+      border-radius: 50%;
+      background: var(--gold);
+      border: 2px solid #000;
+    }
+
+    /* ── POPUP CONFIRMACIÓ DESTÍ (pulsació llarga) ── */
+    .dest-confirm {
+      background: var(--panel);
+      border: 1.5px solid var(--border);
+      border-radius: 12px;
+      padding: 10px;
+      min-width: 168px;
+      font-family: 'Rajdhani', sans-serif;
+    }
+    .dest-confirm-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: 11px;
+      letter-spacing: 1.5px;
+      color: #ccc;
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .dest-confirm-row {
+      display: flex;
+      gap: 8px;
+    }
+    .dest-confirm-btn {
+      flex: 1;
+      padding: 10px 4px;
+      border-radius: 8px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+    .dest-confirm-go {
+      background: rgba(255,195,0,0.18);
+      border: 1.5px solid var(--gold);
+      color: var(--gold);
+    }
+    .dest-confirm-go:active { background: rgba(255,195,0,0.35); }
+    .dest-confirm-cancel {
+      background: rgba(255,255,255,0.06);
+      border: 1.5px solid rgba(255,255,255,0.18);
+      color: #ccc;
+    }
+    .dest-confirm-cancel:active { background: rgba(255,255,255,0.15); }
+    .mapboxgl-popup-content {
+      background: transparent !important;
+      box-shadow: none !important;
+      padding: 0 !important;
+    }
+    .mapboxgl-popup-tip { display: none !important; }
 
     /* ── SEARCH BAR ── */
     .search-wrap {
@@ -716,6 +852,14 @@
       /* Botón recentrar */
       .recenter-btn { bottom: 82px; right: 10px; width: 34px; height: 34px; font-size: 15px; }
 
+      /* Zoom slider */
+      .zoom-ctrl { left: 8px; gap: 6px; }
+      .zoom-btn { width: 32px; height: 32px; font-size: 18px; border-radius: 7px; }
+      .zoom-slider-wrap { width: 32px; height: 120px; border-radius: 9px; padding: 4px 0; }
+      #zoom-slider { width: 108px; height: 26px; }
+      #zoom-slider::-webkit-slider-thumb { width: 24px; height: 24px; margin-top: -10px; }
+      #zoom-slider::-moz-range-thumb { width: 22px; height: 22px; }
+
       /* Panel inferior de rutas */
       .panel { padding: 8px 10px 10px; }
       .panel-label { font-size: 8px; margin-bottom: 6px; }
@@ -726,7 +870,7 @@
       .route-time .unit { font-size: 11px; }
       .route-dist { font-size: 11px; margin-top: 2px; }
       .route-badge { top: 6px; right: 7px; font-size: 8px; padding: 1px 5px; }
-      .cancel-route-btn { padding: 7px; font-size: 10px; }
+      .cancel-route-btn { width: 170px; max-width: 90%; padding: 10px; font-size: 10px; }
       .no-routes { padding: 6px; font-size: 11px; }
 
       /* Panel de configuración — más estrecho y compacto, cabe entero sin apenas scroll */
@@ -852,6 +996,14 @@
       </div>
       <label class="toggle"><input type="checkbox" id="tog-traffic" checked><span class="toggle-slider"></span></label>
     </div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">Brújula del dispositivo</div>
+        <div class="s-toggle-sub">Desactívala si la orientación va errática parado</div>
+      </div>
+      <label class="toggle"><input type="checkbox" id="tog-compass"><span class="toggle-slider"></span></label>
+    </div>
   </div>
 
   <!-- Busqueda -->
@@ -909,6 +1061,12 @@
 
 </div>
 
+<div class="zoom-ctrl" id="zoom-ctrl">
+  <div class="zoom-btn" id="zoom-in">+</div>
+  <div class="zoom-slider-wrap"><input type="range" id="zoom-slider" min="9" max="19" step="0.5" value="15"></div>
+  <div class="zoom-btn" id="zoom-out">−</div>
+</div>
+
 <div class="recenter-btn" id="recenter" title="Re-center">⊕</div>
 
 <div class="street-pill" id="street-pill"><span class="street-pill-dot"></span><span class="street-pill-text" id="street-text">Localizando...</span></div>
@@ -935,10 +1093,31 @@ const hamburger = document.getElementById('hamburger');
 const settingsPanel = document.getElementById('settings-panel');
 const apiKeyInput = document.getElementById('api-key');
 const compassSvg = document.getElementById('compass-svg');
+const compassBtn = document.getElementById('compass');
 const speedVal = document.getElementById('speed-val');
 const hint = document.getElementById('hint');
 const recenterBtn = document.getElementById('recenter');
 const routesGrid = document.getElementById('routes-grid');
+const zoomSlider = document.getElementById('zoom-slider');
+const zoomInBtn = document.getElementById('zoom-in');
+const zoomOutBtn = document.getElementById('zoom-out');
+
+// ── ZOOM SLIDER (ascensor lateral, sense multitàctil) ──
+zoomSlider.addEventListener('input', () => {
+  if (map) map.setZoom(parseFloat(zoomSlider.value));
+});
+zoomInBtn.addEventListener('click', () => {
+  if (!map) return;
+  const z = Math.min(19, map.getZoom() + 1);
+  map.easeTo({ zoom: z, duration: 250 });
+  zoomSlider.value = z.toFixed(1);
+});
+zoomOutBtn.addEventListener('click', () => {
+  if (!map) return;
+  const z = Math.max(9, map.getZoom() - 1);
+  map.easeTo({ zoom: z, duration: 250 });
+  zoomSlider.value = z.toFixed(1);
+});
 
 // ── SETTINGS STATE ──
 let cfg = {
@@ -948,6 +1127,7 @@ let cfg = {
   followHeading: true,
   showStreet: true,
   showTraffic: true,
+  useDeviceCompass: false, // pantalla del cotxe sense magnetòmetre fiable
   searchRadius: 40,
   mapStyle: 'mapbox://styles/mapbox/dark-v11',
   poiClasses: ['medical', 'lodging', 'education', 'food_and_drink', 'religion']
@@ -996,10 +1176,13 @@ function applyCfgToUI() {
   const togH  = document.getElementById('tog-heading');
   const togSt = document.getElementById('tog-street');
   const togTr = document.getElementById('tog-traffic');
+  const togCompass = document.getElementById('tog-compass');
   if (tog3d) tog3d.checked = cfg.pitch3d;
   if (togH)  togH.checked  = cfg.followHeading;
+  if (compassBtn) compassBtn.classList.toggle('north-locked', !cfg.followHeading);
   if (togSt) togSt.checked = cfg.showStreet;
   if (togTr) togTr.checked = cfg.showTraffic;
+  if (togCompass) togCompass.checked = cfg.useDeviceCompass;
 
   // POI toggles
   applyCfgToPoiToggles();
@@ -1167,10 +1350,16 @@ document.addEventListener('change', e => {
   }
   if (e.target.id === 'tog-heading') {
     cfg.followHeading = e.target.checked;
+    if (compassBtn) compassBtn.classList.toggle('north-locked', !cfg.followHeading);
+    saveCfgToDB();
   }
   if (e.target.id === 'tog-traffic') {
     cfg.showTraffic = e.target.checked;
     applyTrafficLayer();
+  }
+  if (e.target.id === 'tog-compass') {
+    cfg.useDeviceCompass = e.target.checked;
+    saveCfgToDB();
   }
   if (e.target.classList.contains('tog-poi')) {
     const cls = e.target.dataset.class;
@@ -1329,9 +1518,106 @@ function dbDel(key) {
 recenterBtn.addEventListener('click', () => {
   isFollowing = true;
   if (map && userLocation) {
-    map.easeTo({ center: userLocation, bearing: userHeading, pitch: 0, zoom: 16, duration: 800 });
+    map.easeTo({ center: userLocation, bearing: userHeading, pitch: cfg.pitch3d ? 55 : 0, zoom: 16, duration: 800 });
   }
 });
+
+// ── BRÚJULA (comportamiento habitual: orienta el mapa al norte / reactiva el rumbo) ──
+compassBtn.addEventListener('click', () => {
+  cfg.followHeading = !cfg.followHeading;
+  const togH = document.getElementById('tog-heading');
+  if (togH) togH.checked = cfg.followHeading;
+  compassBtn.classList.toggle('north-locked', !cfg.followHeading);
+  saveCfgToDB();
+
+  if (map) {
+    if (cfg.followHeading) {
+      // Reactivar rumbo: gira el mapa hacia la dirección actual
+      map.easeTo({ bearing: userHeading, duration: 400 });
+    } else {
+      // Norte arriba
+      map.easeTo({ bearing: 0, duration: 400 });
+    }
+  }
+});
+
+// ── PULSACIÓ LLARGA PER CONFIRMAR DESTÍ ──
+// Pantalla no multitàctil: un toc normal NO fixa destí (evita
+// clics accidentals en moviment); cal mantenir 1s per confirmar.
+const PRESS_HOLD_MS = 1000;
+const PRESS_MOVE_TOLERANCE = 8; // px — cancel·la si el dit/cursor es mou massa
+let pressTimer = null;
+let pressStartXY = null;
+let confirmPopup = null;
+
+function cancelPress() {
+  if (pressTimer) { clearTimeout(pressTimer); pressTimer = null; }
+  pressStartXY = null;
+}
+
+function closeConfirmPopup() {
+  if (confirmPopup) { confirmPopup.remove(); confirmPopup = null; }
+}
+
+function showDestConfirmPopup(lngLat) {
+  closeConfirmPopup();
+
+  const el = document.createElement('div');
+  el.className = 'dest-confirm';
+  el.innerHTML = `
+    <div class="dest-confirm-label">¿IR HASTA AQUÍ?</div>
+    <div class="dest-confirm-row">
+      <div class="dest-confirm-btn dest-confirm-cancel" id="dest-confirm-cancel">✕</div>
+      <div class="dest-confirm-btn dest-confirm-go" id="dest-confirm-go">✓ IR</div>
+    </div>`;
+
+  confirmPopup = new mapboxgl.Popup({ closeButton: false, closeOnClick: false, anchor: 'bottom', offset: 12 })
+    .setLngLat(lngLat)
+    .setDOMContent(el)
+    .addTo(map);
+
+  el.querySelector('#dest-confirm-go').addEventListener('click', () => {
+    closeConfirmPopup();
+    if (!userLocation) { hint.textContent = 'WAITING FOR GPS...'; return; }
+    if (destMarker) destMarker.remove();
+    destMarker = new mapboxgl.Marker({ color: '#FF4444' }).setLngLat(lngLat).addTo(map);
+    hint.textContent = 'CALCULATING ROUTES...';
+    calcRoutes([lngLat.lng, lngLat.lat]);
+  });
+  el.querySelector('#dest-confirm-cancel').addEventListener('click', closeConfirmPopup);
+}
+
+function setupPressToConfirm() {
+  const onDown = (e) => {
+    // Ignora si el toc comença sobre un control de la UI (popup, botons, panell...)
+    const targetEl = e.originalEvent ? e.originalEvent.target : null;
+    if (targetEl && targetEl.closest && targetEl.closest('.mapboxgl-popup, .zoom-ctrl, .recenter-btn, .search-wrap, .settings-panel, .hamburger')) return;
+
+    cancelPress();
+    closeConfirmPopup();
+    pressStartXY = { x: e.point.x, y: e.point.y };
+    const lngLat = e.lngLat;
+    pressTimer = setTimeout(() => {
+      pressTimer = null;
+      showDestConfirmPopup(lngLat);
+    }, PRESS_HOLD_MS);
+  };
+
+  const onMove = (e) => {
+    if (!pressTimer || !pressStartXY) return;
+    const dx = e.point.x - pressStartXY.x;
+    const dy = e.point.y - pressStartXY.y;
+    if (Math.sqrt(dx * dx + dy * dy) > PRESS_MOVE_TOLERANCE) cancelPress();
+  };
+
+  map.on('mousedown', onDown);
+  map.on('touchstart', onDown);
+  map.on('mousemove', onMove);
+  map.on('touchmove', onMove);
+  map.on('mouseup', cancelPress);
+  map.on('touchend', cancelPress);
+  map.on('touchcancel', cancelPress);
+}
 
 // ── INIT MAP ──
 function initMap(token) {
@@ -1345,6 +1631,7 @@ function initMap(token) {
     style: savedStyle,
     center: [2.1734, 41.3851],
     zoom: 15,
+    minZoom: 9, // no cal veure tota la regió — límit d'allunyament
     pitch: 0,
     bearing: 0,
     antialias: true
@@ -1358,21 +1645,30 @@ function initMap(token) {
   });
 
   // Detect manual map drag → disable auto-follow
-  map.on('dragstart', () => { isFollowing = false; });
-
-  // Click to set destination
-  map.on('click', (e) => {
-    if (!userLocation) {
-      hint.textContent = 'WAITING FOR GPS...';
-      return;
-    }
-    const dest = [e.lngLat.lng, e.lngLat.lat];
-    hint.textContent = 'CALCULATING ROUTES...';
-    calcRoutes(dest);
+  map.on('dragstart', () => {
+    isFollowing = false;
+    cancelPress(); // un drag real cancel·la qualsevol pulsació llarga en curs
   });
+
+  // Sincronitzar l'ascensor de zoom amb el mapa
+  zoomSlider.value = map.getZoom().toFixed(1);
+  map.on('zoom', () => { zoomSlider.value = map.getZoom().toFixed(1); });
+
+  setupPressToConfirm();
 }
 
 // ── GPS TRACKING ──
+// ── SUAVITZAT DE RUMB ──
+// A la pantalla del cotxe els sensors són molt més sorollosos que al
+// mòbil, així que mai apliquem un rumb nou directament: sempre
+// interpolem cap a ell (camí més curt en el cercle) per evitar salts.
+function angleDiff(a, b) {
+  return ((a - b + 540) % 360) - 180;
+}
+function smoothHeading(target, current, alpha) {
+  return (current + angleDiff(target, current) * alpha + 360) % 360;
+}
+
 function startTracking() {
   if (!navigator.geolocation) return;
 
@@ -1384,9 +1680,10 @@ function startTracking() {
     const kmh = speed ? Math.round(speed * 3.6) : 0;
     speedVal.textContent = kmh;
 
-    // Heading
-    if (heading !== null && heading !== undefined) {
-      userHeading = heading;
+    // Heading del GPS — només ens el creiem per sobre d'uns 4 km/h;
+    // a baixa velocitat el rumb del GPS també és erràtic i salta.
+    if (heading !== null && heading !== undefined && kmh > 4) {
+      userHeading = smoothHeading(heading, userHeading, 0.35);
     }
 
     updateCompass(userHeading);
@@ -1417,7 +1714,7 @@ function startTracking() {
       map.easeTo({
         center: userLocation,
         bearing: cfg.followHeading ? userHeading : map.getBearing(),
-        pitch: 0,
+        pitch: cfg.pitch3d ? 55 : 0,
         zoom: 16,
         duration: 600
       });
@@ -1436,7 +1733,10 @@ function startTracking() {
     timeout: 10000
   });
 
-  // Fallback DeviceOrientation for compass when speed=0
+  // Fallback DeviceOrientation per a la brúixola quan estem aturats.
+  // Desactivat per defecte: la pantalla del cotxe normalment no té un
+  // magnetòmetre fiable i el sensor dona lectures errátiques (a diferència
+  // del mòbil). Es pot activar a Configuració si el cotxe sí que en té.
   if (window.DeviceOrientationEvent) {
     window.addEventListener('deviceorientationabsolute', onOrientation, true);
     window.addEventListener('deviceorientation', onOrientation, true);
@@ -1444,10 +1744,12 @@ function startTracking() {
 }
 
 function onOrientation(e) {
+  if (!cfg.useDeviceCompass) return;
   if (e.absolute && e.alpha !== null) {
     // Only use orientation when not moving (speed=0)
-    if (parseInt(speedVal.textContent) < 3) {
-      userHeading = 360 - e.alpha;
+    if (parseInt(speedVal.textContent) < 4) {
+      const target = (360 - e.alpha) % 360;
+      userHeading = smoothHeading(target, userHeading, 0.15);
       updateCompass(userHeading);
     }
   }
@@ -1722,34 +2024,58 @@ document.addEventListener('click', (e) => {
   }
 });
 
+// Sessió de cerca per a la Search Box API (recomanat per Mapbox per facturació)
+let searchSessionToken = null;
+function newSearchSession() {
+  searchSessionToken = (crypto && crypto.randomUUID) ? crypto.randomUUID() :
+    'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, c => {
+      const r = Math.random() * 16 | 0;
+      return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+    });
+}
+
 function geocodeQuery(query) {
   if (!mapboxgl.accessToken) return;
+  if (!searchSessionToken) newSearchSession();
 
   // Centre de referència: ubicació actual o Barcelona
   const center = userLocation ? userLocation : [2.1734, 41.3851];
   const proximity = `${center[0]},${center[1]}`;
 
-  // BBox dinàmic basat en el radi configurat (cfg.searchRadius km)
-  const radiusKm = cfg.searchRadius || 40;
-  const dLat = radiusKm / 111;
-  const dLng = radiusKm / (111 * Math.cos(center[1] * Math.PI / 180));
-  const bbox = [
-    (center[0] - dLng).toFixed(4),
-    (center[1] - dLat).toFixed(4),
-    (center[0] + dLng).toFixed(4),
-    (center[1] + dLat).toFixed(4)
-  ].join(',');
-
-  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json` +
-    `?proximity=${proximity}` +
-    `&bbox=${bbox}` +
-    `&language=es` +
-    `&limit=5` +
-    `&types=address,poi,neighborhood,locality,place` +
-    `&access_token=${mapboxgl.accessToken}`;
-
   searchResults.innerHTML = '<div class="search-status">Buscando...</div>';
   searchResults.style.display = 'block';
+
+  // Search Box API: molta millor cobertura de comerços, hospitals, negocis...
+  // que l'antiga Geocoding API, que a la pràctica només troba adreces.
+  const url = `https://api.mapbox.com/search/searchbox/v1/suggest?q=${encodeURIComponent(query)}` +
+    `&language=es&limit=6&proximity=${proximity}` +
+    `&types=address,poi,street,place,neighborhood` +
+    `&session_token=${searchSessionToken}` +
+    `&access_token=${mapboxgl.accessToken}`;
+
+  fetch(url)
+    .then(r => {
+      if (!r.ok) throw new Error('searchbox-error');
+      return r.json();
+    })
+    .then(data => {
+      if (!data.suggestions || data.suggestions.length === 0) {
+        searchResults.innerHTML = '<div class="search-status">Sin resultados</div>';
+        return;
+      }
+      renderResults(data.suggestions);
+    })
+    .catch(() => {
+      // Fallback a la Geocoding clàssica si el token no té permisos de Search
+      geocodeQueryFallback(query, proximity);
+    });
+}
+
+// ── FALLBACK: Geocoding API clàssica (només si Search Box API falla) ──
+function geocodeQueryFallback(query, proximity) {
+  const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(query)}.json` +
+    `?proximity=${proximity}&language=es&limit=5&types=address,poi,neighborhood,locality,place` +
+    `&access_token=${mapboxgl.accessToken}`;
 
   fetch(url)
     .then(r => r.json())
@@ -1758,49 +2084,68 @@ function geocodeQuery(query) {
         searchResults.innerHTML = '<div class="search-status">Sin resultados</div>';
         return;
       }
-      renderResults(data.features);
+      renderResults(data.features.map(f => ({
+        name: f.text || f.place_name.split(',')[0],
+        place_formatted: f.place_name.replace((f.text || '') + ', ', ''),
+        feature_type: f.place_type ? f.place_type[0] : 'address',
+        _legacyCenter: f.center
+      })));
     })
     .catch(() => {
       searchResults.innerHTML = '<div class="search-status">Error de búsqueda</div>';
     });
 }
 
-function renderResults(features) {
+function renderResults(suggestions) {
   searchResults.innerHTML = '';
 
-  features.forEach(f => {
-    const [lng, lat] = f.center;
-    const mainText = f.text || f.place_name.split(',')[0];
-    const subText  = f.place_name.replace(mainText + ', ', '');
+  suggestions.forEach(s => {
+    const mainText = s.name || (s.place_formatted || '').split(',')[0];
+    const subText  = s.place_formatted || s.full_address || '';
+    const isPoi = s.feature_type === 'poi';
 
     const item = document.createElement('div');
     item.className = 'search-result-item';
     item.innerHTML = `
-      <span class="result-icon">📍</span>
+      <span class="result-icon">${isPoi ? '📍' : '🏠'}</span>
       <div>
         <div class="result-main" style="font-size:19px;font-weight:800;color:#fff;line-height:1.3;">${mainText}</div>
         <div class="result-sub" style="font-size:15px;color:#ddd;margin-top:5px;line-height:1.4;">${subText}</div>
       </div>`;
 
     item.addEventListener('click', () => {
-      // Close search UI
-      searchInput.value = f.place_name;
+      searchInput.value = mainText;
       searchResults.style.display = 'none';
       searchInput.blur();
 
-      // Drop destination marker
-      if (destMarker) destMarker.remove();
-      destMarker = new mapboxgl.Marker({ color: '#FF4444' })
-        .setLngLat([lng, lat])
-        .addTo(map);
+      const goTo = ([lng, lat]) => {
+        if (destMarker) destMarker.remove();
+        destMarker = new mapboxgl.Marker({ color: '#FF4444' }).setLngLat([lng, lat]).addTo(map);
 
-      // Calculate routes
-      if (!userLocation) {
-        hint.textContent = 'WAITING FOR GPS...';
-        return;
-      }
-      hint.textContent = 'CALCULATING ROUTES...';
-      calcRoutes([lng, lat]);
+        if (!userLocation) { hint.textContent = 'WAITING FOR GPS...'; return; }
+        hint.textContent = 'CALCULATING ROUTES...';
+        calcRoutes([lng, lat]);
+      };
+
+      // Resultat del fallback (Geocoding clàssica) ja porta coordenades
+      if (s._legacyCenter) { goTo(s._legacyCenter); return; }
+
+      // Resultat de la Search Box API: cal "retrieve" per obtenir coordenades
+      searchResults.innerHTML = '<div class="search-status">Cargando...</div>';
+      searchResults.style.display = 'block';
+      const retrieveUrl = `https://api.mapbox.com/search/searchbox/v1/retrieve/${s.mapbox_id}` +
+        `?session_token=${searchSessionToken}&access_token=${mapboxgl.accessToken}`;
+
+      fetch(retrieveUrl)
+        .then(r => r.json())
+        .then(data => {
+          searchResults.style.display = 'none';
+          const feat = data.features && data.features[0];
+          if (!feat) return;
+          goTo(feat.geometry.coordinates);
+          newSearchSession(); // sessió nova per a la següent cerca
+        })
+        .catch(() => { searchResults.style.display = 'none'; hint.textContent = 'ERROR — CHECK API KEY'; });
     });
 
     searchResults.appendChild(item);
