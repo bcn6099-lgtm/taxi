@@ -1,10 +1,10 @@
-{
+1{
   "name": "GPS",
   "short_name": "GPS",
   "start_url": "transit.html",
   "scope": "transit.html",
   "display": "standalone",
-  "orientation": "portrait",
+  "orientation": "any",
   "background_color": "#0a0a0f",
   "theme_color": "#FFC300",
   "icons": [
