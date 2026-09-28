@@ -889,6 +889,11 @@
     .top-hud, .search-wrap, .hint, .street-pill, .panel, .recenter-btn,
     .zoom-ctrl, .settings-panel, .dest-confirm { zoom: var(--ui-scale); }
     .zoom-ctrl { transform: translateY(-50%); }
+
+    /* Panel de rutas oculto mientras no hay ruta (evita la franja negra) */
+    .panel.idle { display: none; }
+    body:not(.panel-open) .street-pill { bottom: 12px; }
+    body:not(.panel-open) .recenter-btn { bottom: 14px; }
   </style>
 </head>
 <body>
@@ -1093,7 +1098,7 @@
 
 <div class="street-pill" id="street-pill"><span class="street-pill-dot"></span><span class="street-pill-text" id="street-text">Localizando...</span></div>
 
-<div class="panel" id="main-panel">
+<div class="panel idle" id="main-panel">
   <div class="panel-label">Route Selection</div>
   <div class="routes-grid" id="routes-grid">
     <div class="no-routes">Tap the map to calculate routes</div>
@@ -1194,8 +1199,12 @@ fsBtn.addEventListener('click', () => {
     if (ex) ex.call(document);
   }
 });
-document.addEventListener('fullscreenchange', updateFsBtn);
-document.addEventListener('webkitfullscreenchange', updateFsBtn);
+function onFsChange() {
+  updateFsBtn();
+  [100, 400, 900].forEach(t => setTimeout(() => { if (map) map.resize(); }, t));
+}
+document.addEventListener('fullscreenchange', onFsChange);
+document.addEventListener('webkitfullscreenchange', onFsChange);
 
 function applyCfgToUI() {
   // Token input
@@ -1449,6 +1458,7 @@ document.addEventListener('click', e => {
             try { if (map.getSource(id)) map.removeSource(id); } catch(e) {}
           });
           routeIds = []; routeData = [];
+          renderRouteCards();
           map.remove();
           map = null;
           userMarker = null;
@@ -1518,6 +1528,7 @@ document.addEventListener('click', async e => {
             try { if (map.getSource(id)) map.removeSource(id); } catch(err) {}
           });
           routeIds = []; routeData = [];
+          renderRouteCards();
           map.remove();
           map = null;
           userMarker = null;
@@ -1776,7 +1787,7 @@ function startTracking() {
       });
     }
 
-    hint.textContent = 'TAP THE MAP TO SET DESTINATION';
+    hint.textContent = 'MANTÉN PULSADO EL MAPA PARA IR A UN PUNTO';
     maybeReverseGeocode(userLocation);
   }, err => {
     console.error('GPS error:', err);
@@ -1875,6 +1886,9 @@ function calcRoutes(dest) {
       if (!routes || routes.length === 0) {
         routesGrid.innerHTML = '<div class="no-routes">No routes found</div>';
         hint.textContent = 'NO ROUTES FOUND';
+        document.getElementById('main-panel').classList.remove('idle');
+        document.body.classList.add('panel-open');
+        setTimeout(() => { if (routeData.length === 0) renderRouteCards(); }, 4000);
         return;
       }
 
@@ -1962,10 +1976,15 @@ function updateActiveVisual() {
 
 // ── RENDER ROUTE CARDS ──
 function renderRouteCards() {
+  const mainPanel = document.getElementById('main-panel');
   if (routeData.length === 0) {
-    routesGrid.innerHTML = '<div class="no-routes">Tap the map to calculate routes</div>';
+    routesGrid.innerHTML = '<div class="no-routes">Mantén pulsado el mapa para calcular rutas</div>';
+    mainPanel.classList.add('idle');
+    document.body.classList.remove('panel-open');
     return;
   }
+  mainPanel.classList.remove('idle');
+  document.body.classList.add('panel-open');
 
   const labels = ['RUTA ÓPTIMA', 'ALTERNATIVA'];
   const colorClass = ['gold', 'blue'];
@@ -2028,7 +2047,7 @@ function renderRouteCards() {
     // Eliminar marcador destino
     if (typeof destMarker !== 'undefined' && destMarker) { destMarker.remove(); destMarker = null; }
     renderRouteCards();
-    hint.textContent = 'TAP THE MAP TO SET DESTINATION';
+    hint.textContent = 'MANTÉN PULSADO EL MAPA PARA IR A UN PUNTO';
   });
   routesGrid.appendChild(cancelBtn);
 }
