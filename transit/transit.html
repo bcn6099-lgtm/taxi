@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <title>GPS</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta name="theme-color" content="#0a0a0f">
+  <meta name="theme-color" content="#FFC300">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="mobile-web-app-capable" content="yes">
@@ -883,6 +883,12 @@
       .s-toggle-row { padding: 6px 0; }
       .s-save-btn { padding: 10px; font-size: 13px; }
     }
+
+    /* ── ESCALA DE INTERFAZ (ajustable en Configuración) ── */
+    :root { --ui-scale: 1.3; }
+    .top-hud, .search-wrap, .hint, .street-pill, .panel, .recenter-btn,
+    .zoom-ctrl, .settings-panel, .dest-confirm { zoom: var(--ui-scale); }
+    .zoom-ctrl { transform: translateY(-50%); }
   </style>
 </head>
 <body>
@@ -1003,6 +1009,22 @@
         <div class="s-toggle-sub">Desactívala si la orientación va errática parado</div>
       </div>
       <label class="toggle"><input type="checkbox" id="tog-compass"><span class="toggle-slider"></span></label>
+    </div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">Tamaño de interfaz</div>
+        <div class="s-toggle-sub" id="ui-scale-val">130%</div>
+      </div>
+      <input type="range" id="ui-scale" min="1" max="2" step="0.1" value="1.3" style="width:120px">
+    </div>
+
+    <div class="s-toggle-row">
+      <div>
+        <div class="s-toggle-label">Pantalla completa</div>
+        <div class="s-toggle-sub">Oculta la barra del navegador</div>
+      </div>
+      <div class="zoom-btn" id="btn-fullscreen" style="width:auto;min-width:96px;padding:0 12px;font-size:12px;letter-spacing:1px;">ACTIVAR</div>
     </div>
   </div>
 
@@ -1127,6 +1149,7 @@ let cfg = {
   followHeading: true,
   showStreet: true,
   showTraffic: true,
+  uiScale: 1.3,
   useDeviceCompass: false, // pantalla del cotxe sense magnetòmetre fiable
   searchRadius: 40,
   mapStyle: 'mapbox://styles/mapbox/dark-v11',
@@ -1142,6 +1165,37 @@ function loadCfgFromDB() {
 function saveCfgToDB() {
   return dbSet('app_config', JSON.stringify(cfg)).catch(console.error);
 }
+
+function applyUiScale(v) {
+  v = parseFloat(v) || 1.3;
+  cfg.uiScale = v;
+  document.documentElement.style.setProperty('--ui-scale', v);
+  const sl = document.getElementById('ui-scale');
+  const lb = document.getElementById('ui-scale-val');
+  if (sl) sl.value = v;
+  if (lb) lb.textContent = Math.round(v * 100) + '%';
+}
+
+document.getElementById('ui-scale').addEventListener('input', e => applyUiScale(e.target.value));
+document.getElementById('ui-scale').addEventListener('change', () => saveCfgToDB());
+
+// ── PANTALLA COMPLETA ──
+const fsBtn = document.getElementById('btn-fullscreen');
+function isFullscreen() { return !!(document.fullscreenElement || document.webkitFullscreenElement); }
+function updateFsBtn() { fsBtn.textContent = isFullscreen() ? 'SALIR' : 'ACTIVAR'; }
+fsBtn.addEventListener('click', () => {
+  const el = document.documentElement;
+  if (!isFullscreen()) {
+    const req = el.requestFullscreen || el.webkitRequestFullscreen;
+    if (req) req.call(el).catch(() => { hint.textContent = 'PANTALLA COMPLETA NO DISPONIBLE'; });
+    else hint.textContent = 'PANTALLA COMPLETA NO DISPONIBLE';
+  } else {
+    const ex = document.exitFullscreen || document.webkitExitFullscreen;
+    if (ex) ex.call(document);
+  }
+});
+document.addEventListener('fullscreenchange', updateFsBtn);
+document.addEventListener('webkitfullscreenchange', updateFsBtn);
 
 function applyCfgToUI() {
   // Token input
@@ -1170,6 +1224,8 @@ function applyCfgToUI() {
   if (ls) { ls.value = cfg.labelSize; document.getElementById('label-size-val').textContent = cfg.labelSize + 'px'; }
   const sr = document.getElementById('search-radius');
   if (sr) { sr.value = cfg.searchRadius; document.getElementById('search-radius-val').textContent = cfg.searchRadius + ' km'; }
+
+  applyUiScale(cfg.uiScale || 1.3);
 
   // Toggles
   const tog3d = document.getElementById('tog-3d');
