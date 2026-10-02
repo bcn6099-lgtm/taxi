@@ -778,9 +778,12 @@ async function driveUploadFor(inv,blob){
   const form=new FormData();
   form.append('metadata',new Blob([JSON.stringify({name,parents:[parent],mimeType:mime})],{type:'application/json'}));
   form.append('file',new Blob([blob],{type:mime}));
-  const r=await driveApi('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',body:form});
-  inv.driveId=(await r.json()).id;
+  const r=await driveApi('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id,parents',{method:'POST',body:form});
+  const j=await r.json();
+  inv.driveId=j.id;
   inv.driveName=name;
+  const actual=(j.parents&&j.parents[0])||'';
+  return {year:String(year),requested:parent,actual,ok:actual===parent};
 }
 async function driveDownload(rec){
   const mime=rec.mime||'application/pdf';
@@ -838,24 +841,26 @@ async function driveUploadPending(){
   try{if(!driveTokenValid())await driveConnect()}catch(e){toast('Drive: '+e.message,'err');return}
   const todo=(await dbAll('invoices')).filter(r=>!r.driveId);
   out.style.display='block';out.style.color='var(--muted)';
-  let ok=0,skip=0,fail=0;
+  let ok=0,skip=0,fail=0,lastErr='',lastInfo=null,misplaced=0;
   for(let i=0;i<todo.length;i++){
     out.textContent=`Pujant… ${i+1}/${todo.length}`;
     const r=todo[i];
     try{
       const blob=await localBlobFor(r);
       if(!blob){skip++;continue}
-      await driveUploadFor(r,blob);
+      const info=await driveUploadFor(r,blob);
+      lastInfo=info;if(!info.ok)misplaced++;
       const fresh=await dbGet('invoices',r.id);
       if(fresh){fresh.driveId=r.driveId;fresh.driveName=r.driveName;await dbPut('invoices',fresh)}
       ok++;
     }catch(e){
-      fail++;
+      fail++;lastErr=e.message;
       if(e.code==='NOAUTH'){out.textContent='La sessió de Drive ha caducat. Torna a connectar i repeteix.';out.style.color='var(--err)';refreshDriveStatus();return}
     }
   }
-  out.textContent=`✓ ${ok} pujada${ok!==1?'es':''}${skip?' · '+skip+' sense arxiu local':''}${fail?' · '+fail+' amb error':''}. Exporta el JSON i importa'l al mòbil perquè hi arribin els enllaços.`;
-  out.style.color=fail?'var(--warn)':'var(--ok)';
+  const link=lastInfo?` <a href="https://drive.google.com/drive/folders/${lastInfo.actual||lastInfo.requested}" target="_blank" rel="noopener" style="color:var(--accent)">Obrir carpeta «${lastInfo.year}» a Drive</a>`:'';
+  out.innerHTML=`✓ ${ok} pujada${ok!==1?'es':''}${skip?' · '+skip+' sense arxiu local':''}${fail?' · '+fail+' amb error':''}${misplaced?' · ⚠ '+misplaced+' no han quedat a la subcarpeta esperada':''}.${lastErr?'<br>Últim error: '+lastErr:''}${link}<br>Exporta el JSON i importa\'l al mòbil perquè hi arribin els enllaços.`;
+  out.style.color=(fail||misplaced)?'var(--warn)':'var(--ok)';
   refreshDriveStatus();renderInvoices();
 }
 async function driveConnectAndShow(){
@@ -1492,7 +1497,7 @@ async function processInvBatch(files){
           inv.fileB64=await fileToBase64(it.file);
         }
         if(driveConfigured()&&driveTokenValid()){
-          try{await driveUploadFor(inv,it.file)}catch(e){/* queda pendent: botó «Pujar factures a Drive» */}
+          try{await driveUploadFor(inv,it.file)}catch(e){it.detail=(it.detail?it.detail+' · ':'')+'Drive pendent: '+e.message.slice(0,80)}
         }
         await dbAdd('invoices',inv);
         it.state='ok';it.provider=inv.provider||'';it.total=inv.total?Number(inv.total).toFixed(2):'';done++;
