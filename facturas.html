@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>FACTURES</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <link rel="stylesheet" href="style-1.css">
 <style>
 :root {
@@ -538,6 +539,21 @@ table.inv-table{width:100%;border-collapse:collapse}
     </div>
     <div id="folderMigrateStatus" style="margin-top:10px;font-size:12px;display:none"></div>
   </div>
+  <div class="form-section" style="margin-top:16px" id="driveSection">
+    <div class="form-section-title">Google Drive — consultar documents des del mòbil</div>
+    <p class="help-text">Les factures es pugen a Drive (permís <strong>drive.file</strong>: l'app només veu els arxius que ella mateixa crea). Dins la carpeta indicada es crea una subcarpeta per any. Usa el mateix Client ID que a Facturació i una carpeta <strong>nova</strong> (l'app no veu els arxius que ja tens a Drive). Aquesta configuració s'ha de fer a cada dispositiu.</p>
+    <div class="form-grid">
+      <div class="form-group form-full"><label>Client ID de Google</label><input type="text" id="cfg_drive_client" placeholder="xxxx.apps.googleusercontent.com" autocomplete="off"></div>
+      <div class="form-group form-full"><label>ID de la carpeta de Drive</label><input type="text" id="cfg_drive_folder" placeholder="Codi que apareix a la URL de la carpeta" autocomplete="off"></div>
+    </div>
+    <div id="driveStatus" style="font-size:12px;color:var(--muted);margin-bottom:10px">Comprovant…</div>
+    <div class="form-actions">
+      <button class="btn btn-primary" onclick="saveDriveConfig()">DESAR</button>
+      <button class="btn btn-outline" onclick="driveConnectBtn()">CONNECTAR</button>
+      <button class="btn btn-outline" id="driveUploadBtn" onclick="driveUploadPending()">PUJAR FACTURES A DRIVE</button>
+    </div>
+    <div id="driveUploadStatus" style="margin-top:10px;font-size:12px;display:none"></div>
+  </div>
   <div class="form-section" style="margin-top:16px;border-color:rgba(224,92,92,.2)">
     <div class="form-section-title" style="color:var(--err)">Zona de perill</div>
     <p class="help-text">Esborra totes les factures i proveïdors. Fes un backup (Exportar JSON) abans.</p>
@@ -698,6 +714,154 @@ async function getApiKey(){if(_cachedApiKey)return _cachedApiKey;_cachedApiKey=a
 async function saveApiKey(k){_cachedApiKey=k;await setSetting('gemini_api_key',k)}
 async function getModel(){if(_cachedModel)return _cachedModel;_cachedModel=await getSetting('gemini_model')||'gemini-3.5-flash-lite';return _cachedModel}
 async function saveModel(m){_cachedModel=m;await setSetting('gemini_model',m)}
+
+// ===== GOOGLE DRIVE (permís drive.file) =====
+// Els arxius es pugen a <carpeta>/<any>/ amb el mateix nom que a la carpeta local.
+// A la factura es guarda driveId/driveName; el mòbil els usa per descarregar el document.
+const DRIVE_SCOPE='https://www.googleapis.com/auth/drive.file';
+let _driveCfg=null,_driveToken=null,_driveTokenExp=0,_driveYearCache={};
+async function loadDriveCfg(){
+  const c=await getSetting('driveConfig');
+  _driveCfg=(c&&c.clientId&&c.folderId)?c:null;
+  return _driveCfg;
+}
+function driveConfigured(){return !!_driveCfg}
+function driveTokenValid(){return !!_driveToken&&Date.now()<_driveTokenExp}
+function driveEsc(v){return String(v).replace(/\\/g,'\\\\').replace(/'/g,"\\'")}
+// Cal cridar-la des d'un clic de l'usuari (obre el pop-up de Google)
+function driveConnect(){
+  return new Promise((resolve,reject)=>{
+    if(!_driveCfg){reject(new Error('Drive no configurat (⚙)'));return}
+    if(!window.google||!google.accounts||!google.accounts.oauth2){reject(new Error('No s\'ha carregat la llibreria de Google'));return}
+    const tc=google.accounts.oauth2.initTokenClient({
+      client_id:_driveCfg.clientId,
+      scope:DRIVE_SCOPE,
+      callback:r=>{
+        if(r.error){reject(new Error(r.error));return}
+        _driveToken=r.access_token;
+        _driveTokenExp=Date.now()+(Number(r.expires_in||3600)-60)*1000;
+        resolve(_driveToken);
+      },
+      error_callback:e=>reject(new Error((e&&e.type)||'Connexió cancel·lada'))
+    });
+    tc.requestAccessToken({prompt:''});
+  });
+}
+async function driveApi(url,opts={}){
+  if(!driveTokenValid()){const e=new Error('Sense sessió de Drive');e.code='NOAUTH';throw e}
+  const r=await fetch(url,{...opts,headers:{...(opts.headers||{}),Authorization:'Bearer '+_driveToken}});
+  if(r.status===401){_driveToken=null;const e=new Error('Sessió de Drive caducada');e.code='NOAUTH';throw e}
+  if(!r.ok){const t=await r.text().catch(()=>'');const e=new Error('Drive '+r.status+': '+t.slice(0,120));e.status=r.status;throw e}
+  return r;
+}
+async function driveYearFolder(year){
+  const key=_driveCfg.folderId+'/'+year;
+  if(_driveYearCache[key])return _driveYearCache[key];
+  const q=`name='${driveEsc(year)}' and mimeType='application/vnd.google-apps.folder' and '${_driveCfg.folderId}' in parents and trashed=false`;
+  let r=await driveApi('https://www.googleapis.com/drive/v3/files?fields=files(id)&q='+encodeURIComponent(q));
+  let j=await r.json();
+  let id=j.files&&j.files[0]&&j.files[0].id;
+  if(!id){
+    r=await driveApi('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name:String(year),mimeType:'application/vnd.google-apps.folder',parents:[_driveCfg.folderId]})});
+    id=(await r.json()).id;
+  }
+  _driveYearCache[key]=id;
+  return id;
+}
+// Puja el blob a Drive i deixa driveId/driveName a l'objecte factura (no el desa a la BD)
+async function driveUploadFor(inv,blob){
+  const name=inv.driveName||inv.fileName||uniqueFileNameFor(inv);
+  const mime=inv.mime||blob.type||'application/pdf';
+  const year=(inv.date&&/^\d{4}/.test(inv.date))?inv.date.slice(0,4):'Sense data';
+  const parent=await driveYearFolder(year);
+  const form=new FormData();
+  form.append('metadata',new Blob([JSON.stringify({name,parents:[parent],mimeType:mime})],{type:'application/json'}));
+  form.append('file',new Blob([blob],{type:mime}));
+  const r=await driveApi('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',body:form});
+  inv.driveId=(await r.json()).id;
+  inv.driveName=name;
+}
+async function driveDownload(rec){
+  const mime=rec.mime||'application/pdf';
+  if(rec.driveId){
+    try{
+      const r=await driveApi('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(rec.driveId)+'?alt=media');
+      return new Blob([await r.blob()],{type:mime});
+    }catch(e){if(e.code==='NOAUTH')throw e}
+  }
+  const name=rec.driveName||rec.fileName;
+  if(!name)return null;
+  const q=`name='${driveEsc(name)}' and trashed=false`;
+  const r=await driveApi('https://www.googleapis.com/drive/v3/files?fields=files(id)&q='+encodeURIComponent(q));
+  const j=await r.json();
+  const id=j.files&&j.files[0]&&j.files[0].id;
+  if(!id)return null;
+  const r2=await driveApi('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(id)+'?alt=media');
+  return new Blob([await r2.blob()],{type:mime});
+}
+async function driveTrash(id){
+  try{await driveApi('https://www.googleapis.com/drive/v3/files/'+encodeURIComponent(id),{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})})}catch{}
+}
+async function localBlobFor(r){
+  if(r.fileName&&_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
+    try{return await readInvoiceFile(r.fileName)}catch{}
+  }
+  if(r.fileB64)return base64ToBlob(r.fileB64,r.mime||'application/pdf');
+  return null;
+}
+// ---- UI de configuració ----
+async function saveDriveConfig(){
+  const clientId=document.getElementById('cfg_drive_client').value.trim();
+  const folderId=document.getElementById('cfg_drive_folder').value.trim();
+  if(!clientId||!folderId){toast('Cal el Client ID i l\'ID de carpeta','err');return}
+  await setSetting('driveConfig',{clientId,folderId});
+  _driveCfg={clientId,folderId};_driveToken=null;_driveYearCache={};
+  toast('Configuració de Drive desada','ok');
+  refreshDriveStatus();
+}
+async function driveConnectBtn(){
+  try{await driveConnect();toast('Connectat a Drive','ok')}catch(e){toast('Drive: '+e.message,'err')}
+  refreshDriveStatus();
+}
+async function refreshDriveStatus(){
+  const st=document.getElementById('driveStatus');if(!st)return;
+  if(!_driveCfg){st.textContent='Drive no configurat.';return}
+  const all=await dbAll('invoices');
+  const pend=all.filter(r=>!r.driveId&&(r.fileName||r.fileB64)).length;
+  st.textContent=(driveTokenValid()?'✓ Connectat. ':'Sense sessió activa (clica CONNECTAR). ')+
+    (pend?pend+' factura'+(pend!==1?'s':'')+' encara no pujada'+(pend!==1?'s':'')+' a Drive.':'Totes les factures amb arxiu són a Drive.');
+}
+async function driveUploadPending(){
+  if(!_driveCfg){toast('Configura primer Drive','err');return}
+  const out=document.getElementById('driveUploadStatus');
+  try{if(!driveTokenValid())await driveConnect()}catch(e){toast('Drive: '+e.message,'err');return}
+  const todo=(await dbAll('invoices')).filter(r=>!r.driveId);
+  out.style.display='block';out.style.color='var(--muted)';
+  let ok=0,skip=0,fail=0;
+  for(let i=0;i<todo.length;i++){
+    out.textContent=`Pujant… ${i+1}/${todo.length}`;
+    const r=todo[i];
+    try{
+      const blob=await localBlobFor(r);
+      if(!blob){skip++;continue}
+      await driveUploadFor(r,blob);
+      const fresh=await dbGet('invoices',r.id);
+      if(fresh){fresh.driveId=r.driveId;fresh.driveName=r.driveName;await dbPut('invoices',fresh)}
+      ok++;
+    }catch(e){
+      fail++;
+      if(e.code==='NOAUTH'){out.textContent='La sessió de Drive ha caducat. Torna a connectar i repeteix.';out.style.color='var(--err)';refreshDriveStatus();return}
+    }
+  }
+  out.textContent=`✓ ${ok} pujada${ok!==1?'es':''}${skip?' · '+skip+' sense arxiu local':''}${fail?' · '+fail+' amb error':''}. Exporta el JSON i importa'l al mòbil perquè hi arribin els enllaços.`;
+  out.style.color=fail?'var(--warn)':'var(--ok)';
+  refreshDriveStatus();renderInvoices();
+}
+async function driveConnectAndShow(){
+  try{await driveConnect()}catch(e){toast('Drive: '+e.message,'err');return}
+  if(_currentDetailId)openDetail(_currentDetailId);
+}
 async function getMyDni(){if(_cachedDni!==null)return _cachedDni;const v=await getSetting('my_dni');_cachedDni=(v||'').trim().toUpperCase();return _cachedDni}
 async function saveMyDni(d){_cachedDni=d.trim().toUpperCase();await setSetting('my_dni',_cachedDni)}
 
@@ -943,21 +1107,32 @@ async function openDetail(id){
   const docWrap=document.getElementById('modalDocWrap');
   if(_currentDocUrl){URL.revokeObjectURL(_currentDocUrl);_currentDocUrl=null}
   const mime=r.mime||'application/pdf';
-  let blob=null;
+  let blob=null,needDriveConnect=false,driveErr='';
   if(r.fileName&&_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
     try{blob=await readInvoiceFile(r.fileName)}catch{blob=null}
   } else if(r.fileB64){
     blob=base64ToBlob(r.fileB64,mime);
   }
-  if(blob){
+  if(!blob&&driveConfigured()&&(r.driveId||r.driveName||r.fileName)){
+    document.getElementById('modalDeleteBtn').onclick=()=>deleteInvoice(id);
+    document.getElementById('modalOverlay').classList.add('show');
+    if(driveTokenValid()){
+      docWrap.innerHTML=`<div class="empty-state" style="padding:30px 10px"><div class="empty-text" style="font-size:11px">Carregant des de Drive…</div></div>`;
+      try{blob=await driveDownload(r)}catch(e){if(e.code==='NOAUTH')needDriveConnect=true;else driveErr=e.message}
+    } else needDriveConnect=true;
+  }
+  if(_currentDetailId!==id)return;
+  if(!blob&&needDriveConnect){
+    docWrap.innerHTML=`<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">◈</div><div class="empty-text" style="font-size:11px;margin-bottom:12px">El document és a Google Drive</div><button class="btn btn-primary" onclick="driveConnectAndShow()">VEURE DES DE DRIVE</button></div>`;
+  } else if(blob){
     _currentDocUrl=URL.createObjectURL(blob);
     if(mime.startsWith('image/')){
       docWrap.innerHTML=`<img src="${_currentDocUrl}" style="width:100%;border:1px solid var(--border)">`;
     } else {
-      docWrap.innerHTML=`<iframe class="pdf-frame" src="${_currentDocUrl}"></iframe>`;
+      docWrap.innerHTML=`<iframe class="pdf-frame" src="${_currentDocUrl}"></iframe><div style="margin-top:8px;text-align:center"><a href="${_currentDocUrl}" target="_blank" rel="noopener" style="font-size:11px;color:var(--accent)">Obrir PDF en una pestanya nova</a></div>`;
     }
   } else if(r.fileName){
-    docWrap.innerHTML=`<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">◈</div><div class="empty-text" style="font-size:11px">No es pot llegir l'arxiu «${r.fileName}». Comprova que la carpeta vinculada és la correcta (⚙ Configuració).</div></div>`;
+    docWrap.innerHTML=`<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">◈</div><div class="empty-text" style="font-size:11px">${driveErr?'Drive: '+driveErr+'<br>':''}No es pot llegir l'arxiu «${r.fileName}». Comprova que la carpeta vinculada és la correcta (⚙ Configuració).</div></div>`;
   } else {
     docWrap.innerHTML=`<div class="empty-state" style="padding:30px 10px"><div class="empty-icon">◈</div><div class="empty-text" style="font-size:11px">Document no disponible</div></div>`;
   }
@@ -992,11 +1167,12 @@ async function downloadCurrentInvoiceDoc(){
   if(!_currentDetailId)return;
   const r=await dbGet('invoices',_currentDetailId);
   if(!r){toast('Document no disponible','err');return}
-  let blob=null;
-  if(r.fileName&&_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
-    try{blob=await readInvoiceFile(r.fileName)}catch{blob=null}
-  } else if(r.fileB64){
-    blob=base64ToBlob(r.fileB64,r.mime||'application/pdf');
+  let blob=await localBlobFor(r);
+  if(!blob&&driveConfigured()&&(r.driveId||r.driveName||r.fileName)){
+    try{
+      if(!driveTokenValid())await driveConnect();
+      blob=await driveDownload(r);
+    }catch(e){toast('Drive: '+e.message,'err');return}
   }
   if(!blob){toast('Document no disponible','err');return}
   const url=URL.createObjectURL(blob);
@@ -1013,6 +1189,7 @@ async function deleteInvoice(id){
   if(r&&r.fileName&&_invoiceDirHandle&&await ensureDirPermission(_invoiceDirHandle)){
     await deleteInvoiceFile(r.fileName);
   }
+  if(r&&r.driveId&&driveTokenValid())await driveTrash(r.driveId);
   closeDetail();renderInvoices();
   toast('Factura eliminada');
 }
@@ -1314,6 +1491,9 @@ async function processInvBatch(files){
         } else {
           inv.fileB64=await fileToBase64(it.file);
         }
+        if(driveConfigured()&&driveTokenValid()){
+          try{await driveUploadFor(inv,it.file)}catch(e){/* queda pendent: botó «Pujar factures a Drive» */}
+        }
         await dbAdd('invoices',inv);
         it.state='ok';it.provider=inv.provider||'';it.total=inv.total?Number(inv.total).toFixed(2):'';done++;
       }
@@ -1538,6 +1718,10 @@ async function loadApiConfigPage(){
   const dniSt=document.getElementById('cfg_dni_status');
   if(dniSt&&dni){dniSt.textContent='✓ DNI: '+dni;dniSt.style.color='var(--ok)';dniSt.style.display='block'}
   refreshFolderStatus();
+  const dc=_driveCfg||{};
+  document.getElementById('cfg_drive_client').value=dc.clientId||'';
+  document.getElementById('cfg_drive_folder').value=dc.folderId||'';
+  refreshDriveStatus();
 }
 async function saveApiConfig(){
   const key=document.getElementById('cfg_apikey').value.trim();
@@ -1658,6 +1842,7 @@ async function init(){
   await initDB();
   _cachedApiKey=await getApiKey();
   await loadInvoiceDirHandle();
+  await loadDriveCfg();
   const seeded=await getSetting('seeded');
   if(!seeded){
     const ex=await dbAll('invoices');
